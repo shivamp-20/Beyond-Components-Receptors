@@ -121,7 +121,7 @@ def _save_heatmap(mat: torch.Tensor, path: Path, title: str, max_show: int = 128
 
 def _build_raw_dataloader(config: Dict[str, Any]):
     data_type = config["data_type"]
-    data_dir = config["data_dir"]
+    # data_dir = config["data_dir"]
     batch_size = int(config["training"]["batch_size"])
     num_workers = int(config["training"].get("num_workers", 4))
 
