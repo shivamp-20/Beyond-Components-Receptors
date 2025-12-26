@@ -35,7 +35,7 @@ sys.path.append(str(ROOT_DIR))
 
 from experiments.train import load_config
 from src.data.data_loader import load_ioi_dataset, load_gp_dataset, load_gt_dataset
-from src.data.utils.utils import get_data_column_names
+from src.utils.utils import get_data_column_names
 from src.models.masked_transformer_circuit import MaskedTransformerCircuit
 from src.utils.receptor_fisher_geometry import (
     make_logit_receptors,
