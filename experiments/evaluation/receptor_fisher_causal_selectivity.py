@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import torch
 import matplotlib.pyplot as plt
+from transformer_lens import HookedTransformer
 
 # Make repo root importable
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -329,6 +330,10 @@ def main():
         raise ValueError("This script currently supports --position last only (matches your spec defaults).")
 
     _set_seed(args.seed)
+    model = HookedTransformer.from_pretrained(
+        config["model"]["name"],
+        cache_dir=config["model"]["pretrained_cache_dir"],
+    ).to(device)
     device = _get_device()
     geom_dtype = _torch_dtype_from_str(args.dtype)
 
