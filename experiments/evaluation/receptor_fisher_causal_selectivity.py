@@ -351,8 +351,11 @@ def main():
         cache_svd=bool(config["masking"].get("cache_svd", True)),
         mask_init_value=config["masking"]["mask_init_value"],
     )
-    circuit.to(device)
-    circuit.eval()
+    model = circuit.model
+    # circuit.to(device)
+    # circuit.eval()
+    model.to(device)
+    model.eval()
 
     # If checkpoint is provided, load like other scripts do
     if args.checkpoint is not None:
