@@ -136,7 +136,7 @@ def _build_raw_dataloader(config: Dict[str, Any]):
 
     # Use validation split for evaluation
     return fn(
-        data_dir=data_dir,
+        data_dir=None,
         batch_size=batch_size,
         full_batch=False,
         shuffle=False,
