@@ -259,7 +259,26 @@ def apply_D(V_write: torch.Tensor, D: torch.Tensor, renorm_cols: bool = True) ->
     if V_write.shape[1] != D.shape[0]:
         raise ValueError(f"Shape mismatch: V_write is {tuple(V_write.shape)}, D is {tuple(D.shape)}")
 
+    # V_dec = V_write @ D
+    # Ensure matmul operands have same dtype/device
+    if D.device != V_write.device:
+        D = D.to(device=V_write.device)
+
+    # Promote V_write to D.dtype for matmul, then optionally cast back
+    orig_dtype = V_write.dtype
+    if V_write.dtype != D.dtype:
+        V_write = V_write.to(dtype=D.dtype)
+
     V_dec = V_write @ D
+
+    if renorm_cols:
+        norms = torch.linalg.norm(V_dec, dim=0, keepdim=True).clamp(min=1e-12)
+        V_dec = V_dec / norms
+
+    # Cast back so downstream stays lightweight (R_logit stays float32 typically)
+    if V_dec.dtype != orig_dtype:
+        V_dec = V_dec.to(dtype=orig_dtype)
+
     if renorm_cols:
         norms = torch.linalg.norm(V_dec, dim=0, keepdim=True).clamp(min=1e-12)
         V_dec = V_dec / norms
