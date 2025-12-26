@@ -285,6 +285,20 @@ def apply_D(V_write: torch.Tensor, D: torch.Tensor, renorm_cols: bool = True) ->
     return V_dec
 
 
+# @torch.no_grad()
+# def apply_D(V_write: torch.Tensor, D: torch.Tensor, renorm_cols: bool = True) -> torch.Tensor:
+#     # Make matmul legal: same dtype + same device
+#     if V_write.dtype != D.dtype or V_write.device != D.device:
+#         V_write = V_write.to(dtype=D.dtype, device=D.device)
+
+#     V_dec = V_write @ D
+
+#     if renorm_cols:
+#         denom = V_dec.norm(dim=0, keepdim=True).clamp_min(1e-12)
+#         V_dec = V_dec / denom
+#     return V_dec
+
+
 @torch.no_grad()
 def interference_metrics(G: torch.Tensor) -> Dict[str, float]:
     """
