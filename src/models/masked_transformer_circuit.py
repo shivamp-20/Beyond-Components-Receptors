@@ -41,6 +41,65 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 class MaskedTransformerCircuit:
+    @torch.no_grad()
+    def get_unembed_weight(self) -> torch.Tensor:
+        """
+        Return the tensor used to map residual/hidden state to logits (unembedding / lm_head weight).
+        Returns a detached tensor on the same device.
+        """
+        # Try common names for unembedding weight
+        if 'unembed.W_U' in self.state_dict:
+            W_U = self.state_dict['unembed.W_U']
+        elif hasattr(self.model, 'lm_head') and hasattr(self.model.lm_head, 'weight'):
+            W_U = self.model.lm_head.weight
+        elif hasattr(self.model, 'transformer') and hasattr(self.model.transformer, 'wte') and hasattr(self.model.transformer.wte, 'weight'):
+            W_U = self.model.transformer.wte.weight
+        else:
+            raise AttributeError("Could not find unembedding weight in known locations.")
+        return W_U.detach().to(self.device)
+
+    @torch.no_grad()
+    def get_ov_write_singular_vectors(self, layers=None, heads=None, top_k=8, use_augmented=True) -> dict:
+        """
+        Return right singular vectors (write directions) and singular values for OV matrices.
+        Output: {(layer, head): {"V_write": V_write, "S": Svals}}
+        V_write shape: [d_model(+aug?), top_k] (matches OV output dim, not transposed)
+        """
+        results = {}
+        layers = range(self.n_layers) if layers is None else layers
+        heads = range(self.n_heads) if heads is None else heads
+        for layer in layers:
+            for head in heads:
+                head_key = f'differential_head_{layer}_{head}'
+                ov_cache_key = f"{head_key}_ov"
+                # Use cached SVD if available
+                if ov_cache_key in self.svd_cache:
+                    U, S, Vh, W_OV = self.svd_cache[ov_cache_key]
+                else:
+                    # Compute SVD on the correct OV matrix
+                    if use_augmented:
+                        _, _, _, W_OV = self._compute_ov_svd(layer, head)
+                    else:
+                        # If not using augmented, fallback to W_OV from state_dict (not typical in this repo)
+                        W_V = self.state_dict[f'blocks.{layer}.attn.W_V'][head].to(self.device)
+                        W_O = self.state_dict[f'blocks.{layer}.attn.W_O'][head].to(self.device)
+                        W_OV = W_V @ W_O
+                    U, S, Vh = torch.linalg.svd(W_OV, full_matrices=False)
+                V = Vh.transpose(-2, -1)  # [output_dim, output_dim]
+                V_write = V[:, :top_k]    # [output_dim, top_k]
+                Svals = S[:top_k]         # [top_k]
+                results[(layer, head)] = {"V_write": V_write, "S": Svals}
+        return results
+
+    def _sanity_print_logit_receptor_shapes(self):
+        """Internal helper: print W_U shape and one V_write shape."""
+        W_U = self.get_unembed_weight()
+        print(f"W_U shape: {tuple(W_U.shape)}")
+        ov_dict = self.get_ov_write_singular_vectors(layers=[0], heads=[0], top_k=4)
+        for (layer, head), d in ov_dict.items():
+            print(f"Layer {layer} Head {head} V_write shape: {tuple(d['V_write'].shape)}")
+            break
+        
     def __init__(
         self,
         model: HookedTransformer,
