@@ -338,7 +338,13 @@ def main():
     raw_loader = _build_raw_dataloader(config)
 
     # ----- Build model (same as training style) -----
-    circuit = MaskedTransformerCircuit(config)
+    # circuit = MaskedTransformerCircuit(config)
+    circuit = MaskedTransformerCircuit(
+        model=model,
+        device=device,
+        cache_svd=bool(config["masking"].get("cache_svd", True)),
+        mask_init_value=config["masking"]["mask_init_value"],
+    )
     circuit.to(device)
     circuit.eval()
 
