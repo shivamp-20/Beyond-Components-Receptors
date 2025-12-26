@@ -85,13 +85,35 @@ def _build_raw_dataloader(config: Dict[str, Any]):
     data_type = config["data_type"]
     batch_size = config["training"]["batch_size"]
     seed = config["seed"]
+    num_workers = int(config["training"].get("num_workers", 4))
 
     if data_type == "ioi":
-        dataset = load_ioi_dataset(seed=seed)
+        # dataset = load_ioi_dataset(seed=seed)
+        dataset = load_ioi_dataset(data_dir=None,
+                                    batch_size=batch_size,
+                                    full_batch=False,
+                                    shuffle=False,
+                                    num_workers=num_workers,
+                                    validation=True,
+                                    train=False,)
     elif data_type == "gp":
-        dataset = load_gp_dataset(seed=seed)
+        # dataset = load_gp_dataset(seed=seed)
+        dataset = load_gp_dataset(data_dir=None,
+                                    batch_size=batch_size,
+                                    full_batch=False,
+                                    shuffle=False,
+                                    num_workers=num_workers,
+                                    validation=True,
+                                    train=False,)
     elif data_type == "gt":
-        dataset = load_gt_dataset(seed=seed)
+        # dataset = load_gt_dataset(seed=seed)
+        dataset = load_gt_dataset(data_dir=None,
+                                    batch_size=batch_size,
+                                    full_batch=False,
+                                    shuffle=False,
+                                    num_workers=num_workers,
+                                    validation=True,
+                                    train=False,)
     else:
         raise ValueError(f"Unknown data_type: {data_type}")
 
