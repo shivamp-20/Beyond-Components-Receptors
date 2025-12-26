@@ -3,7 +3,7 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset, DataLoader
 import transformer_lens
-from ..utils.utils import get_data_column_names, get_label_column_names
+from ..utils.utils import get_data_column_names
 
 import transformers
 from transformers import (
