@@ -330,15 +330,16 @@ def main():
         raise ValueError("This script currently supports --position last only (matches your spec defaults).")
 
     _set_seed(args.seed)
-    model = HookedTransformer.from_pretrained(
-        config["model"]["name"],
-        cache_dir=config["model"]["pretrained_cache_dir"],
-    ).to(device)
+    
     device = _get_device()
     geom_dtype = _torch_dtype_from_str(args.dtype)
 
     # ----- Load config + data -----
     config = load_config(args.config)
+    model = HookedTransformer.from_pretrained(
+        config["model"]["name"],
+        cache_dir=config["model"]["pretrained_cache_dir"],
+    ).to(device)
     data_type = config["data_type"]
     raw_loader = _build_raw_dataloader(config)
 
