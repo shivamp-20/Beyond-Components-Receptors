@@ -82,9 +82,9 @@ def _get_device() -> torch.device:
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def _build_raw_dataloader(config: Dict[str, Any]):
-    data_type = config["data"]["type"]
+    data_type = config["data_type"]
     batch_size = config["training"]["batch_size"]
-    seed = config["data"].get("seed", 0)
+    seed = config["seed"]
 
     if data_type == "ioi":
         dataset = load_ioi_dataset(seed=seed)
@@ -312,7 +312,7 @@ def main():
 
     # ----- Load config + data -----
     config = load_config(args.config)
-    data_type = config["data"]["type"]
+    data_type = config["data_type"]
     raw_loader = _build_raw_dataloader(config)
 
     # ----- Build model (same as training style) -----
