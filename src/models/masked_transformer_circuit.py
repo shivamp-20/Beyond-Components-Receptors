@@ -498,7 +498,7 @@ class MaskedTransformerCircuit:
             shutil.rmtree(self.svd_cache_dir)
             logger.info(f"Cleared SVD cache directory: {self.svd_cache_dir}")
     
-        @torch.no_grad()
+    @torch.no_grad()
     def get_unembed_weight(self) -> torch.Tensor:
         """
         Return the raw unembedding weight used to map residual/hidden state -> logits.
