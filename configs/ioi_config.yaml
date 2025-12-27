@@ -17,7 +17,7 @@ max_pad_length: 64
 # Training settings
 training:
   batch_size: 64
-  num_epochs: 2
+  num_epochs: 15
   device: "cuda"
 
   # Optimizer hyperparameters
