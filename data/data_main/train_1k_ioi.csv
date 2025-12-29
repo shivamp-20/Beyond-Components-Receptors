@@ -1,0 +1,1001 @@
+ioi_sentences_input,ioi_sentences_labels,corr_ioi_sentences_input,corr_ioi_sentences_labels,ioi_sentences_labels_wrong,corr_ioi_sentences_labels_wrong
+Friends Robin and William found a coconut at the park. Robin gave it to,William,Friends Jerry and Jesus found a coconut at the park. Jackson gave it to,Karl,Robin,Jerry
+"When Juana and Velma got a mango at the cafe, Velma decided to give the mango to",Juana,"When Alivia and Cali got a mango at the cafe, Marisol decided to give the mango to",Brandi,Velma,Cali
+"After the lunch, Martha and Susan went to the museum. Martha gave a cantaloupe to",Susan,"After the lunch, Kaia and Elsa went to the museum. Abram gave a cantaloupe to",Steve,Martha,Kaia
+"Then, Alice and Leona were thinking about going to the desert. Alice wanted to give a blueberry to",Leona,"Then, Allen and Aliza were thinking about going to the desert. Gabriel wanted to give a blueberry to",Katharine,Alice,Allen
+"Then, Jody and Kathryn went to the park. Jody gave a coconut to",Kathryn,"Then, Margaret and Keegan went to the park. Khalil gave a coconut to",Juanita,Jody,Margaret
+"Then, Heidi and Richard went to the river. Richard gave a coconut to",Heidi,"Then, Deborah and Patrick went to the river. Joseph gave a coconut to",Brandon,Richard,Patrick
+"While Violet and Sarah were working at the theater, Violet gave a watermelon to",Sarah,"While Tina and Peter were working at the theater, Diego gave a watermelon to",Nick,Violet,Tina
+"When Faye and Mildred got a kiwi at the lake, Faye decided to give the kiwi to",Mildred,"When Seamus and Cayden got a kiwi at the lake, Dario decided to give the kiwi to",Bridgette,Faye,Seamus
+The cafe Stella and Martha went to had a raspberry. Martha gave it to,Stella,The cafe Noelia and Rory went to had a raspberry. Evan gave it to,Devin,Martha,Rory
+"After Pauline and Deanna went to the river, Pauline gave a pineapple to",Deanna,"After Saige and Jayce went to the river, Emely gave a pineapple to",Ross,Pauline,Saige
+"After the lunch, Faye and Chelsea went to the home. Faye gave a papaya to",Chelsea,"After the lunch, Brendon and Morgan went to the home. Rocio gave a papaya to",Emerson,Faye,Brendon
+"When Stella and Suzanne got a blackberry at the lake, Suzanne decided to give it to",Stella,"When Karen and Rahul got a blackberry at the lake, Misty decided to give it to",Tommy,Suzanne,Rahul
+"Then, Juana and Pauline went to the mountain. Pauline gave a mango to",Juana,"Then, Candace and Terence went to the mountain. Stephanie gave a mango to",Elisa,Pauline,Terence
+"Then, Pauline and Rosemarie were thinking about going to the zoo. Pauline wanted to give a peach to",Rosemarie,"Then, Aliyah and Dewayne were thinking about going to the zoo. Ean wanted to give a peach to",Jazmyne,Pauline,Aliyah
+"When Sonia and David got a watermelon at the zoo, Sonia decided to give the watermelon to",David,"When Barry and Maria got a watermelon at the zoo, Derrick decided to give the watermelon to",Anita,Sonia,Barry
+"While Kelly and Heidi were working at the lake, Kelly gave a honeydew to",Heidi,"While Howard and Nathan were working at the lake, Norman gave a honeydew to",Drake,Kelly,Howard
+"Then, Angie and Rebecca went to the museum. Rebecca gave a cherry to",Angie,"Then, Karla and Jana went to the museum. Chandler gave a cherry to",Clinton,Rebecca,Jana
+"Afterwards, Lula and Wilma went to the forest. Lula gave a mango to",Wilma,"Afterwards, Lane and Colt went to the forest. Larissa gave a mango to",Jamel,Lula,Lane
+"Then, Lee and Leona went to the museum. Lee gave a papaya to",Leona,"Then, Martin and Jaylin went to the museum. Gonzalo gave a papaya to",Summer,Lee,Martin
+Friends Sheila and Sonia found a grape at the park. Sonia gave it to,Sheila,Friends Francis and Carlo found a grape at the park. Louis gave it to,Haley,Sonia,Carlo
+"While Kristina and Brian were working at the store, Kristina gave a blueberry to",Brian,"While Colin and Leon were working at the store, Alessandra gave a blueberry to",Kenya,Kristina,Colin
+"Then, Geneva and Dianne were thinking about going to the school. Geneva wanted to give a raspberry to",Dianne,"Then, Kenzie and Kaelyn were thinking about going to the school. Dante wanted to give a raspberry to",Brooke,Geneva,Kenzie
+"While Marilyn and Alicia were commuting to the park, Marilyn gave a plum to",Alicia,"While Rylie and Gonzalo were commuting to the park, Anton gave a plum to",Regina,Marilyn,Rylie
+"Afterwards, Angie and Leigh went to the cafe. Leigh gave a cantaloupe to",Angie,"Afterwards, Tanner and Reese went to the cafe. Araceli gave a cantaloupe to",Jefferson,Leigh,Reese
+"Then, Yvette and Marian had a lot of fun at the forest. Yvette gave a papaya to",Marian,"Then, Jillian and Bradly had a lot of fun at the forest. Tess gave a papaya to",Hope,Yvette,Jillian
+"Afterwards, Suzanne and Ginger went to the cave. Suzanne gave a kiwi to",Ginger,"Afterwards, Isaak and Emerald went to the cave. Stacy gave a kiwi to",Ethan,Suzanne,Isaak
+"When Natasha and Wilma got a honeydew at the home, Natasha decided to give it to",Wilma,"When Marcel and Josef got a honeydew at the home, Jayden decided to give it to",Ahmed,Natasha,Marcel
+"After Deanna and Richard went to the river, Richard gave a blueberry to",Deanna,"After Kaley and Rose went to the river, Dillan gave a blueberry to",Natalie,Richard,Rose
+"Afterwards, Carol and Jessie went to the museum. Carol gave a coconut to",Jessie,"Afterwards, Cameron and Xavier went to the museum. Kenya gave a coconut to",Clay,Carol,Cameron
+"Then, Inez and Heidi had a lot of fun at the lake. Inez gave a peach to",Heidi,"Then, Nellie and Kiley had a lot of fun at the lake. Bailey gave a peach to",Kayli,Inez,Nellie
+"When Alice and Dianne got a papaya at the bar, Alice decided to give the papaya to",Dianne,"When Luke and Dariana got a papaya at the bar, Hazel decided to give the papaya to",Rebecca,Alice,Luke
+"While Kristina and Rosa were working at the market, Kristina gave a raspberry to",Rosa,"While Brandan and Karlie were working at the market, Autumn gave a raspberry to",Karen,Kristina,Brandan
+"Then, Erika and Charlene were working at the gym. Erika decided to give a papaya to",Charlene,"Then, Noelia and Kade were working at the gym. Syed decided to give a papaya to",Carlee,Erika,Noelia
+"After Melanie and Kristina went to the zoo, Kristina gave a mango to",Melanie,"After Karly and Tina went to the zoo, Sierra gave a mango to",Alayna,Kristina,Tina
+"Then, Yolanda and Melissa went to the theater. Melissa gave a pear to",Yolanda,"Then, Giselle and Casey went to the theater. Esmeralda gave a pear to",Macy,Melissa,Casey
+"After Miriam and Loretta went to the mountain, Miriam gave a raspberry to",Loretta,"After Jaiden and Bridget went to the mountain, Felix gave a raspberry to",Mireya,Miriam,Jaiden
+"Then, Stella and Estelle went to the shop. Estelle gave a banana to",Stella,"Then, Quentin and Estrella went to the shop. Marquise gave a banana to",Asia,Estelle,Estrella
+The theater Kristina and Nellie went to had a watermelon. Kristina gave it to,Nellie,The theater Melina and Daniella went to had a watermelon. Gabriella gave it to,Anahi,Kristina,Melina
+"While Megan and Paula were commuting to the cafe, Megan gave a coconut to",Paula,"While Valerie and Donte were commuting to the cafe, Jay gave a coconut to",David,Megan,Valerie
+"Then, Susan and Pat went to the desert. Pat gave a pear to",Susan,"Then, Alice and Albert went to the desert. Reagan gave a pear to",Adrian,Pat,Albert
+"Then, Violet and Susan had a lot of fun at the desert. Violet gave a kiwi to",Susan,"Then, Jorge and Ryan had a lot of fun at the desert. Essence gave a kiwi to",Noel,Violet,Jorge
+"Afterwards, Dianne and Ethel went to the gym. Ethel gave a kiwi to",Dianne,"Afterwards, Johanna and Jared went to the gym. Nadia gave a kiwi to",Remington,Ethel,Jared
+The theater Yvette and Jacqueline went to had a cherry. Yvette gave it to,Jacqueline,The theater Leonard and Aaliyah went to had a cherry. Rachelle gave it to,Lila,Yvette,Leonard
+"Then, Paula and Pauline had a lot of fun at the museum. Pauline gave a peach to",Paula,"Then, Kaila and Ignacio had a lot of fun at the museum. Kent gave a peach to",Agustin,Pauline,Ignacio
+The museum Lorraine and Inez went to had a kiwi. Inez gave it to,Lorraine,The museum Yamilet and Jailyn went to had a kiwi. Emilia gave it to,Madelyn,Inez,Jailyn
+"Afterwards, Violet and Rosa went to the beach. Violet gave a peach to",Rosa,"Afterwards, Erik and Roland went to the beach. Marian gave a peach to",Drake,Violet,Erik
+"Then, Suzanne and Paula were thinking about going to the beach. Suzanne wanted to give a cherry to",Paula,"Then, Reina and Reese were thinking about going to the beach. Brennan wanted to give a cherry to",Mark,Suzanne,Reina
+"Then, Inez and Sarah were thinking about going to the river. Inez wanted to give a apple to",Sarah,"Then, Elliott and Richard were thinking about going to the river. Frankie wanted to give a apple to",Tiana,Inez,Elliott
+"Afterwards, Kim and Rebecca went to the desert. Rebecca gave a strawberry to",Kim,"Afterwards, Anderson and Greyson went to the desert. Aurora gave a strawberry to",Valerie,Rebecca,Greyson
+"Then, Rosa and Kristina had a lot of fun at the cave. Kristina gave a mango to",Rosa,"Then, Tommy and Blaine had a lot of fun at the cave. Leslie gave a mango to",Tyrell,Kristina,Blaine
+"Afterwards, Kristi and Jerry went to the park. Kristi gave a blueberry to",Jerry,"Afterwards, Kole and Frank went to the park. Jasmine gave a blueberry to",Toby,Kristi,Kole
+"After the lunch, Alyssa and Inez went to the home. Inez gave a grape to",Alyssa,"After the lunch, Margarita and Sabastian went to the home. Kylie gave a grape to",Cheyenne,Inez,Sabastian
+Friends Rosemarie and Kristi found a strawberry at the market. Kristi gave it to,Rosemarie,Friends Shawna and Sheldon found a strawberry at the market. Lyndsey gave it to,Mireya,Kristi,Sheldon
+"Then, Melanie and Natasha went to the library. Natasha gave a grape to",Melanie,"Then, Audrey and Ariel went to the library. Norman gave a grape to",Summer,Natasha,Ariel
+"Then, Pauline and Heidi went to the zoo. Pauline gave a apple to",Heidi,"Then, Keon and Marvin went to the zoo. Piper gave a apple to",Shaun,Pauline,Keon
+"After the lunch, Suzanne and Theresa went to the beach. Suzanne gave a blackberry to",Theresa,"After the lunch, Julie and Abby went to the beach. Kendrick gave a blackberry to",Sally,Suzanne,Julie
+"Then, Natasha and Rosa went to the forest. Natasha gave a peach to",Rosa,"Then, Lara and Clara went to the forest. Adam gave a peach to",Pedro,Natasha,Lara
+The home Deanna and Gwen went to had a banana. Gwen gave it to,Deanna,The home Melody and Hamza went to had a banana. Alaina gave it to,Ramon,Gwen,Hamza
+"Then, Kristina and Theresa were thinking about going to the home. Kristina wanted to give a raspberry to",Theresa,"Then, Bernard and Cassandra were thinking about going to the home. Sarina wanted to give a raspberry to",Carlie,Kristina,Bernard
+"When Alicia and Pat got a grape at the river, Pat decided to give the grape to",Alicia,"When Armani and Karl got a grape at the river, Katrina decided to give the grape to",Gerald,Pat,Karl
+"While Stacey and Loretta were working at the school, Stacey gave a pear to",Loretta,"While Jaclyn and Greta were working at the school, Amari gave a pear to",Gage,Stacey,Jaclyn
+"Then, Maggie and Rosa went to the cafe. Maggie gave a banana to",Rosa,"Then, Lorena and Isiah went to the cafe. Holly gave a banana to",Garrett,Maggie,Lorena
+The library Richard and Diana went to had a honeydew. Richard gave it to,Diana,The library Josh and Stella went to had a honeydew. Emma gave it to,Daisy,Richard,Josh
+"Afterwards, Sarah and Melissa went to the bar. Melissa gave a plum to",Sarah,"Afterwards, Mark and Haven went to the bar. Abraham gave a plum to",Kendall,Melissa,Haven
+"Then, Robin and Paula had a lot of fun at the lake. Robin gave a cherry to",Paula,"Then, Kim and Ally had a lot of fun at the lake. Frances gave a cherry to",Vaughn,Robin,Kim
+Friends Suzanne and Virginia found a orange at the library. Suzanne gave it to,Virginia,Friends Desmond and Ryan found a orange at the library. Lauren gave it to,Catherine,Suzanne,Desmond
+"After Pat and Virginia went to the river, Pat gave a coconut to",Virginia,"After Jamie and Diamond went to the river, London gave a coconut to",Aaron,Pat,Jamie
+"Then, Mattie and Lee went to the shop. Lee gave a blackberry to",Mattie,"Then, Pablo and Maria went to the shop. Bridgette gave a blackberry to",Jon,Lee,Maria
+"After Geneva and Angie went to the beach, Geneva gave a papaya to",Angie,"After Savion and Bailey went to the beach, Ella gave a papaya to",Steven,Geneva,Savion
+"While Yvette and Jacqueline were working at the mountain, Yvette gave a pineapple to",Jacqueline,"While Kyler and Ramiro were working at the mountain, Devin gave a pineapple to",Caitlyn,Yvette,Kyler
+"While Violet and Leona were working at the river, Violet gave a cantaloupe to",Leona,"While Miriam and Levi were working at the river, Robin gave a cantaloupe to",Liliana,Violet,Miriam
+Friends Alyssa and Irma found a peach at the store. Irma gave it to,Alyssa,Friends Gonzalo and Corey found a peach at the store. Moises gave it to,Salvatore,Irma,Corey
+"Then, Lee and Mark went to the zoo. Lee gave a raspberry to",Mark,"Then, Ben and Mary went to the zoo. Ashton gave a raspberry to",Alicia,Lee,Ben
+"When Suzanne and Nellie got a plum at the school, Suzanne decided to give it to",Nellie,"When Carley and Maverick got a plum at the school, Roxanne decided to give it to",Isaak,Suzanne,Carley
+"While Marian and Eleanor were working at the theater, Eleanor gave a blueberry to",Marian,"While Emanuel and Sheldon were working at the theater, Martha gave a blueberry to",Alice,Eleanor,Sheldon
+"When Mattie and Rachel got a blueberry at the lake, Rachel decided to give the blueberry to",Mattie,"When Julien and Raven got a blueberry at the lake, Layne decided to give the blueberry to",Christiana,Rachel,Raven
+"While Lee and Leona were commuting to the lake, Lee gave a apple to",Leona,"While Israel and Raquel were commuting to the lake, Itzel gave a apple to",Sharon,Lee,Israel
+"After the lunch, Eleanor and Alicia went to the lake. Eleanor gave a apple to",Alicia,"After the lunch, Dennis and Dallin went to the lake. Keith gave a apple to",Santiago,Eleanor,Dennis
+"Then, Charlene and Suzanne were thinking about going to the home. Suzanne wanted to give a strawberry to",Charlene,"Then, Logan and Carli were thinking about going to the home. Nickolas wanted to give a strawberry to",Kathy,Suzanne,Carli
+"After the lunch, William and Rachel went to the lake. Rachel gave a pineapple to",William,"After the lunch, Charles and Justice went to the lake. Justin gave a pineapple to",Jonas,Rachel,Justice
+Friends Angie and Velma found a kiwi at the home. Velma gave it to,Angie,Friends Lucas and Shea found a kiwi at the home. Zoie gave it to,Noemi,Velma,Shea
+"Then, Mona and Kim were working at the beach. Mona decided to give a cherry to",Kim,"Then, Ginger and Jean were working at the beach. Tara decided to give a cherry to",Kameron,Mona,Ginger
+"Then, Stella and Richard went to the cave. Richard gave a blueberry to",Stella,"Then, Emmanuel and James went to the cave. James gave a blueberry to",Paris,Richard,James
+"While Ginger and Geneva were working at the museum, Geneva gave a cantaloupe to",Ginger,"While Greyson and Nancy were working at the museum, Claudia gave a cantaloupe to",Ivy,Geneva,Nancy
+"Then, Fannie and Jessie were thinking about going to the forest. Fannie wanted to give a honeydew to",Jessie,"Then, Gino and Jacoby were thinking about going to the forest. Charlie wanted to give a honeydew to",Sheldon,Fannie,Gino
+"When Ginger and Richard got a mango at the zoo, Richard decided to give the mango to",Ginger,"When Jayla and Kelly got a mango at the zoo, Brooks decided to give the mango to",Alan,Richard,Kelly
+"Afterwards, Mildred and Eleanor went to the park. Eleanor gave a apple to",Mildred,"Afterwards, Mekhi and Marques went to the park. Brittany gave a apple to",Esperanza,Eleanor,Marques
+"Afterwards, Yvette and Evelyn went to the home. Yvette gave a papaya to",Evelyn,"Afterwards, Cassandra and Annabelle went to the home. Jett gave a papaya to",Alexandrea,Yvette,Cassandra
+"When Grace and Carmen got a cherry at the school, Grace decided to give the cherry to",Carmen,"When Abdullah and Trevor got a cherry at the school, John decided to give the cherry to",Jewel,Grace,Abdullah
+"Then, Janet and Melissa went to the beach. Melissa gave a cantaloupe to",Janet,"Then, Jamal and Courtney went to the beach. Forrest gave a cantaloupe to",Veronica,Melissa,Courtney
+"Then, Mark and Alice were thinking about going to the museum. Alice wanted to give a banana to",Mark,"Then, Marcus and Raven were thinking about going to the museum. Piper wanted to give a banana to",Jeff,Alice,Raven
+"While Stacy and Sophia were commuting to the mountain, Sophia gave a papaya to",Stacy,"While Mia and Tylor were commuting to the mountain, Tony gave a papaya to",Jane,Sophia,Tylor
+"When Melanie and Kari got a cantaloupe at the shop, Kari decided to give the cantaloupe to",Melanie,"When Aniyah and Dylon got a cantaloupe at the shop, Susana decided to give the cantaloupe to",Ali,Kari,Dylon
+"Then, Faye and Sarah were working at the desert. Faye decided to give a watermelon to",Sarah,"Then, Ivana and Gary were working at the desert. Houston decided to give a watermelon to",Alexis,Faye,Ivana
+"After the lunch, Sophia and Chelsea went to the park. Sophia gave a peach to",Chelsea,"After the lunch, Omari and Diamond went to the park. Julia gave a peach to",Kennedy,Sophia,Omari
+"When Amanda and Eleanor got a orange at the shop, Eleanor decided to give it to",Amanda,"When Nolan and Sandy got a orange at the shop, Carolina decided to give it to",Lisa,Eleanor,Sandy
+"After Faye and Stacy went to the theater, Faye gave a pear to",Stacy,"After Eileen and Melinda went to the theater, Anthony gave a pear to",Shelby,Faye,Eileen
+"Then, Doris and Marilyn had a lot of fun at the store. Marilyn gave a cantaloupe to",Doris,"Then, Randall and Dalton had a lot of fun at the store. Kurtis gave a cantaloupe to",Heidi,Marilyn,Dalton
+"Then, Kathryn and Megan had a lot of fun at the bar. Megan gave a kiwi to",Kathryn,"Then, Tobias and Quinn had a lot of fun at the bar. Montana gave a kiwi to",Melvin,Megan,Quinn
+The mountain Richard and Marian went to had a watermelon. Richard gave it to,Marian,The mountain Brook and Omar went to had a watermelon. Elise gave it to,Ronald,Richard,Brook
+"When Wilma and Marilyn got a banana at the park, Marilyn decided to give it to",Wilma,"When Pedro and Mallory got a banana at the park, Andres decided to give it to",Alivia,Marilyn,Mallory
+"Then, Yolanda and Suzanne were working at the home. Suzanne decided to give a coconut to",Yolanda,"Then, Kolton and Jaclyn were working at the home. Carina decided to give a coconut to",Liana,Suzanne,Jaclyn
+"Then, Kevin and Jessie were thinking about going to the zoo. Kevin wanted to give a coconut to",Jessie,"Then, Andre and Addison were thinking about going to the zoo. Julian wanted to give a coconut to",Dallas,Kevin,Andre
+"When Alyssa and Teresa got a orange at the home, Teresa decided to give the orange to",Alyssa,"When Brittany and Junior got a orange at the home, Cara decided to give the orange to",Kylee,Teresa,Junior
+"When Richard and Kathryn got a peach at the park, Richard decided to give it to",Kathryn,"When River and Katelyn got a peach at the park, Lara decided to give it to",Jace,Richard,River
+"While Angie and Velma were commuting to the park, Velma gave a pineapple to",Angie,"While Bria and Elaina were commuting to the park, Sydni gave a pineapple to",Karlie,Velma,Elaina
+"Then, Virginia and Natasha were working at the desert. Natasha decided to give a honeydew to",Virginia,"Then, Mark and Brett were working at the desert. Ty decided to give a honeydew to",Junior,Natasha,Brett
+The store Kevin and Jerry went to had a blackberry. Kevin gave it to,Jerry,The store John and Henry went to had a blackberry. Clare gave it to,Michael,Kevin,John
+"After the lunch, Kristina and Mark went to the home. Kristina gave a raspberry to",Mark,"After the lunch, Amiya and Kim went to the home. Hailie gave a raspberry to",Robert,Kristina,Amiya
+"When Violet and Chelsea got a banana at the museum, Violet decided to give the banana to",Chelsea,"When Omar and Lee got a banana at the museum, Judith decided to give the banana to",Raven,Violet,Omar
+"Then, Lula and Anita went to the beach. Lula gave a orange to",Anita,"Then, Gunner and Sheldon went to the beach. River gave a orange to",Celia,Lula,Gunner
+"When Jacqueline and Yvette got a watermelon at the market, Yvette decided to give the watermelon to",Jacqueline,"When Sydnie and Deion got a watermelon at the market, Summer decided to give the watermelon to",Candace,Yvette,Deion
+"Then, William and Kevin were thinking about going to the beach. Kevin wanted to give a coconut to",William,"Then, Scott and Prince were thinking about going to the beach. Alberto wanted to give a coconut to",Marie,Kevin,Prince
+Friends Virginia and Rachel found a cantaloupe at the beach. Rachel gave it to,Virginia,Friends Roy and Rick found a cantaloupe at the beach. Quinn gave it to,Peter,Rachel,Rick
+"After the lunch, Stella and Pauline went to the gym. Pauline gave a plum to",Stella,"After the lunch, Karley and Ryann went to the gym. Hope gave a plum to",Sydney,Pauline,Ryann
+"Then, Maggie and Ella went to the theater. Maggie gave a coconut to",Ella,"Then, Dewayne and Hayden went to the theater. Cassandra gave a coconut to",Hunter,Maggie,Dewayne
+"While Carmen and Melissa were commuting to the mountain, Melissa gave a raspberry to",Carmen,"While Giovanni and Leonard were commuting to the mountain, Jesus gave a raspberry to",Maurice,Melissa,Leonard
+"After Marian and Rachel went to the home, Rachel gave a cherry to",Marian,"After Zander and Unique went to the home, Zoe gave a cherry to",Gerard,Rachel,Unique
+"While Grace and Angie were working at the mountain, Grace gave a strawberry to",Angie,"While Declan and Paola were working at the mountain, Denver gave a strawberry to",Tiana,Grace,Declan
+"When Kevin and Theresa got a raspberry at the forest, Kevin decided to give the raspberry to",Theresa,"When Graham and Maxwell got a raspberry at the forest, Tre decided to give the raspberry to",Kenneth,Kevin,Graham
+Friends Dianne and Rebecca found a blackberry at the zoo. Rebecca gave it to,Dianne,Friends Jazlyn and Charity found a blackberry at the zoo. Antonio gave it to,Nancy,Rebecca,Charity
+Friends Rosa and Erika found a coconut at the park. Erika gave it to,Rosa,Friends Savanna and Jaylen found a coconut at the park. Armando gave it to,Darren,Erika,Jaylen
+"While Loretta and Megan were commuting to the museum, Megan gave a banana to",Loretta,"While Keyshawn and Nickolas were commuting to the museum, Mitchell gave a banana to",Marlon,Megan,Nickolas
+"When Agnes and Stella got a pineapple at the cafe, Agnes decided to give the pineapple to",Stella,"When Ayden and Bennett got a pineapple at the cafe, Jeremiah decided to give the pineapple to",Gretchen,Agnes,Ayden
+"Then, Lula and Loretta were thinking about going to the beach. Lula wanted to give a plum to",Loretta,"Then, Reyna and Jocelyn were thinking about going to the beach. Trever wanted to give a plum to",Brynn,Lula,Reyna
+Friends Charlene and Grace found a watermelon at the lake. Grace gave it to,Charlene,Friends Charity and Zaria found a watermelon at the lake. Alexandrea gave it to,Blake,Grace,Zaria
+"Then, Mark and Kevin were working at the lake. Kevin decided to give a cantaloupe to",Mark,"Then, Roger and Dean were working at the lake. Desmond decided to give a cantaloupe to",Mara,Kevin,Dean
+"Then, Kristi and Brandy went to the market. Kristi gave a pear to",Brandy,"Then, Ralph and Deangelo went to the market. Imani gave a pear to",Moses,Kristi,Ralph
+"After the lunch, Ethel and Paula went to the river. Ethel gave a papaya to",Paula,"After the lunch, Omar and Renee went to the river. Connor gave a papaya to",Frances,Ethel,Omar
+"Then, Yolanda and Marsha had a lot of fun at the bar. Marsha gave a kiwi to",Yolanda,"Then, Tabitha and Eryn had a lot of fun at the bar. Rachael gave a kiwi to",Sarina,Marsha,Eryn
+"Afterwards, Kathryn and Jackie went to the cafe. Jackie gave a pear to",Kathryn,"Afterwards, Zoey and Kenneth went to the cafe. Bernard gave a pear to",Gerard,Jackie,Kenneth
+"After the lunch, William and Richard went to the shop. Richard gave a plum to",William,"After the lunch, Henry and Reilly went to the shop. Lily gave a plum to",Josh,Richard,Reilly
+Friends Sophia and Susan found a peach at the shop. Sophia gave it to,Susan,Friends Ericka and Arthur found a peach at the shop. Grayson gave it to,Nikki,Sophia,Ericka
+"Then, Theresa and Gwen were working at the store. Gwen decided to give a cherry to",Theresa,"Then, Charity and Madeline were working at the store. Shayne decided to give a cherry to",Erika,Gwen,Madeline
+"While Sonia and Mildred were working at the bar, Sonia gave a orange to",Mildred,"While Nikita and Litzy were working at the bar, Harley gave a orange to",Kamryn,Sonia,Nikita
+"While Kari and David were working at the gym, Kari gave a kiwi to",David,"While Gabriel and William were working at the gym, Makenzie gave a kiwi to",Roberto,Kari,Gabriel
+"While Lorraine and Richard were commuting to the park, Richard gave a coconut to",Lorraine,"While Gunnar and Jimmy were commuting to the park, Simone gave a coconut to",Ayden,Richard,Jimmy
+"When Melanie and Erika got a peach at the river, Erika decided to give the peach to",Melanie,"When Tess and Jaiden got a peach at the river, Devyn decided to give the peach to",Kane,Erika,Jaiden
+Friends Yolanda and Pat found a plum at the theater. Pat gave it to,Yolanda,Friends Leticia and Sarah found a plum at the theater. Neil gave it to,Brycen,Pat,Sarah
+"While Kevin and Brian were commuting to the cafe, Kevin gave a cherry to",Brian,"While Anderson and Blake were commuting to the cafe, Dustin gave a cherry to",Jonah,Kevin,Anderson
+Friends Sonia and Mattie found a strawberry at the park. Sonia gave it to,Mattie,Friends Zaria and Alanna found a strawberry at the park. Landen gave it to,Dante,Sonia,Zaria
+"Then, Erika and David went to the shop. Erika gave a kiwi to",David,"Then, Gia and August went to the shop. Helen gave a kiwi to",Dwight,Erika,Gia
+"Then, Wilma and Kevin were thinking about going to the lake. Kevin wanted to give a blueberry to",Wilma,"Then, Ellen and Andy were thinking about going to the lake. Adam wanted to give a blueberry to",Maxim,Kevin,Andy
+"After Loretta and Natasha went to the museum, Natasha gave a blackberry to",Loretta,"After Aubree and Garret went to the museum, Leon gave a blackberry to",Michael,Natasha,Garret
+Friends Miriam and Anne found a apple at the cave. Miriam gave it to,Anne,Friends Chanel and Justice found a apple at the cave. Marquez gave it to,Mary,Miriam,Chanel
+"Then, Fannie and Yolanda had a lot of fun at the gym. Fannie gave a pineapple to",Yolanda,"Then, Jaydon and Clarence had a lot of fun at the gym. Mariah gave a pineapple to",Ezequiel,Fannie,Jaydon
+"Afterwards, Melissa and Lorraine went to the mountain. Melissa gave a coconut to",Lorraine,"Afterwards, Jeffery and Lukas went to the mountain. River gave a coconut to",Ezra,Melissa,Jeffery
+"After Natasha and Harriet went to the zoo, Natasha gave a kiwi to",Harriet,"After Parker and Haley went to the zoo, Devon gave a kiwi to",Judith,Natasha,Parker
+"When David and Agnes got a grape at the home, Agnes decided to give the grape to",David,"When Max and Micah got a grape at the home, Salvador decided to give the grape to",Jeffrey,Agnes,Micah
+"When Stella and Alice got a blueberry at the beach, Alice decided to give the blueberry to",Stella,"When Orion and Diamond got a blueberry at the beach, Cullen decided to give the blueberry to",Carlo,Alice,Diamond
+"While Melissa and Diana were commuting to the bar, Melissa gave a honeydew to",Diana,"While Barrett and Ivana were commuting to the bar, Lloyd gave a honeydew to",Wade,Melissa,Barrett
+"Then, Marilyn and Lorraine went to the market. Marilyn gave a pineapple to",Lorraine,"Then, Madeleine and Kasandra went to the market. Catherine gave a pineapple to",Lily,Marilyn,Madeleine
+"While Alicia and Velma were commuting to the bar, Velma gave a kiwi to",Alicia,"While Michele and Zaria were commuting to the bar, Leo gave a kiwi to",Carol,Velma,Zaria
+"While Doris and Kelly were commuting to the desert, Kelly gave a papaya to",Doris,"While Brenden and April were commuting to the desert, Marisa gave a papaya to",Tyrique,Kelly,April
+"After Kari and Carmen went to the library, Kari gave a pineapple to",Carmen,"After Sheila and Moriah went to the library, Scott gave a pineapple to",Leah,Kari,Sheila
+"Afterwards, Inez and Alicia went to the beach. Inez gave a apple to",Alicia,"Afterwards, Nayeli and Sofia went to the beach. Shemar gave a apple to",Sarah,Inez,Nayeli
+"After Kari and Alicia went to the zoo, Kari gave a banana to",Alicia,"After Garrison and Celina went to the zoo, Madison gave a banana to",Tyrese,Kari,Garrison
+The park Lee and Amanda went to had a pineapple. Lee gave it to,Amanda,The park Arthur and Bria went to had a pineapple. George gave it to,Marco,Lee,Arthur
+"Afterwards, Pauline and Doris went to the mountain. Pauline gave a honeydew to",Doris,"Afterwards, Melody and Mason went to the mountain. Dallas gave a honeydew to",Garett,Pauline,Melody
+"Then, Pauline and Angie had a lot of fun at the forest. Pauline gave a banana to",Angie,"Then, Denzel and Saige had a lot of fun at the forest. Terrence gave a banana to",Rocky,Pauline,Denzel
+"After the lunch, Agnes and Heidi went to the beach. Agnes gave a grape to",Heidi,"After the lunch, Garret and Bailey went to the beach. Dakota gave a grape to",Sebastian,Agnes,Garret
+"While Marsha and Sheila were working at the park, Marsha gave a kiwi to",Sheila,"While Brandy and Haley were working at the park, Mary gave a kiwi to",Nia,Marsha,Brandy
+Friends Jacqueline and Grace found a pear at the library. Grace gave it to,Jacqueline,Friends Braedon and Hallie found a pear at the library. Roberto gave it to,Cedric,Grace,Hallie
+"While Leona and Kelly were commuting to the forest, Kelly gave a grape to",Leona,"While Derek and Jordan were commuting to the forest, Daniel gave a grape to",Aileen,Kelly,Jordan
+"After the lunch, Melissa and Janet went to the cave. Melissa gave a strawberry to",Janet,"After the lunch, Carolina and Elijah went to the cave. Lane gave a strawberry to",Quentin,Melissa,Carolina
+"Then, Agnes and Heidi were thinking about going to the library. Agnes wanted to give a pineapple to",Heidi,"Then, Irma and Kira were thinking about going to the library. Glen wanted to give a pineapple to",Trisha,Agnes,Irma
+"While Melissa and Alyssa were commuting to the mountain, Melissa gave a grape to",Alyssa,"While Deonte and Caitlin were commuting to the mountain, Demetrius gave a grape to",Mohammed,Melissa,Deonte
+Friends Chelsea and Rachel found a raspberry at the river. Rachel gave it to,Chelsea,Friends Andre and Mark found a raspberry at the river. Lilly gave it to,Katrina,Rachel,Mark
+"After Suzanne and Charlene went to the store, Suzanne gave a blackberry to",Charlene,"After Meghan and Amir went to the store, Casandra gave a blackberry to",Jeffrey,Suzanne,Meghan
+"After the lunch, Yvette and Dianne went to the shop. Yvette gave a apple to",Dianne,"After the lunch, Tyrek and Elyssa went to the shop. Henry gave a apple to",Quinn,Yvette,Tyrek
+"While Stacy and Richard were commuting to the cave, Richard gave a orange to",Stacy,"While Kennedy and Chelsea were commuting to the cave, Joe gave a orange to",Damian,Richard,Chelsea
+"After Mattie and Miriam went to the theater, Miriam gave a peach to",Mattie,"After Thalia and Marley went to the theater, Devante gave a peach to",Dangelo,Miriam,Marley
+"Afterwards, Kristi and Chelsea went to the shop. Kristi gave a blackberry to",Chelsea,"Afterwards, Haven and Jennifer went to the shop. Lacey gave a blackberry to",Leah,Kristi,Haven
+"When Shannon and Brandy got a strawberry at the school, Shannon decided to give the strawberry to",Brandy,"When Ayana and Joanne got a strawberry at the school, Elias decided to give the strawberry to",Reece,Shannon,Ayana
+"After Jessie and Maggie went to the desert, Maggie gave a mango to",Jessie,"After Selena and Rylie went to the desert, Theresa gave a mango to",Emanuel,Maggie,Rylie
+Friends Gwen and Stacy found a honeydew at the cafe. Gwen gave it to,Stacy,Friends Alexys and Kaley found a honeydew at the cafe. Malcolm gave it to,Nash,Gwen,Alexys
+"After Violet and Rosa went to the park, Violet gave a pineapple to",Rosa,"After Mohammad and Jaime went to the park, Tanner gave a pineapple to",Carlos,Violet,Mohammad
+"Then, Brandy and Lee had a lot of fun at the theater. Lee gave a blackberry to",Brandy,"Then, Earl and Kelly had a lot of fun at the theater. Leonardo gave a blackberry to",Carina,Lee,Kelly
+"Then, William and Jackie had a lot of fun at the home. Jackie gave a cantaloupe to",William,"Then, Reilly and Bonnie had a lot of fun at the home. Rita gave a cantaloupe to",Adam,Jackie,Bonnie
+Friends Brian and Eleanor found a blackberry at the shop. Eleanor gave it to,Brian,Friends Christopher and Rey found a blackberry at the shop. Edgar gave it to,Emmanuel,Eleanor,Rey
+"When Juana and Richard got a grape at the theater, Richard decided to give it to",Juana,"When Camille and Max got a grape at the theater, Dimitri decided to give it to",Gilbert,Richard,Max
+"When Susan and Jessica got a peach at the market, Jessica decided to give it to",Susan,"When Jose and Cole got a peach at the market, Garrett decided to give it to",Alan,Jessica,Cole
+"While Melanie and Lula were working at the store, Lula gave a honeydew to",Melanie,"While Nicolas and Irene were working at the store, Javonte gave a honeydew to",Henry,Lula,Irene
+"Then, Paula and Carol had a lot of fun at the mountain. Carol gave a honeydew to",Paula,"Then, Saul and Autumn had a lot of fun at the mountain. Peter gave a honeydew to",Tucker,Carol,Autumn
+Friends Kristina and Ginger found a blueberry at the bar. Kristina gave it to,Ginger,Friends Charity and Kellen found a blueberry at the bar. Cecilia gave it to,Jaime,Kristina,Charity
+"While Jessica and Jessie were working at the mountain, Jessica gave a peach to",Jessie,"While Joseph and Pierce were working at the mountain, Marina gave a peach to",Josh,Jessica,Joseph
+"Then, Marilyn and Alicia had a lot of fun at the zoo. Marilyn gave a watermelon to",Alicia,"Then, Miguel and Darryl had a lot of fun at the zoo. Louis gave a watermelon to",Dennis,Marilyn,Miguel
+"While Shannon and Ginger were working at the market, Shannon gave a cherry to",Ginger,"While Jamison and Saul were working at the market, Wyatt gave a cherry to",Princess,Shannon,Jamison
+"Then, Eleanor and Leona went to the gym. Eleanor gave a strawberry to",Leona,"Then, Jesse and Jasper went to the gym. Rohan gave a strawberry to",Jaren,Eleanor,Jesse
+"While Diana and Stacey were commuting to the cave, Stacey gave a pineapple to",Diana,"While Shaun and Darin were commuting to the cave, Cyrus gave a pineapple to",Tyra,Stacey,Darin
+"Afterwards, David and Carol went to the library. Carol gave a cherry to",David,"Afterwards, Kate and Annie went to the library. Abram gave a cherry to",Courtney,Carol,Annie
+"Then, Carol and Mattie went to the desert. Carol gave a mango to",Mattie,"Then, Lilian and Royce went to the desert. Melina gave a mango to",Anton,Carol,Lilian
+"After the lunch, Wilma and Inez went to the beach. Inez gave a orange to",Wilma,"After the lunch, Joana and Tristen went to the beach. Payton gave a orange to",Adan,Inez,Tristen
+"While Kevin and Loretta were working at the forest, Kevin gave a orange to",Loretta,"While Faith and Kassidy were working at the forest, Breana gave a orange to",Brittney,Kevin,Faith
+"While David and Ethel were commuting to the gym, Ethel gave a coconut to",David,"While Cruz and Tiana were commuting to the gym, Christy gave a coconut to",Julissa,Ethel,Tiana
+"After Mona and Charlene went to the museum, Mona gave a apple to",Charlene,"After Colby and Donte went to the museum, Braden gave a apple to",Nathen,Mona,Colby
+The bar Mona and Doris went to had a strawberry. Mona gave it to,Doris,The bar Cale and Rickey went to had a strawberry. Kaleigh gave it to,Quincy,Mona,Cale
+The park Dianne and Erika went to had a pineapple. Erika gave it to,Dianne,The park Cydney and Natalia went to had a pineapple. Jenny gave it to,Benny,Erika,Natalia
+"When Theresa and Sonia got a blackberry at the gym, Sonia decided to give the blackberry to",Theresa,"When Bailey and Emanuel got a blackberry at the gym, Fiona decided to give the blackberry to",Jamie,Sonia,Emanuel
+"Then, Brandy and Martha went to the gym. Martha gave a kiwi to",Brandy,"Then, Ruth and Harold went to the gym. Isaak gave a kiwi to",Mary,Martha,Harold
+"Then, Jacqueline and Fannie went to the cafe. Fannie gave a orange to",Jacqueline,"Then, Brittany and Dane went to the cafe. Luciano gave a orange to",Jordyn,Fannie,Dane
+"Afterwards, Kim and Shannon went to the bar. Shannon gave a blueberry to",Kim,"Afterwards, Ann and Perry went to the bar. Philip gave a blueberry to",Justice,Shannon,Perry
+Friends Stella and Lula found a pineapple at the museum. Lula gave it to,Stella,Friends Shane and Trisha found a pineapple at the museum. Gabriel gave it to,Cruz,Lula,Trisha
+"While Richard and Janet were working at the gym, Richard gave a mango to",Janet,"While Sam and Breanne were working at the gym, Ronald gave a mango to",Vaughn,Richard,Sam
+"While Angie and Mona were working at the bar, Mona gave a raspberry to",Angie,"While Kori and Rocky were working at the bar, Donte gave a raspberry to",Maci,Mona,Rocky
+"When Miriam and Harriet got a honeydew at the theater, Miriam decided to give it to",Harriet,"When Norma and Esther got a honeydew at the theater, Kendall decided to give it to",Maxwell,Miriam,Norma
+"When Rachel and Jessie got a apple at the mountain, Rachel decided to give it to",Jessie,"When John and Liam got a apple at the mountain, Isis decided to give it to",Anton,Rachel,John
+"While Lula and Theresa were working at the cafe, Lula gave a blueberry to",Theresa,"While Carly and Kenyon were working at the cafe, Ivan gave a blueberry to",Myles,Lula,Carly
+"While Melanie and Fannie were working at the lake, Fannie gave a plum to",Melanie,"While Tina and Skyler were working at the lake, Braxton gave a plum to",Clark,Fannie,Skyler
+"While Violet and Brandy were working at the museum, Violet gave a cantaloupe to",Brandy,"While Darian and Clara were working at the museum, Ean gave a cantaloupe to",Thomas,Violet,Darian
+"Then, Chelsea and Lee were thinking about going to the river. Lee wanted to give a pear to",Chelsea,"Then, Christian and John were thinking about going to the river. Jackson wanted to give a pear to",Pierce,Lee,John
+Friends Amanda and Melissa found a strawberry at the bar. Melissa gave it to,Amanda,Friends Camron and Blair found a strawberry at the bar. Stuart gave it to,Taylor,Melissa,Blair
+Friends Erika and Anita found a apple at the bar. Erika gave it to,Anita,Friends Glenn and Maribel found a apple at the bar. Kirstin gave it to,Taylor,Erika,Glenn
+"When Alice and Ella got a plum at the park, Alice decided to give it to",Ella,"When Neil and Lawrence got a plum at the park, Emmalee decided to give it to",Christian,Alice,Neil
+Friends Kristina and Yolanda found a kiwi at the river. Kristina gave it to,Yolanda,Friends Kaleb and Heriberto found a kiwi at the river. Kiarra gave it to,Kaitlin,Kristina,Kaleb
+"Afterwards, Kelly and Jerry went to the school. Kelly gave a strawberry to",Jerry,"Afterwards, Ian and Tony went to the school. Stuart gave a strawberry to",Shea,Kelly,Ian
+"After the lunch, Maggie and Sarah went to the bar. Maggie gave a apple to",Sarah,"After the lunch, Romeo and Eva went to the bar. Kennedy gave a apple to",Roberto,Maggie,Romeo
+"When Jessica and Carmen got a banana at the zoo, Jessica decided to give it to",Carmen,"When Gordon and Cindy got a banana at the zoo, Garrett decided to give it to",Clarence,Jessica,Gordon
+"Then, Mona and Rosa went to the museum. Mona gave a pear to",Rosa,"Then, Amanda and Jacey went to the museum. Aileen gave a pear to",Perry,Mona,Amanda
+"After the lunch, Sonia and Mattie went to the cave. Sonia gave a coconut to",Mattie,"After the lunch, Ivy and Nyah went to the cave. Baby gave a coconut to",Fernanda,Sonia,Ivy
+"Afterwards, Fannie and Lorraine went to the shop. Fannie gave a grape to",Lorraine,"Afterwards, Meghan and Juanita went to the shop. Magdalena gave a grape to",Zackery,Fannie,Meghan
+"When Kristi and Leona got a kiwi at the lake, Kristi decided to give it to",Leona,"When Kristy and Corbin got a kiwi at the lake, Marina decided to give it to",Chanel,Kristi,Kristy
+"When Jackie and Loretta got a cantaloupe at the beach, Jackie decided to give the cantaloupe to",Loretta,"When Alexis and Katelynn got a cantaloupe at the beach, Paige decided to give the cantaloupe to",Angel,Jackie,Alexis
+"Then, Ethel and Carmen went to the market. Ethel gave a strawberry to",Carmen,"Then, Felipe and Jasmine went to the market. Peyton gave a strawberry to",Ross,Ethel,Felipe
+"Then, Miriam and Susan were working at the mountain. Miriam decided to give a cantaloupe to",Susan,"Then, Joana and Phoenix were working at the mountain. Mariah decided to give a cantaloupe to",Emmanuel,Miriam,Joana
+"While Anita and Alice were commuting to the river, Alice gave a blackberry to",Anita,"While Geneva and Eric were commuting to the river, Dalton gave a blackberry to",Jorge,Alice,Eric
+"When Brandy and Megan got a apple at the school, Megan decided to give it to",Brandy,"When Luca and Teresa got a apple at the school, Jorden decided to give it to",Sandra,Megan,Teresa
+"Then, Geneva and Sheila had a lot of fun at the forest. Geneva gave a mango to",Sheila,"Then, Michaela and Carli had a lot of fun at the forest. Olivia gave a mango to",Jerome,Geneva,Michaela
+"Then, Stella and Jody were thinking about going to the desert. Jody wanted to give a cantaloupe to",Stella,"Then, Ellis and Valerie were thinking about going to the desert. Trisha wanted to give a cantaloupe to",Cecilia,Jody,Valerie
+"While Geneva and Mildred were commuting to the shop, Geneva gave a peach to",Mildred,"While Cooper and Rodolfo were commuting to the shop, Derek gave a peach to",Kaitlyn,Geneva,Cooper
+"Then, Alyssa and Martha went to the cave. Martha gave a pineapple to",Alyssa,"Then, Darryl and Jefferson went to the cave. Khalil gave a pineapple to",Noe,Martha,Jefferson
+"After the lunch, Stacy and Bernadette went to the library. Bernadette gave a peach to",Stacy,"After the lunch, Hadley and Isabelle went to the library. Zakary gave a peach to",Juanita,Bernadette,Isabelle
+"After Mona and Mattie went to the school, Mona gave a raspberry to",Mattie,"After Duane and Jovan went to the school, Alexandro gave a raspberry to",Collin,Mona,Duane
+"Then, Anita and Erika went to the mountain. Erika gave a kiwi to",Anita,"Then, Marian and Iris went to the mountain. Alaina gave a kiwi to",Mayra,Erika,Iris
+"While Alicia and Faye were commuting to the beach, Faye gave a plum to",Alicia,"While Travon and Ariel were commuting to the beach, Jenny gave a plum to",Gaven,Faye,Ariel
+"Then, Jessie and Kevin were working at the museum. Kevin decided to give a blackberry to",Jessie,"Then, Zoe and Ali were working at the museum. Joey decided to give a blackberry to",Kendrick,Kevin,Ali
+"Then, Rachel and David had a lot of fun at the cave. Rachel gave a watermelon to",David,"Then, William and Anthony had a lot of fun at the cave. Vernon gave a watermelon to",Nathaniel,Rachel,William
+The gym Marsha and Rosemarie went to had a pear. Marsha gave it to,Rosemarie,The gym Zane and Demarco went to had a pear. Shamar gave it to,Mariela,Marsha,Zane
+"After Ginger and Rachel went to the cave, Rachel gave a orange to",Ginger,"After Douglas and Diamond went to the cave, Kristen gave a orange to",Brennan,Rachel,Diamond
+"When Diana and Fannie got a raspberry at the bar, Fannie decided to give it to",Diana,"When Austyn and Harley got a raspberry at the bar, Shayla decided to give it to",Isabel,Fannie,Harley
+"After Juana and Violet went to the museum, Violet gave a watermelon to",Juana,"After Kylee and Trisha went to the museum, Adrian gave a watermelon to",Brent,Violet,Trisha
+"While Natasha and Ella were commuting to the park, Natasha gave a papaya to",Ella,"While Gilberto and Dane were commuting to the park, Todd gave a papaya to",Edith,Natasha,Gilberto
+"After Estelle and Juana went to the zoo, Estelle gave a mango to",Juana,"After Ronnie and Brady went to the zoo, Christian gave a mango to",Melinda,Estelle,Ronnie
+"Then, Kristina and Harriet were working at the lake. Kristina decided to give a papaya to",Harriet,"Then, Antoine and Kristin were working at the lake. Kevin decided to give a papaya to",Hailey,Kristina,Antoine
+Friends Jessie and Lula found a honeydew at the bar. Lula gave it to,Jessie,Friends Adonis and Eliza found a honeydew at the bar. Daryl gave it to,Muhammad,Lula,Eliza
+"While Natasha and Brandy were commuting to the zoo, Natasha gave a apple to",Brandy,"While Jonathon and Karen were commuting to the zoo, Laurel gave a apple to",Gideon,Natasha,Jonathon
+The forest Pat and Doris went to had a blackberry. Pat gave it to,Doris,The forest Marie and Paola went to had a blackberry. Antonia gave it to,Kinsey,Pat,Marie
+The shop Violet and Anita went to had a kiwi. Violet gave it to,Anita,The shop Caleb and Ally went to had a kiwi. Payton gave it to,Marcus,Violet,Caleb
+"When Agnes and Doris got a plum at the library, Agnes decided to give the plum to",Doris,"When Darian and Ellie got a plum at the library, Serenity decided to give the plum to",Larry,Agnes,Darian
+"When Harriet and Bernadette got a banana at the bar, Bernadette decided to give the banana to",Harriet,"When Devyn and Agustin got a banana at the bar, Guadalupe decided to give the banana to",Remington,Bernadette,Agustin
+"While Chelsea and Kari were commuting to the museum, Kari gave a raspberry to",Chelsea,"While Tony and Mariam were commuting to the museum, Clark gave a raspberry to",Alissa,Kari,Mariam
+"Then, Ella and Yvette were thinking about going to the zoo. Yvette wanted to give a papaya to",Ella,"Then, Carlton and Katy were thinking about going to the zoo. Janae wanted to give a papaya to",Natalie,Yvette,Katy
+"Then, Deanna and Mona were working at the cave. Mona decided to give a blackberry to",Deanna,"Then, Autumn and Rebecca were working at the cave. Jose decided to give a blackberry to",Darrion,Mona,Rebecca
+"Then, Stella and Faye were working at the park. Faye decided to give a watermelon to",Stella,"Then, Melinda and Darian were working at the park. Zander decided to give a watermelon to",Katrina,Faye,Darian
+"When Janet and Kelly got a pear at the forest, Kelly decided to give the pear to",Janet,"When Orlando and Austin got a pear at the forest, Sophia decided to give the pear to",Tony,Kelly,Austin
+"While Janet and Kristina were commuting to the gym, Kristina gave a blueberry to",Janet,"While Raphael and Blaine were commuting to the gym, Ronald gave a blueberry to",Skyla,Kristina,Blaine
+"When Kim and Violet got a plum at the park, Violet decided to give the plum to",Kim,"When Hope and Khalid got a plum at the park, Martha decided to give the plum to",America,Violet,Khalid
+"Then, Sarah and Gwen were thinking about going to the school. Gwen wanted to give a apple to",Sarah,"Then, Diamond and Lincoln were thinking about going to the school. Gabrielle wanted to give a apple to",Brenda,Gwen,Lincoln
+"After Stella and Sophia went to the store, Sophia gave a grape to",Stella,"After Kirk and Rocio went to the store, Samuel gave a grape to",Albert,Sophia,Rocio
+"Afterwards, Irma and Sarah went to the river. Irma gave a blueberry to",Sarah,"Afterwards, Elvis and Phoenix went to the river. Eve gave a blueberry to",Elliott,Irma,Elvis
+"While Pat and Jacqueline were commuting to the cave, Pat gave a blueberry to",Jacqueline,"While Andre and Imani were commuting to the cave, Kelly gave a blueberry to",Tristan,Pat,Andre
+"Then, Pauline and Deanna were thinking about going to the theater. Pauline wanted to give a peach to",Deanna,"Then, Mathew and Jaida were thinking about going to the theater. Jesus wanted to give a peach to",Kaela,Pauline,Mathew
+"After the lunch, Jody and Alyssa went to the mountain. Jody gave a strawberry to",Alyssa,"After the lunch, Xavier and Cecilia went to the mountain. Kobe gave a strawberry to",Eduardo,Jody,Xavier
+"Then, Robin and Deanna went to the cafe. Robin gave a kiwi to",Deanna,"Then, Davis and Monique went to the cafe. Isaac gave a kiwi to",Luke,Robin,Davis
+"When Harriet and Faye got a grape at the theater, Faye decided to give the grape to",Harriet,"When Lillian and Ana got a grape at the theater, Davonte decided to give the grape to",Calvin,Faye,Ana
+"When Robin and Marian got a grape at the shop, Robin decided to give the grape to",Marian,"When Cole and Derrick got a grape at the shop, Rodrigo decided to give the grape to",Carolyn,Robin,Cole
+The home Agnes and Rosemarie went to had a pear. Agnes gave it to,Rosemarie,The home Carson and Amani went to had a pear. Teagan gave it to,Reanna,Agnes,Carson
+"After the lunch, Sheila and Rachel went to the forest. Rachel gave a orange to",Sheila,"After the lunch, Maribel and Jonathan went to the forest. Prince gave a orange to",Jeremy,Rachel,Jonathan
+"After the lunch, Agnes and Harriet went to the museum. Agnes gave a orange to",Harriet,"After the lunch, Chyna and Darien went to the museum. Shaun gave a orange to",Cory,Agnes,Chyna
+"When Leigh and Mattie got a blackberry at the shop, Leigh decided to give the blackberry to",Mattie,"When Julian and Mitchel got a blackberry at the shop, Christopher decided to give the blackberry to",Sincere,Leigh,Julian
+"Then, Harriet and Teresa went to the river. Teresa gave a coconut to",Harriet,"Then, Clay and Eve went to the river. Dennis gave a coconut to",Wayne,Teresa,Eve
+"Then, Bernadette and Mark went to the gym. Bernadette gave a blackberry to",Mark,"Then, Vivian and Leon went to the gym. Vincent gave a blackberry to",Jadon,Bernadette,Vivian
+"Then, Nellie and Marsha were thinking about going to the gym. Marsha wanted to give a papaya to",Nellie,"Then, Lukas and Karla were thinking about going to the gym. Maryam wanted to give a papaya to",Darlene,Marsha,Karla
+"Then, Geneva and Susan went to the bar. Geneva gave a blackberry to",Susan,"Then, Cyrus and Chance went to the bar. Joan gave a blackberry to",Anton,Geneva,Cyrus
+"While Nellie and Suzanne were commuting to the mountain, Suzanne gave a honeydew to",Nellie,"While Bethany and Roberto were commuting to the mountain, Kaiden gave a honeydew to",Rogelio,Suzanne,Roberto
+"Then, Wilma and Erika had a lot of fun at the shop. Erika gave a watermelon to",Wilma,"Then, Aniya and Orion had a lot of fun at the shop. Jamari gave a watermelon to",Marlee,Erika,Orion
+"After Pauline and Jerry went to the mountain, Pauline gave a plum to",Jerry,"After Darrell and Albert went to the mountain, Kyla gave a plum to",Gillian,Pauline,Darrell
+"Afterwards, Natasha and Stella went to the library. Natasha gave a banana to",Stella,"Afterwards, Lacey and Drew went to the library. Hector gave a banana to",Chase,Natasha,Lacey
+"When Nellie and Sonia got a papaya at the store, Sonia decided to give the papaya to",Nellie,"When Jermaine and Antoine got a papaya at the store, Emanuel decided to give the papaya to",Jaxon,Sonia,Antoine
+"While Yvette and Dianne were commuting to the zoo, Yvette gave a blackberry to",Dianne,"While Nicholas and Marcelo were commuting to the zoo, Luis gave a blackberry to",Cassidy,Yvette,Nicholas
+"Then, Violet and Carmen were thinking about going to the cafe. Violet wanted to give a orange to",Carmen,"Then, Kristina and Kallie were thinking about going to the cafe. Anne wanted to give a orange to",Wyatt,Violet,Kristina
+The museum Ella and Richard went to had a plum. Richard gave it to,Ella,The museum Harriet and Russell went to had a plum. Sarai gave it to,Paulina,Richard,Russell
+"When Deanna and Kelly got a apple at the school, Kelly decided to give it to",Deanna,"When Kayli and James got a apple at the school, Lorenzo decided to give it to",Daisy,Kelly,James
+"Afterwards, Stacy and Martha went to the market. Martha gave a grape to",Stacy,"Afterwards, Veronica and Bailey went to the market. Howard gave a grape to",Jackie,Martha,Bailey
+The cave Jerry and Kari went to had a apple. Kari gave it to,Jerry,The cave America and Breanne went to had a apple. Francesca gave it to,Luke,Kari,Breanne
+"Then, Gwen and Jacqueline went to the zoo. Gwen gave a grape to",Jacqueline,"Then, Jorge and Sofia went to the zoo. Maximiliano gave a grape to",Jillian,Gwen,Jorge
+"After the lunch, Doris and Jessica went to the desert. Jessica gave a apple to",Doris,"After the lunch, Zaria and Roman went to the desert. Leon gave a apple to",Dulce,Jessica,Roman
+"Then, Mona and Melanie had a lot of fun at the beach. Mona gave a papaya to",Melanie,"Then, Phillip and Shawn had a lot of fun at the beach. Dariana gave a papaya to",Benny,Mona,Phillip
+"Then, Kevin and Anne had a lot of fun at the zoo. Kevin gave a blueberry to",Anne,"Then, John and Jennifer had a lot of fun at the zoo. Tiffany gave a blueberry to",Jamie,Kevin,John
+"After the lunch, Estelle and Mattie went to the theater. Estelle gave a pineapple to",Mattie,"After the lunch, Nathen and Nancy went to the theater. Brennen gave a pineapple to",Kallie,Estelle,Nathen
+"Then, Jackie and Deanna had a lot of fun at the library. Jackie gave a papaya to",Deanna,"Then, Brenda and Ethan had a lot of fun at the library. Jessica gave a papaya to",Katelynn,Jackie,Brenda
+"While Diana and Violet were commuting to the bar, Violet gave a mango to",Diana,"While Jarrett and Mitchell were commuting to the bar, Kenny gave a mango to",Damien,Violet,Mitchell
+The beach Kelly and Paula went to had a raspberry. Kelly gave it to,Paula,The beach Ray and Grace went to had a raspberry. Baby gave it to,Vincent,Kelly,Ray
+"When Jody and Ella got a strawberry at the museum, Jody decided to give the strawberry to",Ella,"When Amber and Julie got a strawberry at the museum, Tessa decided to give the strawberry to",Kamryn,Jody,Amber
+Friends Evelyn and Martha found a blueberry at the zoo. Martha gave it to,Evelyn,Friends Hudson and Anissa found a blueberry at the zoo. Kendall gave it to,Catherine,Martha,Anissa
+"Then, Doris and Irma went to the store. Irma gave a cantaloupe to",Doris,"Then, Kiana and Devin went to the store. Silas gave a cantaloupe to",Chance,Irma,Devin
+Friends Kari and Jacqueline found a blueberry at the river. Kari gave it to,Jacqueline,Friends Myron and Gloria found a blueberry at the river. Jordy gave it to,Destiney,Kari,Myron
+"Then, Suzanne and Brian were thinking about going to the desert. Suzanne wanted to give a cherry to",Brian,"Then, Reese and Charlie were thinking about going to the desert. Courtney wanted to give a cherry to",Harley,Suzanne,Reese
+"Then, Jerry and Teresa had a lot of fun at the zoo. Teresa gave a grape to",Jerry,"Then, Wilson and Turner had a lot of fun at the zoo. Iris gave a grape to",Jenny,Teresa,Turner
+Friends Richard and Alicia found a strawberry at the desert. Richard gave it to,Alicia,Friends Elizabeth and Heriberto found a strawberry at the desert. Kai gave it to,Winston,Richard,Elizabeth
+"After the lunch, Virginia and Marilyn went to the school. Marilyn gave a grape to",Virginia,"After the lunch, Kelly and Kourtney went to the school. Willie gave a grape to",Clare,Marilyn,Kourtney
+"After Ginger and Rebecca went to the school, Rebecca gave a blackberry to",Ginger,"After Jarvis and Rhett went to the school, Teresa gave a blackberry to",Diane,Rebecca,Rhett
+"After the lunch, Robin and Melanie went to the home. Robin gave a pear to",Melanie,"After the lunch, Jamie and Damon went to the home. Trent gave a pear to",Madison,Robin,Jamie
+"While Rachel and Jacqueline were working at the forest, Rachel gave a strawberry to",Jacqueline,"While Andrew and Francesco were working at the forest, Tate gave a strawberry to",Haylie,Rachel,Andrew
+The zoo Sophia and David went to had a watermelon. Sophia gave it to,David,The zoo Brittany and Jerry went to had a watermelon. Brandon gave it to,Clint,Sophia,Brittany
+The desert Sarah and Maggie went to had a pear. Maggie gave it to,Sarah,The desert Angelo and Brennen went to had a pear. Will gave it to,Arnold,Maggie,Brennen
+"When Wilma and Grace got a plum at the store, Grace decided to give it to",Wilma,"When Rayna and Mitchel got a plum at the store, Haleigh decided to give it to",Crystal,Grace,Mitchel
+"Then, Jessie and Suzanne were working at the market. Suzanne decided to give a blackberry to",Jessie,"Then, Kirk and Enrique were working at the market. Angel decided to give a blackberry to",Alexandra,Suzanne,Enrique
+"Then, Maggie and Nellie went to the market. Maggie gave a plum to",Nellie,"Then, Janiya and Alfredo went to the market. Devan gave a plum to",Francesco,Maggie,Janiya
+"Afterwards, Eleanor and Loretta went to the store. Eleanor gave a peach to",Loretta,"Afterwards, Ramon and Roderick went to the store. Sandy gave a peach to",Cornelius,Eleanor,Ramon
+The zoo Bernadette and Kathryn went to had a cantaloupe. Bernadette gave it to,Kathryn,The zoo Jimmie and Desirae went to had a cantaloupe. Gwendolyn gave it to,Kari,Bernadette,Jimmie
+"Then, Fannie and Anita had a lot of fun at the market. Fannie gave a blackberry to",Anita,"Then, Keon and Jonah had a lot of fun at the market. Laney gave a blackberry to",Miracle,Fannie,Keon
+"Then, Suzanne and Rosa had a lot of fun at the mountain. Suzanne gave a plum to",Rosa,"Then, Shea and Emerald had a lot of fun at the mountain. Rocky gave a plum to",Lee,Suzanne,Shea
+"When Virginia and Marsha got a blueberry at the gym, Marsha decided to give the blueberry to",Virginia,"When Ray and Scarlett got a blueberry at the gym, Reese decided to give the blueberry to",Everett,Marsha,Scarlett
+"Then, Kelly and Charlene were thinking about going to the cave. Kelly wanted to give a blueberry to",Charlene,"Then, Jerry and Jaime were thinking about going to the cave. Raphael wanted to give a blueberry to",Ramon,Kelly,Jerry
+"While Maggie and Ella were commuting to the lake, Maggie gave a pear to",Ella,"While Aiyana and Dylan were commuting to the lake, Ariana gave a pear to",Krystal,Maggie,Aiyana
+"While Kathryn and Gwen were commuting to the river, Gwen gave a raspberry to",Kathryn,"While Dianna and Deandre were commuting to the river, Sonya gave a raspberry to",Dallas,Gwen,Deandre
+"After the lunch, Kim and Leigh went to the mountain. Leigh gave a cherry to",Kim,"After the lunch, April and Saul went to the mountain. Sally gave a cherry to",Beau,Leigh,Saul
+"Then, Mark and Miriam went to the market. Miriam gave a apple to",Mark,"Then, Mike and Brent went to the market. Alycia gave a apple to",Gaven,Miriam,Brent
+The forest Dianne and Inez went to had a strawberry. Inez gave it to,Dianne,The forest Kimberly and Marquise went to had a strawberry. Lacey gave it to,Melvin,Inez,Marquise
+"While Yolanda and Jody were commuting to the bar, Jody gave a blackberry to",Yolanda,"While Cordell and Edgar were commuting to the bar, Alondra gave a blackberry to",Zachariah,Jody,Edgar
+"After the lunch, Jackie and William went to the cave. Jackie gave a plum to",William,"After the lunch, Gabriel and Eric went to the cave. Alma gave a plum to",Todd,Jackie,Gabriel
+"Then, Faye and Chelsea went to the river. Faye gave a papaya to",Chelsea,"Then, Cassidy and Georgia went to the river. Nina gave a papaya to",Nikhil,Faye,Cassidy
+"Afterwards, Irma and Brian went to the river. Irma gave a orange to",Brian,"Afterwards, Gerard and Susan went to the river. Samantha gave a orange to",Christian,Irma,Gerard
+"Then, Anne and Yvette were thinking about going to the desert. Yvette wanted to give a peach to",Anne,"Then, Jacob and Emma were thinking about going to the desert. Logan wanted to give a peach to",Stephany,Yvette,Emma
+"When Nellie and Mona got a blackberry at the gym, Mona decided to give the blackberry to",Nellie,"When Josie and Gerardo got a blackberry at the gym, Litzy decided to give the blackberry to",Deangelo,Mona,Gerardo
+"When Stella and Robin got a apple at the market, Robin decided to give it to",Stella,"When Garrett and Christian got a apple at the market, Carly decided to give it to",Harrison,Robin,Christian
+"While Yolanda and Rachel were commuting to the home, Rachel gave a pear to",Yolanda,"While Alden and Pat were commuting to the home, Piper gave a pear to",Marianna,Rachel,Pat
+"Afterwards, David and Violet went to the lake. Violet gave a cantaloupe to",David,"Afterwards, Kim and Bennett went to the lake. Holden gave a cantaloupe to",Dallas,Violet,Bennett
+"Then, Leigh and Angie were working at the school. Leigh decided to give a pineapple to",Angie,"Then, Conor and Jeremiah were working at the school. Lamar decided to give a pineapple to",Frederick,Leigh,Conor
+Friends Dianne and Martha found a coconut at the lake. Martha gave it to,Dianne,Friends Shaniya and Joey found a coconut at the lake. Leo gave it to,Jamie,Martha,Joey
+The cafe Mattie and Velma went to had a mango. Velma gave it to,Mattie,The cafe Madyson and Royce went to had a mango. Cristobal gave it to,Connor,Velma,Royce
+"After Charlene and Marsha went to the mountain, Marsha gave a watermelon to",Charlene,"After Jayson and Marissa went to the mountain, Ana gave a watermelon to",Efrain,Marsha,Marissa
+Friends Lula and Paula found a kiwi at the museum. Lula gave it to,Paula,Friends Gerardo and Jorge found a kiwi at the museum. Felix gave it to,Cali,Lula,Gerardo
+"Afterwards, Marilyn and Alyssa went to the school. Marilyn gave a cantaloupe to",Alyssa,"Afterwards, Shyann and Ryleigh went to the school. Gerardo gave a cantaloupe to",Alyson,Marilyn,Shyann
+"Then, Sophia and Rosa went to the cave. Sophia gave a cherry to",Rosa,"Then, Kelsey and Harrison went to the cave. Devon gave a cherry to",Stephanie,Sophia,Kelsey
+"Then, Jackie and Loretta had a lot of fun at the museum. Jackie gave a pear to",Loretta,"Then, Destiny and Iyana had a lot of fun at the museum. Odalys gave a pear to",Marie,Jackie,Destiny
+"After the lunch, Violet and Alyssa went to the forest. Violet gave a blueberry to",Alyssa,"After the lunch, Darien and Yadira went to the forest. Chanel gave a blueberry to",Syed,Violet,Darien
+Friends Janet and Suzanne found a cantaloupe at the market. Suzanne gave it to,Janet,Friends Miranda and Michaela found a cantaloupe at the market. Sergio gave it to,Salvador,Suzanne,Michaela
+"After Rachel and Juana went to the cave, Rachel gave a cantaloupe to",Juana,"After Mario and Troy went to the cave, Emily gave a cantaloupe to",Emma,Rachel,Mario
+"After the lunch, Jessica and Wilma went to the library. Jessica gave a coconut to",Wilma,"After the lunch, Nick and Bryan went to the library. Benito gave a coconut to",Sarah,Jessica,Nick
+The shop Evelyn and Gwen went to had a raspberry. Gwen gave it to,Evelyn,The shop Yazmin and Tyrique went to had a raspberry. Shelby gave it to,Ayla,Gwen,Tyrique
+"When Brian and Stacey got a watermelon at the shop, Stacey decided to give it to",Brian,"When Austin and Jaclyn got a watermelon at the shop, Jaxson decided to give it to",Jade,Stacey,Jaclyn
+"Then, Brandy and Bernadette were working at the museum. Bernadette decided to give a blueberry to",Brandy,"Then, Leonardo and Antoinette were working at the museum. Jevon decided to give a blueberry to",Dwayne,Bernadette,Antoinette
+Friends David and Stacey found a papaya at the zoo. Stacey gave it to,David,Friends Jeremy and Allison found a papaya at the zoo. Harley gave it to,Shawn,Stacey,Allison
+The cave Alyssa and Marilyn went to had a orange. Marilyn gave it to,Alyssa,The cave Francesca and Alyson went to had a orange. Chandler gave it to,Tabitha,Marilyn,Alyson
+"While Melanie and Inez were commuting to the store, Inez gave a apple to",Melanie,"While Carolyn and Caitlyn were commuting to the store, Abel gave a apple to",Luca,Inez,Caitlyn
+"Afterwards, Melanie and Teresa went to the forest. Teresa gave a orange to",Melanie,"Afterwards, Aileen and Quentin went to the forest. Shea gave a orange to",Coleman,Teresa,Quentin
+"While Miriam and Stella were working at the lake, Miriam gave a banana to",Stella,"While Cierra and Benny were working at the lake, Grant gave a banana to",Maximillian,Miriam,Cierra
+"Then, Erika and Angie were thinking about going to the museum. Erika wanted to give a watermelon to",Angie,"Then, Casey and Charlotte were thinking about going to the museum. Octavio wanted to give a watermelon to",Sarina,Erika,Casey
+"While Ella and Erika were working at the market, Erika gave a banana to",Ella,"While Marian and Kaylynn were working at the market, Cullen gave a banana to",Brianne,Erika,Kaylynn
+"When Chelsea and Fannie got a honeydew at the home, Fannie decided to give the honeydew to",Chelsea,"When Hillary and Trisha got a honeydew at the home, Judah decided to give the honeydew to",Lewis,Fannie,Trisha
+"After the lunch, Mildred and Kristina went to the desert. Kristina gave a cantaloupe to",Mildred,"After the lunch, Micheal and Kelli went to the desert. Myah gave a cantaloupe to",Janiya,Kristina,Kelli
+"While Rachel and Deanna were working at the theater, Rachel gave a plum to",Deanna,"While Hope and Kirk were working at the theater, Paula gave a plum to",Cassidy,Rachel,Hope
+"When Paula and Jessica got a banana at the theater, Jessica decided to give the banana to",Paula,"When Joan and Christian got a banana at the theater, Desmond decided to give the banana to",Donovan,Jessica,Christian
+"After the lunch, Amanda and Geneva went to the library. Geneva gave a blackberry to",Amanda,"After the lunch, Noel and Lea went to the library. Gordon gave a blackberry to",Enrique,Geneva,Lea
+"Then, Martha and Jessie had a lot of fun at the park. Martha gave a raspberry to",Jessie,"Then, Darin and Tina had a lot of fun at the park. Bret gave a raspberry to",Ryder,Martha,Darin
+"Then, Lorraine and Robin went to the mountain. Robin gave a plum to",Lorraine,"Then, Valentina and Crystal went to the mountain. Gretchen gave a plum to",Judith,Robin,Crystal
+"After Theresa and Maggie went to the desert, Maggie gave a strawberry to",Theresa,"After Reese and Izaiah went to the desert, Forrest gave a strawberry to",Mike,Maggie,Izaiah
+"After Lorraine and Pauline went to the gym, Pauline gave a coconut to",Lorraine,"After Kolby and Erin went to the gym, Adonis gave a coconut to",Keshawn,Pauline,Erin
+"While Mark and Kristina were working at the beach, Kristina gave a banana to",Mark,"While Christopher and Maribel were working at the beach, Paris gave a banana to",Manuel,Kristina,Maribel
+"While Ethel and Kim were working at the school, Ethel gave a blackberry to",Kim,"While Janet and Anne were working at the school, Brooklynn gave a blackberry to",Sydni,Ethel,Janet
+"Then, Estelle and Juana were thinking about going to the mountain. Estelle wanted to give a honeydew to",Juana,"Then, Lauren and Roberto were thinking about going to the mountain. Serenity wanted to give a honeydew to",Lorenzo,Estelle,Lauren
+"After Sophia and Yolanda went to the lake, Sophia gave a cherry to",Yolanda,"After Demarcus and Chandler went to the lake, Rebekah gave a cherry to",Sienna,Sophia,Demarcus
+"Then, Kim and Irma had a lot of fun at the mountain. Irma gave a blackberry to",Kim,"Then, Dean and Ralph had a lot of fun at the mountain. Pedro gave a blackberry to",Rafael,Irma,Ralph
+"Then, Kathryn and Ethel were thinking about going to the library. Ethel wanted to give a cantaloupe to",Kathryn,"Then, Cornelius and Lara were thinking about going to the library. Evan wanted to give a cantaloupe to",Ezra,Ethel,Lara
+"After the lunch, Nellie and Jody went to the cafe. Jody gave a strawberry to",Nellie,"After the lunch, Abril and Jaren went to the cafe. Dontae gave a strawberry to",Jolie,Jody,Jaren
+"When Anita and Robin got a pineapple at the forest, Robin decided to give it to",Anita,"When Jonah and Marcus got a pineapple at the forest, Michael decided to give it to",Heath,Robin,Marcus
+"While Harriet and Carol were working at the library, Carol gave a raspberry to",Harriet,"While Andreas and Carolyn were working at the library, Patricia gave a raspberry to",Jefferson,Carol,Carolyn
+The library Stacy and Kristi went to had a peach. Kristi gave it to,Stacy,The library Clint and Seamus went to had a peach. Nichole gave it to,Cory,Kristi,Seamus
+"While Estelle and Jacqueline were commuting to the theater, Estelle gave a grape to",Jacqueline,"While Troy and Lonnie were commuting to the theater, Makenna gave a grape to",Ingrid,Estelle,Troy
+"After Kristi and Alicia went to the gym, Kristi gave a cherry to",Alicia,"After Trinity and Rodrigo went to the gym, Julius gave a cherry to",Jordon,Kristi,Trinity
+"Then, Deanna and Jody went to the shop. Jody gave a watermelon to",Deanna,"Then, Devyn and Nataly went to the shop. Frances gave a watermelon to",Genevieve,Jody,Nataly
+"When Sheila and Kristi got a papaya at the theater, Kristi decided to give the papaya to",Sheila,"When Anaya and Hannah got a papaya at the theater, Kayla decided to give the papaya to",Joan,Kristi,Hannah
+"When Leigh and Doris got a kiwi at the desert, Leigh decided to give the kiwi to",Doris,"When Tyson and Muhammad got a kiwi at the desert, Eva decided to give the kiwi to",Emilia,Leigh,Tyson
+The store Kristi and Jessie went to had a banana. Kristi gave it to,Jessie,The store Cali and Wayne went to had a banana. Shannon gave it to,Isaak,Kristi,Cali
+Friends Gwen and Harriet found a cherry at the cafe. Gwen gave it to,Harriet,Friends Carlee and Melisa found a cherry at the cafe. Kyler gave it to,Parker,Gwen,Carlee
+"Then, Leigh and Lorraine had a lot of fun at the store. Leigh gave a blackberry to",Lorraine,"Then, Princess and Trenton had a lot of fun at the store. Fidel gave a blackberry to",Gina,Leigh,Princess
+The museum Sophia and Sarah went to had a blueberry. Sophia gave it to,Sarah,The museum Tristen and London went to had a blueberry. Kristen gave it to,Harrison,Sophia,Tristen
+"Then, Mattie and Pat had a lot of fun at the cafe. Pat gave a pineapple to",Mattie,"Then, Lexie and Brook had a lot of fun at the cafe. Leanna gave a pineapple to",Alma,Pat,Brook
+"Then, Sophia and Heidi were working at the zoo. Sophia decided to give a raspberry to",Heidi,"Then, Cornelius and Julian were working at the zoo. Eugene decided to give a raspberry to",Colt,Sophia,Cornelius
+The library William and Richard went to had a grape. Richard gave it to,William,The library Kent and Luke went to had a grape. Elvis gave it to,Marian,Richard,Luke
+"Then, Paula and Marilyn had a lot of fun at the market. Marilyn gave a peach to",Paula,"Then, Gilbert and Jazmine had a lot of fun at the market. Paris gave a peach to",Israel,Marilyn,Jazmine
+"When Marsha and Kathryn got a orange at the shop, Marsha decided to give the orange to",Kathryn,"When Harvey and Alayna got a orange at the shop, Carlie decided to give the orange to",Orlando,Marsha,Harvey
+"While Fannie and Rosemarie were commuting to the store, Fannie gave a banana to",Rosemarie,"While Ariel and Adrianna were commuting to the store, Robyn gave a banana to",Darien,Fannie,Ariel
+"After Jacqueline and Yvette went to the museum, Yvette gave a grape to",Jacqueline,"After Tayler and Fredrick went to the museum, Ezekiel gave a grape to",Clifton,Yvette,Fredrick
+"After Kathryn and Miriam went to the market, Miriam gave a kiwi to",Kathryn,"After Leticia and Marshall went to the market, Madelynn gave a kiwi to",Marco,Miriam,Marshall
+"Afterwards, Gwen and Marian went to the river. Gwen gave a blueberry to",Marian,"Afterwards, Tori and Harrison went to the river. Shaina gave a blueberry to",Cindy,Gwen,Tori
+"Then, Kathryn and Suzanne had a lot of fun at the store. Suzanne gave a cherry to",Kathryn,"Then, Kareem and Theodore had a lot of fun at the store. Madison gave a cherry to",Lilly,Suzanne,Theodore
+"While Natasha and Doris were working at the river, Natasha gave a blueberry to",Doris,"While Trisha and Trinity were working at the river, Brooke gave a blueberry to",Kendrick,Natasha,Trisha
+"Afterwards, Irma and Diana went to the river. Irma gave a strawberry to",Diana,"Afterwards, Felicia and Nancy went to the river. Dan gave a strawberry to",Cynthia,Irma,Felicia
+"Then, Virginia and Martha had a lot of fun at the river. Martha gave a plum to",Virginia,"Then, Lisa and Colten had a lot of fun at the river. Diane gave a plum to",Neal,Martha,Colten
+"Afterwards, Evelyn and Stacey went to the lake. Stacey gave a honeydew to",Evelyn,"Afterwards, Sydnee and Derick went to the lake. Kylan gave a honeydew to",Khalil,Stacey,Derick
+"When Kristi and Lorraine got a raspberry at the bar, Kristi decided to give it to",Lorraine,"When Angie and Sergio got a raspberry at the bar, Estevan decided to give it to",Dallas,Kristi,Angie
+"After Ella and Gwen went to the library, Gwen gave a honeydew to",Ella,"After Jada and Ashton went to the library, Keeley gave a honeydew to",Bradly,Gwen,Ashton
+"Afterwards, Ginger and Rachel went to the desert. Rachel gave a orange to",Ginger,"Afterwards, Julie and Charles went to the desert. Frances gave a orange to",Gerald,Rachel,Charles
+"When Alyssa and Gwen got a blackberry at the beach, Gwen decided to give the blackberry to",Alyssa,"When Kaitlynn and Delia got a blackberry at the beach, Reginald decided to give the blackberry to",Declan,Gwen,Delia
+"While Amanda and Pauline were working at the cafe, Pauline gave a raspberry to",Amanda,"While Rowan and Willow were working at the cafe, Zaria gave a raspberry to",Javier,Pauline,Willow
+"When Lee and Theresa got a kiwi at the theater, Lee decided to give the kiwi to",Theresa,"When Sam and Evan got a kiwi at the theater, Justice decided to give the kiwi to",Jackson,Lee,Sam
+The forest Kathryn and Eleanor went to had a honeydew. Eleanor gave it to,Kathryn,The forest Zackary and Dawn went to had a honeydew. Melvin gave it to,Tess,Eleanor,Dawn
+"When Inez and Jessie got a honeydew at the desert, Inez decided to give it to",Jessie,"When Micaela and Abraham got a honeydew at the desert, Warren decided to give it to",Ayden,Inez,Micaela
+"Then, Brandy and Rebecca were working at the theater. Rebecca decided to give a mango to",Brandy,"Then, Eve and Mason were working at the theater. Trent decided to give a mango to",Sierra,Rebecca,Mason
+"While Robin and William were commuting to the library, Robin gave a plum to",William,"While Morgan and Walker were commuting to the library, Reese gave a plum to",Sophia,Robin,Morgan
+"When Alicia and Suzanne got a cantaloupe at the store, Suzanne decided to give the cantaloupe to",Alicia,"When Santos and Mitchell got a cantaloupe at the store, Leon decided to give the cantaloupe to",Pamela,Suzanne,Mitchell
+"When Stacy and Melissa got a peach at the theater, Melissa decided to give it to",Stacy,"When Reid and Kenneth got a peach at the theater, Marvin decided to give it to",Shaun,Melissa,Kenneth
+"Then, Natasha and Jacqueline went to the cafe. Natasha gave a watermelon to",Jacqueline,"Then, Misty and Annabelle went to the cafe. Lizeth gave a watermelon to",Tania,Natasha,Misty
+"Then, Alyssa and Agnes were working at the park. Agnes decided to give a raspberry to",Alyssa,"Then, Daquan and Aniya were working at the park. Keegan decided to give a raspberry to",Meghan,Agnes,Aniya
+"Afterwards, Shannon and Anne went to the gym. Shannon gave a blueberry to",Anne,"Afterwards, Wade and Keith went to the gym. Rose gave a blueberry to",Simon,Shannon,Wade
+"After Maggie and Sheila went to the school, Maggie gave a apple to",Sheila,"After Dwight and Amir went to the school, Rose gave a apple to",Kali,Maggie,Dwight
+"After the lunch, Deanna and Marsha went to the lake. Marsha gave a peach to",Deanna,"After the lunch, Zion and Samara went to the lake. Raul gave a peach to",Macie,Marsha,Samara
+The theater Marian and Bernadette went to had a honeydew. Bernadette gave it to,Marian,The theater Kelli and Mariela went to had a honeydew. Keon gave it to,Jaelyn,Bernadette,Mariela
+"While Richard and Sarah were commuting to the zoo, Richard gave a plum to",Sarah,"While Crystal and Anna were commuting to the zoo, Dion gave a plum to",Hugh,Richard,Crystal
+"When Martha and Theresa got a apple at the theater, Martha decided to give the apple to",Theresa,"When Douglas and Noelia got a apple at the theater, Ashton decided to give the apple to",Reese,Martha,Douglas
+"Then, Maggie and Charlene were thinking about going to the desert. Maggie wanted to give a pineapple to",Charlene,"Then, Olivia and Kayli were thinking about going to the desert. Noe wanted to give a pineapple to",Trent,Maggie,Olivia
+Friends Jessica and Ginger found a honeydew at the bar. Jessica gave it to,Ginger,Friends Andre and Ashley found a honeydew at the bar. Clifford gave it to,Riley,Jessica,Andre
+"When Kathryn and Jessica got a cantaloupe at the beach, Jessica decided to give the cantaloupe to",Kathryn,"When Braedon and Angel got a cantaloupe at the beach, Alan decided to give the cantaloupe to",Clare,Jessica,Angel
+"Afterwards, Chelsea and Lula went to the cave. Lula gave a honeydew to",Chelsea,"Afterwards, Bo and Bria went to the cave. Laura gave a honeydew to",Treyvon,Lula,Bria
+"After Leigh and Virginia went to the shop, Leigh gave a peach to",Virginia,"After Miracle and Keith went to the shop, London gave a peach to",Adrian,Leigh,Miracle
+"While Leona and Stacey were commuting to the forest, Stacey gave a raspberry to",Leona,"While Savannah and Daisha were commuting to the forest, Antwan gave a raspberry to",Genevieve,Stacey,Daisha
+"After the lunch, Stacey and Anne went to the mountain. Stacey gave a mango to",Anne,"After the lunch, Marisa and Alan went to the mountain. Glen gave a mango to",Rodrigo,Stacey,Marisa
+The market David and Gwen went to had a honeydew. Gwen gave it to,David,The market Chance and Holden went to had a honeydew. Clifton gave it to,Bella,Gwen,Holden
+"When Erika and Carmen got a orange at the theater, Erika decided to give it to",Carmen,"When Bernardo and Nathanial got a orange at the theater, Damien decided to give it to",Ariel,Erika,Bernardo
+"While Alicia and Maggie were commuting to the lake, Maggie gave a blueberry to",Alicia,"While Darrion and Gabriella were commuting to the lake, Jennifer gave a blueberry to",Amos,Maggie,Gabriella
+"When Robin and Heidi got a orange at the library, Robin decided to give the orange to",Heidi,"When Chelsea and Franklin got a orange at the library, Isabel decided to give the orange to",Taylor,Robin,Chelsea
+"After the lunch, Mark and Rebecca went to the cafe. Rebecca gave a peach to",Mark,"After the lunch, Hunter and Kole went to the cafe. Anton gave a peach to",Annie,Rebecca,Kole
+"After Kim and Pat went to the gym, Pat gave a cantaloupe to",Kim,"After Ross and Unique went to the gym, Warren gave a cantaloupe to",Stephan,Pat,Unique
+"While Suzanne and Heidi were working at the river, Suzanne gave a blueberry to",Heidi,"While Calvin and Drake were working at the river, Santiago gave a blueberry to",Nicole,Suzanne,Calvin
+"Then, Sophia and Jessie were thinking about going to the school. Sophia wanted to give a plum to",Jessie,"Then, Trevor and Emmanuel were thinking about going to the school. Daryl wanted to give a plum to",Shea,Sophia,Trevor
+"When Marilyn and Rosemarie got a papaya at the desert, Marilyn decided to give the papaya to",Rosemarie,"When Sidney and Raheem got a papaya at the desert, Bailee decided to give the papaya to",Yessenia,Marilyn,Sidney
+"While Shannon and Sheila were commuting to the theater, Shannon gave a banana to",Sheila,"While Sammy and Marian were commuting to the theater, Elaine gave a banana to",Isaiah,Shannon,Sammy
+"After Jacqueline and Violet went to the theater, Violet gave a banana to",Jacqueline,"After Beatriz and Dillon went to the theater, Rasheed gave a banana to",Darin,Violet,Dillon
+"Then, Ethel and Jessie had a lot of fun at the shop. Ethel gave a blackberry to",Jessie,"Then, Jewel and Grace had a lot of fun at the shop. Camren gave a blackberry to",Reece,Ethel,Jewel
+"Then, Megan and Sheila had a lot of fun at the shop. Megan gave a pineapple to",Sheila,"Then, Frederick and Brooklynn had a lot of fun at the shop. Kristen gave a pineapple to",Anne,Megan,Frederick
+The store Jessica and Jerry went to had a apple. Jessica gave it to,Jerry,The store Mary and August went to had a apple. Jonathan gave it to,James,Jessica,Mary
+Friends Faye and Alicia found a watermelon at the store. Faye gave it to,Alicia,Friends Cali and Brynn found a watermelon at the store. Perry gave it to,Moses,Faye,Cali
+"Then, Juana and Miriam had a lot of fun at the theater. Miriam gave a cherry to",Juana,"Then, Hamza and Leslie had a lot of fun at the theater. Kaitlynn gave a cherry to",Ally,Miriam,Leslie
+"After Bernadette and Doris went to the beach, Bernadette gave a pineapple to",Doris,"After Yasmin and Brooks went to the beach, Alivia gave a pineapple to",Elisha,Bernadette,Yasmin
+"After Gwen and Yolanda went to the store, Gwen gave a blueberry to",Yolanda,"After Kennedi and Annamarie went to the store, Anastasia gave a blueberry to",Marlee,Gwen,Kennedi
+"While Melanie and Miriam were working at the river, Miriam gave a peach to",Melanie,"While Reyna and Eve were working at the river, Lincoln gave a peach to",Rachael,Miriam,Eve
+The library Robin and Loretta went to had a honeydew. Robin gave it to,Loretta,The library Louis and Lamont went to had a honeydew. Sarai gave it to,Olivia,Robin,Louis
+The shop Alyssa and Erika went to had a kiwi. Erika gave it to,Alyssa,The shop Antonio and Dorian went to had a kiwi. Dallin gave it to,Jacklyn,Erika,Dorian
+"Then, Brandy and Gwen had a lot of fun at the cafe. Gwen gave a cherry to",Brandy,"Then, Forrest and Tania had a lot of fun at the cafe. Nathen gave a cherry to",Josef,Gwen,Tania
+"Then, Alyssa and Jody had a lot of fun at the cave. Jody gave a blackberry to",Alyssa,"Then, Dulce and Trinity had a lot of fun at the cave. Brice gave a blackberry to",Zachery,Jody,Trinity
+"Then, Marilyn and Jacqueline had a lot of fun at the desert. Marilyn gave a kiwi to",Jacqueline,"Then, Brielle and Nestor had a lot of fun at the desert. Kaylah gave a kiwi to",Pierce,Marilyn,Brielle
+"While Kevin and David were commuting to the school, Kevin gave a strawberry to",David,"While Neil and Andre were commuting to the school, Sandra gave a strawberry to",Sydney,Kevin,Neil
+"After the lunch, Kristi and Brian went to the park. Kristi gave a peach to",Brian,"After the lunch, Cale and Pat went to the park. Fernando gave a peach to",Reese,Kristi,Cale
+"After Brian and Kari went to the home, Kari gave a blueberry to",Brian,"After Russell and Joel went to the home, Nadine gave a blueberry to",Gabriel,Kari,Joel
+"When Carmen and Gwen got a banana at the forest, Gwen decided to give it to",Carmen,"When Cayla and Hazel got a banana at the forest, Adrian decided to give it to",Kiersten,Gwen,Hazel
+Friends Marsha and Angie found a papaya at the zoo. Marsha gave it to,Angie,Friends Itzel and Dillion found a papaya at the zoo. Colt gave it to,Estevan,Marsha,Itzel
+Friends Yolanda and Richard found a cantaloupe at the gym. Richard gave it to,Yolanda,Friends Abagail and Paul found a cantaloupe at the gym. Gianni gave it to,Lesley,Richard,Paul
+"Then, Heidi and Mona were working at the desert. Mona decided to give a coconut to",Heidi,"Then, Derrick and Kristen were working at the desert. Kenyon decided to give a coconut to",Nicole,Mona,Kristen
+"After the lunch, Dianne and Leigh went to the desert. Leigh gave a banana to",Dianne,"After the lunch, Makenna and Emerson went to the desert. Gina gave a banana to",Abram,Leigh,Emerson
+"While Richard and Kim were working at the zoo, Richard gave a coconut to",Kim,"While Davis and Dan were working at the zoo, Elizabeth gave a coconut to",Claire,Richard,Davis
+"Then, Mattie and Kelly went to the park. Kelly gave a strawberry to",Mattie,"Then, Titus and Alex went to the park. Tyrell gave a strawberry to",Taryn,Kelly,Alex
+"After Sonia and Deanna went to the market, Sonia gave a strawberry to",Deanna,"After Leonel and Jett went to the market, Melody gave a strawberry to",Jimmie,Sonia,Leonel
+"After Alyssa and Shannon went to the home, Shannon gave a watermelon to",Alyssa,"After Annalise and Mason went to the home, Anderson gave a watermelon to",Dana,Shannon,Mason
+"Then, Rosemarie and Geneva had a lot of fun at the mountain. Geneva gave a orange to",Rosemarie,"Then, Mekhi and Victor had a lot of fun at the mountain. Infant gave a orange to",Landon,Geneva,Victor
+"While Lorraine and Shannon were commuting to the desert, Shannon gave a orange to",Lorraine,"While Johanna and Genaro were commuting to the desert, Austin gave a orange to",Uriel,Shannon,Genaro
+"Then, Evelyn and Fannie went to the store. Fannie gave a cherry to",Evelyn,"Then, Dianna and Allison went to the store. Carlie gave a cherry to",Gabriella,Fannie,Allison
+"After Mona and Jacqueline went to the mountain, Mona gave a kiwi to",Jacqueline,"After Gerald and Aracely went to the mountain, Madeleine gave a kiwi to",Pedro,Mona,Gerald
+The bar Mark and Pat went to had a kiwi. Pat gave it to,Mark,The bar Morgan and Keith went to had a kiwi. Phillip gave it to,Anton,Pat,Keith
+"Then, Jacqueline and Stacey were thinking about going to the museum. Stacey wanted to give a mango to",Jacqueline,"Then, Rafael and Ryley were thinking about going to the museum. Cydney wanted to give a mango to",Joana,Stacey,Ryley
+"Then, Alyssa and Maggie were thinking about going to the market. Maggie wanted to give a grape to",Alyssa,"Then, Kacie and Francesca were thinking about going to the market. Nyah wanted to give a grape to",Zoe,Maggie,Francesca
+"After Paula and Estelle went to the school, Estelle gave a watermelon to",Paula,"After Karen and Chyna went to the school, Stephen gave a watermelon to",Carson,Estelle,Chyna
+"After the lunch, Violet and Carmen went to the school. Violet gave a raspberry to",Carmen,"After the lunch, Alvin and Elyssa went to the school. Tess gave a raspberry to",Parker,Violet,Alvin
+"While Gwen and Kim were commuting to the library, Gwen gave a mango to",Kim,"While Alexis and Fred were commuting to the library, Clint gave a mango to",India,Gwen,Alexis
+Friends Leigh and Sheila found a apple at the park. Leigh gave it to,Sheila,Friends Casey and Andreas found a apple at the park. Kristen gave it to,Glenn,Leigh,Casey
+"Then, Rosa and Mona went to the park. Mona gave a papaya to",Rosa,"Then, Brock and Isis went to the park. Payton gave a papaya to",Monserrat,Mona,Isis
+"Then, Teresa and Chelsea were thinking about going to the beach. Teresa wanted to give a mango to",Chelsea,"Then, Braxton and India were thinking about going to the beach. Nash wanted to give a mango to",Brett,Teresa,Braxton
+"Then, Martha and Mark were thinking about going to the gym. Martha wanted to give a blackberry to",Mark,"Then, Patricia and Larry were thinking about going to the gym. Darrell wanted to give a blackberry to",Stone,Martha,Patricia
+"Afterwards, Pauline and Angie went to the river. Pauline gave a strawberry to",Angie,"Afterwards, Jairo and Emerson went to the river. Brianne gave a strawberry to",Juliette,Pauline,Jairo
+"While Evelyn and Rachel were working at the home, Rachel gave a orange to",Evelyn,"While Clayton and Charles were working at the home, Jaime gave a orange to",Rory,Rachel,Charles
+"Then, Sarah and Melissa were thinking about going to the bar. Melissa wanted to give a pineapple to",Sarah,"Then, Adam and Melisa were thinking about going to the bar. Elijah wanted to give a pineapple to",Unique,Melissa,Melisa
+"When Kristi and Jessie got a mango at the shop, Kristi decided to give it to",Jessie,"When Ava and Layla got a mango at the shop, Megan decided to give it to",Leo,Kristi,Ava
+"After Charlene and Grace went to the park, Grace gave a blackberry to",Charlene,"After Carlos and Ruth went to the park, Santos gave a blackberry to",Gia,Grace,Ruth
+"While David and Bernadette were commuting to the lake, Bernadette gave a papaya to",David,"While Faith and Alondra were commuting to the lake, Alex gave a papaya to",Makenzie,Bernadette,Alondra
+"When Heidi and Richard got a raspberry at the forest, Richard decided to give it to",Heidi,"When Parker and Howard got a raspberry at the forest, Jennifer decided to give it to",Herbert,Richard,Howard
+"After the lunch, Alice and Jacqueline went to the park. Alice gave a grape to",Jacqueline,"After the lunch, Pierre and Francesco went to the park. Grace gave a grape to",Emmalee,Alice,Pierre
+"When Jerry and Estelle got a papaya at the gym, Estelle decided to give the papaya to",Jerry,"When Adam and Salma got a papaya at the gym, Piper decided to give the papaya to",Daija,Estelle,Salma
+"While Bernadette and Alicia were commuting to the store, Bernadette gave a raspberry to",Alicia,"While Matteo and Heriberto were commuting to the store, Kylie gave a raspberry to",Ezra,Bernadette,Matteo
+"After the lunch, Anita and Inez went to the museum. Inez gave a cantaloupe to",Anita,"After the lunch, Hannah and Sarina went to the museum. Austin gave a cantaloupe to",Tristan,Inez,Sarina
+"While Nellie and Sonia were commuting to the beach, Sonia gave a honeydew to",Nellie,"While Aylin and Beatrice were commuting to the beach, Jaydon gave a honeydew to",Fredrick,Sonia,Beatrice
+"After the lunch, Susan and Kristi went to the museum. Kristi gave a coconut to",Susan,"After the lunch, Thomas and Amari went to the museum. Sarai gave a coconut to",Alexandria,Kristi,Amari
+"While Geneva and Susan were working at the store, Geneva gave a banana to",Susan,"While Katie and German were working at the store, Sandra gave a banana to",Nikki,Geneva,Katie
+"Then, Mildred and Lula went to the museum. Lula gave a blackberry to",Mildred,"Then, Evelyn and Misael went to the museum. Imani gave a blackberry to",Colten,Lula,Misael
+"While Geneva and Anne were commuting to the cafe, Geneva gave a blueberry to",Anne,"While Elise and Carl were commuting to the cafe, Joel gave a blueberry to",Kenneth,Geneva,Elise
+"Then, Doris and Richard went to the desert. Richard gave a raspberry to",Doris,"Then, Daryl and Guy went to the desert. Laura gave a raspberry to",Mason,Richard,Guy
+"When Alice and Heidi got a papaya at the bar, Alice decided to give the papaya to",Heidi,"When Paul and Brice got a papaya at the bar, Christy decided to give the papaya to",Houston,Alice,Paul
+"While Lula and William were commuting to the school, Lula gave a orange to",William,"While Elena and Maria were commuting to the school, Reanna gave a orange to",Lamont,Lula,Elena
+"While Paula and Robin were commuting to the market, Robin gave a raspberry to",Paula,"While Antonia and Donnell were commuting to the market, Lewis gave a raspberry to",Elvis,Robin,Donnell
+"While Richard and Mildred were working at the mountain, Richard gave a plum to",Mildred,"While Elizabeth and Brayan were working at the mountain, Ahmad gave a plum to",Mallory,Richard,Elizabeth
+"After Kelly and Deanna went to the bar, Kelly gave a blackberry to",Deanna,"After Craig and Christine went to the bar, Shane gave a blackberry to",Alyson,Kelly,Craig
+"While Robin and Doris were working at the cafe, Robin gave a blackberry to",Doris,"While Kyle and Jenifer were working at the cafe, Rita gave a blackberry to",Desiree,Robin,Kyle
+"Afterwards, Melanie and Marilyn went to the bar. Marilyn gave a plum to",Melanie,"Afterwards, Abram and Nathaniel went to the bar. Xavier gave a plum to",Philip,Marilyn,Nathaniel
+"Afterwards, Jessie and Suzanne went to the museum. Suzanne gave a blackberry to",Jessie,"Afterwards, Khalid and Nicole went to the museum. Alex gave a blackberry to",Vernon,Suzanne,Nicole
+Friends Heidi and Maggie found a blueberry at the lake. Maggie gave it to,Heidi,Friends Dane and Allyssa found a blueberry at the lake. Jessie gave it to,Joseph,Maggie,Allyssa
+"Then, Jessica and Sheila had a lot of fun at the beach. Jessica gave a cherry to",Sheila,"Then, Stone and Camren had a lot of fun at the beach. Drew gave a cherry to",Ana,Jessica,Stone
+"While Alice and Anne were working at the lake, Alice gave a grape to",Anne,"While Michael and Don were working at the lake, Ana gave a grape to",Anita,Alice,Michael
+"After the lunch, Teresa and Amanda went to the store. Teresa gave a cherry to",Amanda,"After the lunch, Geneva and Walter went to the store. Shelby gave a cherry to",Dale,Teresa,Geneva
+"Then, Kathryn and Kelly were working at the shop. Kelly decided to give a apple to",Kathryn,"Then, Tyrone and River were working at the shop. Melissa decided to give a apple to",Jan,Kelly,River
+The beach Rosa and Kari went to had a strawberry. Kari gave it to,Rosa,The beach Gia and Silas went to had a strawberry. Rosemary gave it to,Jessie,Kari,Silas
+"Then, Stella and Kristina went to the library. Kristina gave a strawberry to",Stella,"Then, Amira and Carlie went to the library. Geoffrey gave a strawberry to",Carlo,Kristina,Carlie
+"After Miriam and Charlene went to the market, Miriam gave a banana to",Charlene,"After Jillian and Breana went to the market, Mckayla gave a banana to",Julio,Miriam,Jillian
+Friends Natasha and Mattie found a banana at the zoo. Natasha gave it to,Mattie,Friends Eileen and Luca found a banana at the zoo. Christiana gave it to,Meaghan,Natasha,Eileen
+"Then, Yvette and Ginger had a lot of fun at the shop. Yvette gave a apple to",Ginger,"Then, Brendan and Madyson had a lot of fun at the shop. Katlynn gave a apple to",Hudson,Yvette,Brendan
+"Then, Heidi and Geneva had a lot of fun at the museum. Geneva gave a watermelon to",Heidi,"Then, Timothy and Amya had a lot of fun at the museum. Dakota gave a watermelon to",Jesse,Geneva,Amya
+"When Faye and Paula got a apple at the market, Faye decided to give it to",Paula,"When Karley and Gaven got a apple at the market, Isis decided to give it to",Ruby,Faye,Karley
+"While Kari and Jessie were commuting to the desert, Kari gave a apple to",Jessie,"While Dangelo and Bret were commuting to the desert, Guillermo gave a apple to",Alma,Kari,Dangelo
+Friends Susan and Megan found a grape at the museum. Megan gave it to,Susan,Friends John and Dale found a grape at the museum. Brian gave it to,Weston,Megan,Dale
+"Then, Yolanda and Kristina had a lot of fun at the market. Kristina gave a honeydew to",Yolanda,"Then, Tiffany and Devyn had a lot of fun at the market. Heriberto gave a honeydew to",Jocelyn,Kristina,Devyn
+"When Ethel and Rosemarie got a orange at the bar, Ethel decided to give it to",Rosemarie,"When Darien and Cortez got a orange at the bar, Kavon decided to give it to",Lesly,Ethel,Darien
+"When Sheila and Stacey got a pear at the library, Stacey decided to give it to",Sheila,"When Hugo and Skylar got a pear at the library, Dominik decided to give it to",Anton,Stacey,Skylar
+"After the lunch, David and Carol went to the forest. Carol gave a coconut to",David,"After the lunch, India and Joey went to the forest. Parker gave a coconut to",Nolan,Carol,Joey
+"While Gwen and Dianne were working at the lake, Gwen gave a coconut to",Dianne,"While Alexandra and Odalys were working at the lake, Rodney gave a coconut to",Davion,Gwen,Alexandra
+"Then, Rosa and Inez were thinking about going to the park. Inez wanted to give a pineapple to",Rosa,"Then, Karla and Lonnie were thinking about going to the park. Lee wanted to give a pineapple to",Caitlynn,Inez,Lonnie
+"Then, Charlene and Carol had a lot of fun at the park. Carol gave a blueberry to",Charlene,"Then, Lawrence and Juliet had a lot of fun at the park. Ali gave a blueberry to",Jackie,Carol,Juliet
+"Then, Rosa and Irma were working at the beach. Irma decided to give a blueberry to",Rosa,"Then, Jill and Conrad were working at the beach. Edwin decided to give a blueberry to",Darrell,Irma,Conrad
+"Then, Pat and Jacqueline had a lot of fun at the lake. Pat gave a orange to",Jacqueline,"Then, Richard and Mackenzie had a lot of fun at the lake. Kylie gave a orange to",Joyce,Pat,Richard
+"While Stacey and Ella were commuting to the shop, Stacey gave a grape to",Ella,"While Calista and Myra were commuting to the shop, Jayden gave a grape to",Cristopher,Stacey,Calista
+The home Yolanda and Geneva went to had a plum. Geneva gave it to,Yolanda,The home Gabriella and Karlie went to had a plum. Kale gave it to,Brent,Geneva,Karlie
+"While Kim and Gwen were working at the shop, Gwen gave a blueberry to",Kim,"While Mark and Omar were working at the shop, Vaughn gave a blueberry to",Callie,Gwen,Omar
+"Then, Ethel and Brian had a lot of fun at the museum. Ethel gave a plum to",Brian,"Then, Harrison and James had a lot of fun at the museum. Claire gave a plum to",Jarrod,Ethel,Harrison
+"When David and Fannie got a coconut at the cafe, Fannie decided to give the coconut to",David,"When Eva and Arianna got a coconut at the cafe, Elena decided to give the coconut to",Mayra,Fannie,Arianna
+"Then, Anne and Violet had a lot of fun at the theater. Violet gave a coconut to",Anne,"Then, Chris and Cade had a lot of fun at the theater. Ralph gave a coconut to",Troy,Violet,Cade
+"When Mona and Yolanda got a blackberry at the lake, Mona decided to give the blackberry to",Yolanda,"When Wilma and Claudia got a blackberry at the lake, Kacie decided to give the blackberry to",Cesar,Mona,Wilma
+Friends Alicia and Kevin found a raspberry at the desert. Kevin gave it to,Alicia,Friends Estevan and Ryan found a raspberry at the desert. Joel gave it to,Mercedes,Kevin,Ryan
+"When Kelly and William got a pear at the theater, Kelly decided to give it to",William,"When Luke and Amy got a pear at the theater, Cody decided to give it to",Roberto,Kelly,Luke
+The mountain Velma and Rosemarie went to had a raspberry. Velma gave it to,Rosemarie,The mountain Jonathon and Cristal went to had a raspberry. Shyanne gave it to,Rodolfo,Velma,Jonathon
+"Then, Doris and Irma were thinking about going to the home. Irma wanted to give a cantaloupe to",Doris,"Then, Raquel and Conrad were thinking about going to the home. Kyle wanted to give a cantaloupe to",Miles,Irma,Conrad
+"Then, Juana and Bernadette were thinking about going to the gym. Bernadette wanted to give a plum to",Juana,"Then, Jackie and Aiyana were thinking about going to the gym. Hadley wanted to give a plum to",Darien,Bernadette,Aiyana
+"When Stacey and Charlene got a mango at the zoo, Stacey decided to give the mango to",Charlene,"When Rahul and Kenzie got a mango at the zoo, Sylvia decided to give the mango to",Sincere,Stacey,Rahul
+"Then, Carmen and Geneva were thinking about going to the home. Geneva wanted to give a honeydew to",Carmen,"Then, Kiarra and Byron were thinking about going to the home. Ali wanted to give a honeydew to",Sheldon,Geneva,Byron
+"After the lunch, Richard and Alicia went to the mountain. Richard gave a blackberry to",Alicia,"After the lunch, Jack and Chantel went to the mountain. Preston gave a blackberry to",Albert,Richard,Jack
+"After the lunch, Amanda and Sonia went to the forest. Sonia gave a pear to",Amanda,"After the lunch, Lucy and Bradley went to the forest. Vanessa gave a pear to",Drew,Sonia,Bradley
+"Then, Susan and Kevin were working at the cave. Kevin decided to give a cantaloupe to",Susan,"Then, Gary and Leon were working at the cave. Ronald decided to give a cantaloupe to",Kyle,Kevin,Leon
+"After Leigh and Jacqueline went to the mountain, Leigh gave a blackberry to",Jacqueline,"After Anaya and Tristen went to the mountain, Harry gave a blackberry to",Breonna,Leigh,Anaya
+"When Ginger and Faye got a cantaloupe at the desert, Faye decided to give it to",Ginger,"When Rebeca and Quentin got a cantaloupe at the desert, Glen decided to give it to",Warren,Faye,Quentin
+"While Geneva and Alicia were working at the park, Geneva gave a honeydew to",Alicia,"While Jessie and Harmony were working at the park, Nathaniel gave a honeydew to",Shea,Geneva,Jessie
+"After the lunch, Amanda and Martha went to the store. Martha gave a grape to",Amanda,"After the lunch, Moshe and Rebeca went to the store. Khalid gave a grape to",Xander,Martha,Rebeca
+"Then, Carol and Ginger were thinking about going to the forest. Carol wanted to give a banana to",Ginger,"Then, Lily and Carley were thinking about going to the forest. Simone wanted to give a banana to",Wade,Carol,Lily
+"After the lunch, Kristi and Rosemarie went to the cave. Kristi gave a peach to",Rosemarie,"After the lunch, Kian and Savanah went to the cave. Elisha gave a peach to",Jorden,Kristi,Kian
+"Then, Eleanor and Chelsea went to the beach. Eleanor gave a apple to",Chelsea,"Then, Christina and Donnell went to the beach. Maggie gave a apple to",Ariel,Eleanor,Christina
+"After Megan and Alicia went to the cave, Megan gave a apple to",Alicia,"After Tomas and Mireya went to the cave, Liam gave a apple to",Dexter,Megan,Tomas
+"Then, Bernadette and Deanna had a lot of fun at the river. Bernadette gave a mango to",Deanna,"Then, Deshawn and Edith had a lot of fun at the river. Brycen gave a mango to",Guillermo,Bernadette,Deshawn
+Friends Virginia and Natasha found a raspberry at the school. Natasha gave it to,Virginia,Friends Louis and Christy found a raspberry at the school. Carson gave it to,Athena,Natasha,Christy
+"Then, Miriam and Chelsea had a lot of fun at the beach. Miriam gave a apple to",Chelsea,"Then, Rhett and Sky had a lot of fun at the beach. Allyson gave a apple to",Trenton,Miriam,Rhett
+"Then, Sheila and Geneva were working at the river. Geneva decided to give a plum to",Sheila,"Then, Joel and Sheldon were working at the river. Jorge decided to give a plum to",Gideon,Geneva,Sheldon
+"When Kari and Jessie got a apple at the forest, Kari decided to give it to",Jessie,"When Juliet and Aidan got a apple at the forest, Austyn decided to give it to",Liana,Kari,Juliet
+"When Lorraine and Grace got a plum at the park, Grace decided to give it to",Lorraine,"When Lillie and Bria got a plum at the park, Simon decided to give it to",Carolina,Grace,Bria
+"After the lunch, Lee and Mattie went to the forest. Lee gave a pineapple to",Mattie,"After the lunch, Edward and Lawson went to the forest. Dante gave a pineapple to",Nikki,Lee,Edward
+"When Natasha and Loretta got a peach at the zoo, Natasha decided to give the peach to",Loretta,"When Darren and Marquise got a peach at the zoo, Joyce decided to give the peach to",Josephine,Natasha,Darren
+"When Janet and Agnes got a cherry at the gym, Agnes decided to give it to",Janet,"When Kenneth and Elaine got a cherry at the gym, Luca decided to give it to",Diane,Agnes,Elaine
+Friends Lee and Sarah found a honeydew at the library. Lee gave it to,Sarah,Friends Jon and Johnny found a honeydew at the library. Kendall gave it to,Angela,Lee,Jon
+"When Wilma and Jody got a cherry at the zoo, Jody decided to give the cherry to",Wilma,"When Joanne and Melinda got a cherry at the zoo, Lee decided to give the cherry to",Tyrique,Jody,Melinda
+Friends Ethel and Kim found a pineapple at the gym. Ethel gave it to,Kim,Friends Maximus and Robin found a pineapple at the gym. Lexi gave it to,Laura,Ethel,Maximus
+"Then, Melissa and Rosa had a lot of fun at the bar. Melissa gave a banana to",Rosa,"Then, Abbey and Lawson had a lot of fun at the bar. Steven gave a banana to",Courtney,Melissa,Abbey
+"Afterwards, Leigh and Stacy went to the museum. Leigh gave a plum to",Stacy,"Afterwards, Cassidy and Lucy went to the museum. Laura gave a plum to",Brandon,Leigh,Cassidy
+"Then, David and Rebecca were thinking about going to the cave. Rebecca wanted to give a banana to",David,"Then, Stephen and Amiya were thinking about going to the cave. Melanie wanted to give a banana to",Forrest,Rebecca,Amiya
+"After Loretta and Megan went to the museum, Megan gave a kiwi to",Loretta,"After Emilie and Omar went to the museum, Craig gave a kiwi to",Silas,Megan,Omar
+"Then, Stacey and Diana were working at the gym. Stacey decided to give a mango to",Diana,"Then, Felicia and Sonny were working at the gym. Sammy decided to give a mango to",Cristina,Stacey,Felicia
+"Afterwards, Gwen and Leona went to the forest. Gwen gave a grape to",Leona,"Afterwards, Mariam and Marisol went to the forest. Kane gave a grape to",Brianna,Gwen,Mariam
+"Then, Loretta and Sophia had a lot of fun at the beach. Sophia gave a watermelon to",Loretta,"Then, Elisha and Mckenzie had a lot of fun at the beach. Karlie gave a watermelon to",Lucia,Sophia,Mckenzie
+"While Marilyn and Angie were commuting to the cave, Marilyn gave a cantaloupe to",Angie,"While Brayden and Shania were commuting to the cave, Jeff gave a cantaloupe to",Yazmin,Marilyn,Brayden
+"Then, Diana and Teresa were working at the theater. Teresa decided to give a grape to",Diana,"Then, Nelson and Daisy were working at the theater. Avery decided to give a grape to",Taylor,Teresa,Daisy
+"While Marian and Agnes were commuting to the shop, Agnes gave a mango to",Marian,"While Tanner and Dimitri were commuting to the shop, Gunnar gave a mango to",Bobby,Agnes,Dimitri
+The store Brandy and Carol went to had a watermelon. Carol gave it to,Brandy,The store Garrison and Norman went to had a watermelon. Fred gave it to,Toby,Carol,Norman
+"Afterwards, Shannon and Leona went to the lake. Shannon gave a kiwi to",Leona,"Afterwards, Omar and Jaren went to the lake. Ignacio gave a kiwi to",Tianna,Shannon,Omar
+"Then, Shannon and Brian had a lot of fun at the theater. Shannon gave a kiwi to",Brian,"Then, Philip and Todd had a lot of fun at the theater. Gregory gave a kiwi to",Quentin,Shannon,Philip
+"After Anita and Teresa went to the store, Teresa gave a raspberry to",Anita,"After Sara and Denise went to the store, Maurice gave a raspberry to",Perry,Teresa,Denise
+"Then, Megan and Brandy went to the lake. Megan gave a watermelon to",Brandy,"Then, Bernard and Aliyah went to the lake. Andrew gave a watermelon to",Gia,Megan,Bernard
+"When Ella and Jackie got a honeydew at the desert, Jackie decided to give it to",Ella,"When Trever and Aniya got a honeydew at the desert, Ian decided to give it to",Benjamin,Jackie,Aniya
+"Then, Heidi and Rebecca went to the beach. Rebecca gave a peach to",Heidi,"Then, Maia and Elise went to the beach. Austin gave a peach to",Pamela,Rebecca,Elise
+Friends Agnes and Rosa found a orange at the cafe. Agnes gave it to,Rosa,Friends Sally and Alberto found a orange at the cafe. Reid gave it to,Grace,Agnes,Sally
+"When Kari and Loretta got a grape at the market, Kari decided to give it to",Loretta,"When Damaris and Alonzo got a grape at the market, Lourdes decided to give it to",Eve,Kari,Damaris
+"When Jody and Susan got a honeydew at the park, Jody decided to give it to",Susan,"When Silvia and Paul got a honeydew at the park, Brett decided to give it to",Sidney,Jody,Silvia
+"Then, Nellie and Violet went to the market. Violet gave a blueberry to",Nellie,"Then, Guillermo and Elian went to the market. Amelia gave a blueberry to",Makenna,Violet,Elian
+"After Anne and Kari went to the lake, Kari gave a papaya to",Anne,"After Todd and Quentin went to the lake, Branden gave a papaya to",Kaylah,Kari,Quentin
+"Then, Alice and Lorraine were working at the market. Alice decided to give a apple to",Lorraine,"Then, Reilly and Darryl were working at the market. Clifton decided to give a apple to",Eve,Alice,Reilly
+"After the lunch, William and Carol went to the shop. Carol gave a blackberry to",William,"After the lunch, Christopher and Denzel went to the shop. Dalton gave a blackberry to",Michael,Carol,Denzel
+Friends Shannon and Melanie found a papaya at the river. Shannon gave it to,Melanie,Friends Julio and Jace found a papaya at the river. Teresa gave it to,Jon,Shannon,Julio
+"After the lunch, Ethel and Ella went to the market. Ethel gave a honeydew to",Ella,"After the lunch, Fatima and Courtney went to the market. Alondra gave a honeydew to",Colleen,Ethel,Fatima
+"When Anita and Irma got a kiwi at the library, Irma decided to give the kiwi to",Anita,"When Delia and Javier got a kiwi at the library, Darius decided to give the kiwi to",Kendall,Irma,Javier
+"When Richard and Alyssa got a plum at the cafe, Richard decided to give it to",Alyssa,"When Roy and Rodolfo got a plum at the cafe, Roland decided to give it to",Laisha,Richard,Roy
+"While Agnes and Jerry were working at the river, Agnes gave a coconut to",Jerry,"While Julien and River were working at the river, Josh gave a coconut to",Anika,Agnes,Julien
+"After the lunch, Dianne and Agnes went to the market. Agnes gave a cherry to",Dianne,"After the lunch, Braiden and Dominik went to the market. Dustin gave a cherry to",Karson,Agnes,Dominik
+"After Shannon and Jessie went to the park, Shannon gave a orange to",Jessie,"After Manuel and Toby went to the park, Ezekiel gave a orange to",Grant,Shannon,Manuel
+"Then, Leigh and Kathryn had a lot of fun at the forest. Leigh gave a cantaloupe to",Kathryn,"Then, Byron and Caitlynn had a lot of fun at the forest. Paula gave a cantaloupe to",Roberto,Leigh,Byron
+"While Jacqueline and Kristi were commuting to the library, Kristi gave a banana to",Jacqueline,"While Sydnee and Myah were commuting to the library, Katarina gave a banana to",Josef,Kristi,Myah
+"Then, Pauline and Stella went to the river. Pauline gave a pineapple to",Stella,"Then, Nyah and Frances went to the river. Miracle gave a pineapple to",Erika,Pauline,Nyah
+"When Melissa and Stacy got a cantaloupe at the cave, Melissa decided to give it to",Stacy,"When Bailey and Rebecca got a cantaloupe at the cave, Shea decided to give it to",Shaun,Melissa,Bailey
+"After Alyssa and Marilyn went to the school, Marilyn gave a pineapple to",Alyssa,"After Lillie and Dawson went to the school, Irvin gave a pineapple to",Dallas,Marilyn,Dawson
+"Afterwards, David and Lee went to the bar. Lee gave a coconut to",David,"Afterwards, Israel and Keith went to the bar. Lucia gave a coconut to",Abbey,Lee,Keith
+"When Velma and Charlene got a pear at the forest, Velma decided to give it to",Charlene,"When Brett and Zoe got a pear at the forest, Nora decided to give it to",Sebastian,Velma,Brett
+"Then, Robin and Stacy were working at the forest. Robin decided to give a raspberry to",Stacy,"Then, Hunter and Lincoln were working at the forest. Alexandria decided to give a raspberry to",Victor,Robin,Hunter
+"Then, Gwen and Carmen had a lot of fun at the home. Gwen gave a blueberry to",Carmen,"Then, Erin and Jadyn had a lot of fun at the home. Kyle gave a blueberry to",Bernard,Gwen,Erin
+"Then, Sheila and Lee had a lot of fun at the school. Lee gave a apple to",Sheila,"Then, Lucas and Jacob had a lot of fun at the school. Cameron gave a apple to",Rodrigo,Lee,Jacob
+"After Mona and Loretta went to the theater, Mona gave a apple to",Loretta,"After Allie and Korey went to the theater, Camila gave a apple to",Javon,Mona,Allie
+"Then, Violet and Ella went to the zoo. Violet gave a cantaloupe to",Ella,"Then, Carlo and Natasha went to the zoo. Ari gave a cantaloupe to",Abagail,Violet,Carlo
+"Then, Mattie and Megan went to the beach. Megan gave a grape to",Mattie,"Then, Patience and Jaida went to the beach. Gloria gave a grape to",Zion,Megan,Jaida
+"After the lunch, Juana and Gwen went to the river. Gwen gave a coconut to",Juana,"After the lunch, Adeline and Toby went to the river. Abagail gave a coconut to",Skyla,Gwen,Toby
+The gym Alice and Kim went to had a watermelon. Alice gave it to,Kim,The gym Eric and Jake went to had a watermelon. Brett gave it to,Luke,Alice,Eric
+"While Brian and Fannie were commuting to the desert, Fannie gave a kiwi to",Brian,"While Maria and Mason were commuting to the desert, Maryam gave a kiwi to",Carmen,Fannie,Mason
+"Then, Kim and Leigh were thinking about going to the river. Leigh wanted to give a pineapple to",Kim,"Then, Patrick and Mason were thinking about going to the river. Lydia wanted to give a pineapple to",Nora,Leigh,Mason
+"When William and Rachel got a papaya at the library, Rachel decided to give it to",William,"When Russell and Jordan got a papaya at the library, Gideon decided to give it to",Harley,Rachel,Jordan
+"Then, Lula and Anne were working at the shop. Lula decided to give a mango to",Anne,"Then, Karla and Hope were working at the shop. Tina decided to give a mango to",Alexa,Lula,Karla
+"While Leigh and Virginia were working at the desert, Leigh gave a banana to",Virginia,"While Luisa and Robin were working at the desert, Ezra gave a banana to",Vaughn,Leigh,Luisa
+"When Lee and Mattie got a cantaloupe at the cafe, Lee decided to give it to",Mattie,"When Hillary and Tanya got a cantaloupe at the cafe, Regan decided to give it to",Augustus,Lee,Hillary
+"When Deanna and Violet got a coconut at the zoo, Violet decided to give the coconut to",Deanna,"When Shea and Janelle got a coconut at the zoo, Chelsea decided to give the coconut to",Kale,Violet,Janelle
+"Then, Kelly and Alyssa were working at the theater. Kelly decided to give a pear to",Alyssa,"Then, Alice and Jevon were working at the theater. Skylar decided to give a pear to",Marissa,Kelly,Alice
+"While Gwen and Mark were working at the river, Gwen gave a honeydew to",Mark,"While Lawson and Carl were working at the river, Layla gave a honeydew to",Kate,Gwen,Lawson
+"While Suzanne and Angie were working at the shop, Suzanne gave a cantaloupe to",Angie,"While Mariah and Regan were working at the shop, Conrad gave a cantaloupe to",Autumn,Suzanne,Mariah
+"After Mark and Mona went to the school, Mona gave a blackberry to",Mark,"After Jeff and Kyler went to the school, Triston gave a blackberry to",Freddy,Mona,Kyler
+"When Brian and Erika got a peach at the museum, Erika decided to give the peach to",Brian,"When Susan and Rosa got a peach at the museum, Stacey decided to give the peach to",Yadira,Erika,Rosa
+"Then, Kristi and Doris were working at the home. Kristi decided to give a plum to",Doris,"Then, Tyson and Addison were working at the home. Belen decided to give a plum to",Jaden,Kristi,Tyson
+Friends Alicia and Grace found a plum at the desert. Grace gave it to,Alicia,Friends Darlene and Elliot found a plum at the desert. Alex gave it to,Gabriel,Grace,Elliot
+"After Janet and Leigh went to the home, Leigh gave a strawberry to",Janet,"After Christy and Meredith went to the home, Miles gave a strawberry to",Ivan,Leigh,Meredith
+"Then, Angie and Grace went to the desert. Grace gave a cantaloupe to",Angie,"Then, Iliana and Karissa went to the desert. Hassan gave a cantaloupe to",Michael,Grace,Karissa
+"Afterwards, Wilma and Suzanne went to the museum. Suzanne gave a blackberry to",Wilma,"Afterwards, Melody and Theodore went to the museum. Caleb gave a blackberry to",Sabastian,Suzanne,Theodore
+"Afterwards, Kevin and Loretta went to the beach. Kevin gave a kiwi to",Loretta,"Afterwards, Justin and Arielle went to the beach. Jackie gave a kiwi to",Tucker,Kevin,Justin
+"Afterwards, Dianne and Sophia went to the gym. Sophia gave a pear to",Dianne,"Afterwards, Jamarcus and Maegan went to the gym. Vaughn gave a pear to",Aurora,Sophia,Maegan
+"Then, Leigh and Virginia had a lot of fun at the bar. Leigh gave a papaya to",Virginia,"Then, Omar and Kevin had a lot of fun at the bar. Stone gave a papaya to",Lia,Leigh,Omar
+"Then, Kristi and Mattie were working at the desert. Kristi decided to give a banana to",Mattie,"Then, Keira and Casey were working at the desert. Vivian decided to give a banana to",Pierce,Kristi,Keira
+Friends Carol and Ella found a raspberry at the zoo. Carol gave it to,Ella,Friends Augustus and Landon found a raspberry at the zoo. Donte gave it to,Hope,Carol,Augustus
+"Afterwards, Agnes and Stella went to the museum. Agnes gave a peach to",Stella,"Afterwards, Bonnie and Iris went to the museum. Amara gave a peach to",Blanca,Agnes,Bonnie
+"After Inez and Sarah went to the zoo, Inez gave a apple to",Sarah,"After Deshawn and Will went to the zoo, Katlyn gave a apple to",Rodrigo,Inez,Deshawn
+The museum Mattie and Richard went to had a coconut. Richard gave it to,Mattie,The museum Kari and Morgan went to had a coconut. Connor gave it to,Raegan,Richard,Morgan
+"Then, Virginia and Marilyn were thinking about going to the theater. Marilyn wanted to give a mango to",Virginia,"Then, Henry and Maverick were thinking about going to the theater. Nina wanted to give a mango to",Raymond,Marilyn,Maverick
+"While Charlene and Megan were commuting to the beach, Megan gave a orange to",Charlene,"While Nathen and Lydia were commuting to the beach, Brady gave a orange to",Frank,Megan,Lydia
+Friends Pauline and Chelsea found a watermelon at the lake. Pauline gave it to,Chelsea,Friends Teresa and Andrew found a watermelon at the lake. Tiana gave it to,Sarina,Pauline,Teresa
+"While Heidi and Sonia were working at the home, Sonia gave a watermelon to",Heidi,"While Timothy and Margaret were working at the home, Rick gave a watermelon to",Autumn,Sonia,Margaret
+"While Ethel and Jessie were working at the library, Ethel gave a strawberry to",Jessie,"While Ayanna and Antwan were working at the library, Dean gave a strawberry to",Walter,Ethel,Ayanna
+The forest Leona and Gwen went to had a blackberry. Gwen gave it to,Leona,The forest Joselyn and Misael went to had a blackberry. Esperanza gave it to,Joelle,Gwen,Misael
+"After the lunch, Fannie and Dianne went to the park. Fannie gave a honeydew to",Dianne,"After the lunch, Camila and Eliseo went to the park. Maryam gave a honeydew to",Brady,Fannie,Camila
+The river Alicia and Faye went to had a plum. Faye gave it to,Alicia,The river Tabitha and Shemar went to had a plum. Axel gave it to,Reece,Faye,Shemar
+The zoo Harriet and Erika went to had a honeydew. Erika gave it to,Harriet,The zoo Randy and Dejah went to had a honeydew. Anne gave it to,Roxanne,Erika,Dejah
+"When Stacy and Kristina got a cherry at the gym, Kristina decided to give it to",Stacy,"When Adeline and Stefan got a cherry at the gym, Kenya decided to give it to",Angelina,Kristina,Stefan
+"When Mona and Yolanda got a blackberry at the theater, Mona decided to give the blackberry to",Yolanda,"When Antoine and Clifton got a blackberry at the theater, Citlalli decided to give the blackberry to",Annabel,Mona,Antoine
+"After Stacey and Mark went to the river, Stacey gave a peach to",Mark,"After Jenna and Arthur went to the river, Kaia gave a peach to",Celeste,Stacey,Jenna
+"After Dianne and Suzanne went to the beach, Suzanne gave a plum to",Dianne,"After Sergio and Bella went to the beach, Douglas gave a plum to",Chandler,Suzanne,Bella
+"Then, Ginger and Eleanor were thinking about going to the desert. Eleanor wanted to give a peach to",Ginger,"Then, Grayson and Hugo were thinking about going to the desert. Kathy wanted to give a peach to",Robert,Eleanor,Hugo
+"Then, Yvette and Evelyn were thinking about going to the home. Yvette wanted to give a banana to",Evelyn,"Then, Emma and Nyasia were thinking about going to the home. Dakota wanted to give a banana to",Sabrina,Yvette,Emma
+"When Kristina and Susan got a pear at the forest, Kristina decided to give it to",Susan,"When Kaci and Christopher got a pear at the forest, Anthony decided to give it to",Whitney,Kristina,Kaci
+"While Jacqueline and Miriam were commuting to the market, Miriam gave a plum to",Jacqueline,"While Jasmine and Jett were commuting to the market, Nicolette gave a plum to",Cristobal,Miriam,Jett
+"Then, Charlene and Richard went to the lake. Richard gave a strawberry to",Charlene,"Then, Katlynn and Karl went to the lake. Kaia gave a strawberry to",Peter,Richard,Karl
+"After the lunch, Anita and Faye went to the library. Faye gave a cherry to",Anita,"After the lunch, Isai and Heaven went to the library. Ariel gave a cherry to",Yasmeen,Faye,Heaven
+"After Rebecca and Carmen went to the home, Rebecca gave a coconut to",Carmen,"After Casey and Aiyana went to the home, Leon gave a coconut to",Rita,Rebecca,Casey
+The park Jerry and Estelle went to had a plum. Estelle gave it to,Jerry,The park Adam and Gina went to had a plum. Francesco gave it to,Juan,Estelle,Gina
+"Then, Irma and Mildred went to the cave. Irma gave a apple to",Mildred,"Then, Nikita and Micheal went to the cave. Linda gave a apple to",Glenn,Irma,Nikita
+"Then, Suzanne and Jerry went to the school. Suzanne gave a peach to",Jerry,"Then, Daryl and Gordon went to the school. Reese gave a peach to",Reilly,Suzanne,Daryl
+Friends Marilyn and Mildred found a coconut at the mountain. Marilyn gave it to,Mildred,Friends Cindy and Daniella found a coconut at the mountain. Izabella gave it to,Briana,Marilyn,Cindy
+"While Pauline and Marian were commuting to the theater, Pauline gave a blueberry to",Marian,"While Mohamed and Marissa were commuting to the theater, Prince gave a blueberry to",Elias,Pauline,Mohamed
+The museum Martha and Brian went to had a grape. Martha gave it to,Brian,The museum Kira and Elizabeth went to had a grape. Nicolas gave it to,Stanley,Martha,Kira
+"When David and Maggie got a grape at the forest, Maggie decided to give it to",David,"When Neal and Fernanda got a grape at the forest, Omar decided to give it to",Rory,Maggie,Fernanda
+"After Pauline and Susan went to the mountain, Pauline gave a pineapple to",Susan,"After Devin and Marie went to the mountain, Samantha gave a pineapple to",Emmett,Pauline,Devin
+"While Mildred and Sonia were working at the cafe, Sonia gave a mango to",Mildred,"While Brisa and Skyler were working at the cafe, Annabel gave a mango to",Christian,Sonia,Skyler
+"After Ginger and Pauline went to the market, Pauline gave a coconut to",Ginger,"After Duncan and Jaron went to the market, Jacqueline gave a coconut to",Claudia,Pauline,Jaron
+"Afterwards, Leigh and Charlene went to the park. Leigh gave a strawberry to",Charlene,"Afterwards, Hannah and Fabian went to the park. Kaleb gave a strawberry to",Casey,Leigh,Hannah
+"Then, Sonia and Yolanda went to the home. Sonia gave a plum to",Yolanda,"Then, Jeremiah and Kianna went to the home. Eduardo gave a plum to",Asa,Sonia,Jeremiah
+"Then, Sonia and Sarah were working at the bar. Sonia decided to give a cherry to",Sarah,"Then, Reid and India were working at the bar. Eli decided to give a cherry to",Saul,Sonia,Reid
+"Then, Teresa and Loretta were working at the theater. Teresa decided to give a kiwi to",Loretta,"Then, Marquez and Brayan were working at the theater. Duncan decided to give a kiwi to",Jaime,Teresa,Marquez
+"When Melissa and Jerry got a raspberry at the shop, Melissa decided to give it to",Jerry,"When Mohamed and Gordon got a raspberry at the shop, Maria decided to give it to",Robert,Melissa,Mohamed
+"Afterwards, Rosa and Geneva went to the gym. Geneva gave a raspberry to",Rosa,"Afterwards, Frances and Kobe went to the gym. Logan gave a raspberry to",Benjamin,Geneva,Kobe
+The home Grace and Rosemarie went to had a raspberry. Grace gave it to,Rosemarie,The home Kenzie and Yasmin went to had a raspberry. Cesar gave it to,Karina,Grace,Kenzie
+"When Rachel and Paula got a apple at the zoo, Rachel decided to give the apple to",Paula,"When Jonathan and Scarlett got a apple at the zoo, Isis decided to give the apple to",Benjamin,Rachel,Jonathan
+"Then, Pat and Juana had a lot of fun at the shop. Pat gave a coconut to",Juana,"Then, Connor and Rebeca had a lot of fun at the shop. Kendall gave a coconut to",Cole,Pat,Connor
+"While Brian and Erika were commuting to the home, Erika gave a honeydew to",Brian,"While Chelsea and Landen were commuting to the home, Steve gave a honeydew to",Skylar,Erika,Landen
+"While Stacey and Chelsea were commuting to the store, Stacey gave a pineapple to",Chelsea,"While Judith and Jason were commuting to the store, Antwan gave a pineapple to",Marshall,Stacey,Judith
+"When Anne and Marilyn got a pear at the lake, Marilyn decided to give it to",Anne,"When Mark and Sylvia got a pear at the lake, Julius decided to give it to",Lisa,Marilyn,Sylvia
+"Then, Irma and Angie were working at the cave. Irma decided to give a peach to",Angie,"Then, Asa and Cierra were working at the cave. Crystal decided to give a peach to",Brooklyn,Irma,Asa
+"When Jacqueline and Pauline got a apple at the library, Pauline decided to give it to",Jacqueline,"When Vernon and Janet got a apple at the library, Jorge decided to give it to",Angelina,Pauline,Janet
+"While Carol and Paula were working at the mountain, Carol gave a apple to",Paula,"While Leah and Misty were working at the mountain, Danielle gave a apple to",Virginia,Carol,Leah
+"Then, Marsha and Juana went to the forest. Marsha gave a peach to",Juana,"Then, Mya and Carissa went to the forest. Quincy gave a peach to",Reagan,Marsha,Mya
+"Then, Shannon and Jerry were working at the market. Shannon decided to give a honeydew to",Jerry,"Then, Braden and Nick were working at the market. Roman decided to give a honeydew to",Dana,Shannon,Braden
+"After Yvette and Jacqueline went to the home, Yvette gave a cantaloupe to",Jacqueline,"After Riley and Valentina went to the home, Hernan gave a cantaloupe to",Annalise,Yvette,Riley
+"Then, Juana and Fannie had a lot of fun at the gym. Fannie gave a honeydew to",Juana,"Then, Hallie and Hamza had a lot of fun at the gym. Dominik gave a honeydew to",Aniyah,Fannie,Hamza
+"When Stacey and Theresa got a papaya at the shop, Stacey decided to give it to",Theresa,"When Hadley and Meaghan got a papaya at the shop, Glen decided to give it to",Hannah,Stacey,Hadley
+"While Rosa and Lee were working at the cave, Lee gave a banana to",Rosa,"While Duncan and Jose were working at the cave, Simone gave a banana to",Devin,Lee,Jose
+"Then, Jackie and Juana had a lot of fun at the shop. Jackie gave a honeydew to",Juana,"Then, Abby and Emerson had a lot of fun at the shop. Donna gave a honeydew to",David,Jackie,Abby
+"Then, Miriam and Melanie were working at the library. Miriam decided to give a orange to",Melanie,"Then, Lindsay and Rickey were working at the library. Josiah decided to give a orange to",Jamie,Miriam,Lindsay
+The beach Mildred and Teresa went to had a grape. Teresa gave it to,Mildred,The beach Yadira and Jaime went to had a grape. Glenn gave it to,Neha,Teresa,Jaime
+Friends Pat and David found a blackberry at the zoo. Pat gave it to,David,Friends Louis and Gordon found a blackberry at the zoo. Shirley gave it to,Clark,Pat,Louis
+"Afterwards, Velma and Sarah went to the gym. Velma gave a pear to",Sarah,"Afterwards, Natalie and Mark went to the gym. Norman gave a pear to",Clint,Velma,Natalie
+"While Marilyn and Alyssa were working at the lake, Marilyn gave a plum to",Alyssa,"While Kourtney and Rodrigo were working at the lake, Rebecca gave a plum to",Erick,Marilyn,Kourtney
+"After Janet and Alice went to the park, Alice gave a mango to",Janet,"After Willie and Gary went to the park, Theodore gave a mango to",Andrea,Alice,Gary
+"When Pat and Jacqueline got a honeydew at the museum, Pat decided to give the honeydew to",Jacqueline,"When Andre and Mckenzie got a honeydew at the museum, Daija decided to give the honeydew to",Dulce,Pat,Andre
+"Then, Rosa and Suzanne were thinking about going to the cave. Suzanne wanted to give a cherry to",Rosa,"Then, Dominic and Pierce were thinking about going to the cave. Raymond wanted to give a cherry to",Jaime,Suzanne,Pierce
+"When Kari and Sheila got a coconut at the beach, Kari decided to give it to",Sheila,"When Amira and Saul got a coconut at the beach, Asa decided to give it to",Mohamed,Kari,Amira
+"Then, Jacqueline and Kari went to the museum. Kari gave a papaya to",Jacqueline,"Then, Julianne and Karly went to the museum. Kaylyn gave a papaya to",Nia,Kari,Karly
+"While Anne and Robin were commuting to the cafe, Robin gave a coconut to",Anne,"While Georgia and Victoria were commuting to the cafe, Brett gave a coconut to",Mario,Robin,Victoria
+"After the lunch, Brandy and Maggie went to the bar. Maggie gave a blueberry to",Brandy,"After the lunch, Ashlynn and Brionna went to the bar. Joey gave a blueberry to",Joshua,Maggie,Brionna
+"When Mona and Diana got a banana at the forest, Mona decided to give the banana to",Diana,"When Brice and Chad got a banana at the forest, Allison decided to give the banana to",Stephan,Mona,Brice
+"While Brian and Agnes were commuting to the park, Agnes gave a blackberry to",Brian,"While Lisa and Meredith were commuting to the park, Demarco gave a blackberry to",Lena,Agnes,Meredith
+"When Rebecca and Amanda got a kiwi at the library, Rebecca decided to give the kiwi to",Amanda,"When Brenda and Lilly got a kiwi at the library, Drake decided to give the kiwi to",Ana,Rebecca,Brenda
+"Then, Alyssa and Natasha were working at the museum. Natasha decided to give a pineapple to",Alyssa,"Then, Sarai and Kristofer were working at the museum. Xavier decided to give a pineapple to",Caitlynn,Natasha,Kristofer
+"Afterwards, Lorraine and Kari went to the lake. Kari gave a cantaloupe to",Lorraine,"Afterwards, Dianna and Leann went to the lake. Dan gave a cantaloupe to",Shayne,Kari,Leann
+"When Yolanda and Rachel got a cherry at the shop, Rachel decided to give the cherry to",Yolanda,"When Dallin and Ryan got a cherry at the shop, Davin decided to give the cherry to",Chase,Rachel,Ryan
+"Then, Erika and Sheila had a lot of fun at the lake. Erika gave a raspberry to",Sheila,"Then, Victor and Edith had a lot of fun at the lake. Jonas gave a raspberry to",Mara,Erika,Victor
+"Then, Shannon and Jerry had a lot of fun at the gym. Shannon gave a mango to",Jerry,"Then, Lori and Cruz had a lot of fun at the gym. Wilson gave a mango to",Ezra,Shannon,Lori
+"After the lunch, Leigh and Rosa went to the home. Leigh gave a pear to",Rosa,"After the lunch, Darren and Kameron went to the home. Darius gave a pear to",Kane,Leigh,Darren
+"After Harriet and Faye went to the museum, Faye gave a plum to",Harriet,"After Lawrence and Anya went to the museum, Kayden gave a plum to",Maryam,Faye,Anya
+"After the lunch, Theresa and Grace went to the store. Grace gave a banana to",Theresa,"After the lunch, Melissa and Faye went to the store. Barry gave a banana to",Clifford,Grace,Faye
+"Then, Jessica and Brandy were working at the cafe. Jessica decided to give a honeydew to",Brandy,"Then, April and Shemar were working at the cafe. Eric decided to give a honeydew to",Julie,Jessica,April
+"When Martha and Mark got a mango at the gym, Martha decided to give it to",Mark,"When Rita and Carter got a mango at the gym, Diana decided to give it to",Santos,Martha,Rita
+"When Rosemarie and Kelly got a blueberry at the school, Kelly decided to give the blueberry to",Rosemarie,"When Daphne and Chris got a blueberry at the school, Korbin decided to give the blueberry to",Eliseo,Kelly,Chris
+"Afterwards, Susan and Gwen went to the gym. Gwen gave a pear to",Susan,"Afterwards, Richard and Janelle went to the gym. Travis gave a pear to",Katlynn,Gwen,Janelle
+Friends Rosa and Martha found a pear at the school. Martha gave it to,Rosa,Friends Sara and Cyrus found a pear at the school. Andre gave it to,Donald,Martha,Cyrus
+"When Melanie and Marsha got a blackberry at the beach, Marsha decided to give it to",Melanie,"When Shawn and Christa got a blackberry at the beach, Alysha decided to give it to",Abby,Marsha,Christa
+The home Eleanor and Carmen went to had a apple. Eleanor gave it to,Carmen,The home Jamar and Treyvon went to had a apple. Jeffrey gave it to,Warren,Eleanor,Jamar
+"When Theresa and Bernadette got a raspberry at the market, Bernadette decided to give it to",Theresa,"When Titus and Darryl got a raspberry at the market, Kiana decided to give it to",Genaro,Bernadette,Darryl
+"After Stella and Agnes went to the store, Agnes gave a peach to",Stella,"After Brandan and Hadley went to the store, Marcos gave a peach to",Phoenix,Agnes,Hadley
+"While Estelle and Sheila were working at the shop, Estelle gave a coconut to",Sheila,"While Dylan and Dominic were working at the shop, Allan gave a coconut to",Maria,Estelle,Dylan
+"After the lunch, Maggie and Ginger went to the library. Maggie gave a peach to",Ginger,"After the lunch, Nathanial and Mikel went to the library. Sheridan gave a peach to",Reed,Maggie,Nathanial
+"Then, Carol and Mildred had a lot of fun at the theater. Carol gave a orange to",Mildred,"Then, Cali and Katelyn had a lot of fun at the theater. Chyna gave a orange to",Tommy,Carol,Cali
+"When Miriam and Mildred got a cantaloupe at the shop, Miriam decided to give the cantaloupe to",Mildred,"When Kaleigh and Sophie got a cantaloupe at the shop, Lauryn decided to give the cantaloupe to",Alivia,Miriam,Kaleigh
+"While Susan and Grace were commuting to the home, Grace gave a raspberry to",Susan,"While Stone and Isaac were commuting to the home, Rachel gave a raspberry to",Abel,Grace,Isaac
+"Then, Loretta and Leigh were working at the lake. Leigh decided to give a kiwi to",Loretta,"Then, Trevor and Emma were working at the lake. Johnathan decided to give a kiwi to",Saul,Leigh,Emma
+"Then, Susan and Natasha went to the mountain. Natasha gave a apple to",Susan,"Then, Raven and Mason went to the mountain. Dexter gave a apple to",Carl,Natasha,Mason
+"When Erika and Yolanda got a cherry at the zoo, Erika decided to give it to",Yolanda,"When Ean and Deontae got a cherry at the zoo, Yasmeen decided to give it to",Delilah,Erika,Ean
+"When Jacqueline and Inez got a kiwi at the shop, Inez decided to give it to",Jacqueline,"When Chasity and Sydnie got a kiwi at the shop, Bria decided to give it to",Davion,Inez,Sydnie
+"Afterwards, Mark and Bernadette went to the bar. Bernadette gave a pineapple to",Mark,"Afterwards, Jose and Kaelyn went to the bar. Kaelyn gave a pineapple to",Ulises,Bernadette,Kaelyn
+"Then, Chelsea and Erika were thinking about going to the library. Erika wanted to give a banana to",Chelsea,"Then, Chance and Fatima were thinking about going to the library. Arthur wanted to give a banana to",Tanner,Erika,Fatima
+"Then, Brandy and Kevin went to the mountain. Kevin gave a cherry to",Brandy,"Then, Liam and Donnell went to the mountain. Olivia gave a cherry to",Elena,Kevin,Donnell
+Friends Lorraine and Jessica found a papaya at the gym. Jessica gave it to,Lorraine,Friends Darryl and Nick found a papaya at the gym. Janet gave it to,Marianna,Jessica,Nick
+"When Miriam and Mark got a papaya at the gym, Miriam decided to give the papaya to",Mark,"When Rickey and Laura got a papaya at the gym, Nathaniel decided to give the papaya to",Amira,Miriam,Rickey
+"Then, Paula and Inez were working at the zoo. Inez decided to give a apple to",Paula,"Then, Ellis and Marquis were working at the zoo. Kayla decided to give a apple to",Lisa,Inez,Marquis
+"When Jacqueline and Grace got a mango at the cafe, Grace decided to give the mango to",Jacqueline,"When Trevon and Branden got a mango at the cafe, Maurice decided to give the mango to",Jayden,Grace,Branden
+"After Violet and Loretta went to the gym, Violet gave a blackberry to",Loretta,"After Patricia and Gloria went to the gym, Madeleine gave a blackberry to",Mike,Violet,Patricia
+Friends Carmen and Jody found a plum at the forest. Jody gave it to,Carmen,Friends Cindy and Landon found a plum at the forest. Lacey gave it to,Mya,Jody,Landon
+"Afterwards, Martha and Jessie went to the theater. Martha gave a plum to",Jessie,"Afterwards, Nolan and Patience went to the theater. Spencer gave a plum to",Vernon,Martha,Nolan
+"Then, Richard and Kathryn were working at the bar. Richard decided to give a raspberry to",Kathryn,"Then, Austin and Tristian were working at the bar. Emmanuel decided to give a raspberry to",Clare,Richard,Austin
+"After the lunch, Wilma and Shannon went to the cave. Shannon gave a cantaloupe to",Wilma,"After the lunch, Hailee and Carlo went to the cave. Lucia gave a cantaloupe to",Arielle,Shannon,Carlo
+"While Ethel and Marian were commuting to the home, Ethel gave a grape to",Marian,"While Tessa and Tyrek were commuting to the home, Skyler gave a grape to",Clare,Ethel,Tessa
+"Afterwards, Violet and Melanie went to the cave. Violet gave a blueberry to",Melanie,"Afterwards, Hanna and Ronald went to the cave. Tate gave a blueberry to",Ricardo,Violet,Hanna
+"Then, Geneva and Stella went to the river. Geneva gave a watermelon to",Stella,"Then, Ralph and Nikki went to the river. Shannon gave a watermelon to",Roger,Geneva,Ralph
+"Then, Jackie and Brian were working at the school. Jackie decided to give a strawberry to",Brian,"Then, Gabriel and Eric were working at the school. Dylan decided to give a strawberry to",Logan,Jackie,Gabriel
+"Then, Irma and Susan were working at the cafe. Irma decided to give a watermelon to",Susan,"Then, Helen and Kevin were working at the cafe. Derrick decided to give a watermelon to",Quincy,Irma,Helen
+"When Kathryn and Kari got a mango at the cave, Kari decided to give it to",Kathryn,"When Thaddeus and Alisa got a mango at the cave, Julia decided to give it to",Fred,Kari,Alisa
+"When Alyssa and Lula got a banana at the store, Lula decided to give the banana to",Alyssa,"When Kirstin and Adeline got a banana at the store, Anissa decided to give the banana to",Jazmyn,Lula,Adeline
+"Afterwards, Mona and Nellie went to the cave. Mona gave a peach to",Nellie,"Afterwards, Jeanette and Eliseo went to the cave. Brionna gave a peach to",Camren,Mona,Jeanette
+Friends Charlene and Natasha found a apple at the park. Natasha gave it to,Charlene,Friends Kennedy and Trystan found a apple at the park. Iliana gave it to,Muhammad,Natasha,Trystan
+"While Diana and Megan were commuting to the forest, Megan gave a plum to",Diana,"While Arturo and Anita were commuting to the forest, Maxim gave a plum to",Carson,Megan,Anita
+"When Shannon and Mattie got a strawberry at the bar, Shannon decided to give the strawberry to",Mattie,"When Nora and Melisa got a strawberry at the bar, Damien decided to give the strawberry to",Elias,Shannon,Nora
+"Then, Ella and Natasha were thinking about going to the cave. Natasha wanted to give a plum to",Ella,"Then, Clint and Jonah were thinking about going to the cave. Dakota wanted to give a plum to",Litzy,Natasha,Jonah
+"Then, Pauline and Marian went to the lake. Pauline gave a honeydew to",Marian,"Then, Micah and Kayla went to the lake. Alec gave a honeydew to",Isis,Pauline,Micah
+"Then, Brian and Ethel had a lot of fun at the river. Ethel gave a cherry to",Brian,"Then, Marc and Darian had a lot of fun at the river. Alexys gave a cherry to",Frankie,Ethel,Darian
+The market Stacey and Kathryn went to had a banana. Stacey gave it to,Kathryn,The market Colton and Josiah went to had a banana. Brenden gave it to,Dallas,Stacey,Colton
+"Then, Martha and Ella had a lot of fun at the home. Martha gave a honeydew to",Ella,"Then, Fidel and Turner had a lot of fun at the home. Jamil gave a honeydew to",Delaney,Martha,Fidel
+"While Faye and Charlene were commuting to the forest, Faye gave a honeydew to",Charlene,"While Parker and Zane were commuting to the forest, Braydon gave a honeydew to",Moriah,Faye,Parker
+"Then, Mattie and Natasha were working at the cave. Natasha decided to give a apple to",Mattie,"Then, Kaylin and Piper were working at the cave. Jasmine decided to give a apple to",Miranda,Natasha,Piper
+"Then, Jessica and Brian were thinking about going to the park. Jessica wanted to give a pear to",Brian,"Then, Hillary and Kent were thinking about going to the park. Morgan wanted to give a pear to",Rey,Jessica,Hillary
+"After Jerry and Jessica went to the shop, Jessica gave a kiwi to",Jerry,"After Victoria and Crystal went to the shop, Douglas gave a kiwi to",Toby,Jessica,Crystal
+"Then, Velma and Lorraine were thinking about going to the library. Velma wanted to give a mango to",Lorraine,"Then, Paloma and Kolton were thinking about going to the library. Nathanael wanted to give a mango to",Hazel,Velma,Paloma
+"After the lunch, Charlene and Irma went to the market. Irma gave a mango to",Charlene,"After the lunch, Melvin and Camille went to the market. Chaya gave a mango to",David,Irma,Camille
+"When Kari and Alicia got a mango at the park, Kari decided to give the mango to",Alicia,"When Erika and Gianna got a mango at the park, Christiana decided to give the mango to",Kathryn,Kari,Erika
+"While Rebecca and Chelsea were working at the cave, Rebecca gave a pear to",Chelsea,"While Carrie and Anne were working at the cave, Jack gave a pear to",Xander,Rebecca,Carrie
+"Then, Kim and Irma went to the library. Irma gave a cantaloupe to",Kim,"Then, Austin and Reed went to the library. Cooper gave a cantaloupe to",Trinity,Irma,Reed
+The school Amanda and Lula went to had a watermelon. Lula gave it to,Amanda,The school Deon and Clay went to had a watermelon. Ariana gave it to,Lucas,Lula,Clay
+"Then, Diana and Jackie had a lot of fun at the park. Jackie gave a kiwi to",Diana,"Then, Nelson and Bryan had a lot of fun at the park. Abbey gave a kiwi to",Erin,Jackie,Bryan
+"Afterwards, Sophia and Loretta went to the mountain. Sophia gave a strawberry to",Loretta,"Afterwards, Brennan and Kaela went to the mountain. Rick gave a strawberry to",Kathy,Sophia,Brennan
+"When Brandy and Kristi got a orange at the park, Kristi decided to give the orange to",Brandy,"When Jayde and Kathy got a orange at the park, Edwin decided to give the orange to",Ingrid,Kristi,Kathy
+"Then, Yolanda and Stacey were working at the cave. Stacey decided to give a plum to",Yolanda,"Then, Shayla and Dasia were working at the cave. Tylor decided to give a plum to",Elisa,Stacey,Dasia
+"Then, Irma and Harriet had a lot of fun at the mountain. Irma gave a kiwi to",Harriet,"Then, Lena and Jesse had a lot of fun at the mountain. Joyce gave a kiwi to",Jared,Irma,Lena
+"Then, Sheila and Richard had a lot of fun at the market. Richard gave a blueberry to",Sheila,"Then, Helen and Cruz had a lot of fun at the market. Ashley gave a blueberry to",Donald,Richard,Cruz
+"Then, Diana and Grace had a lot of fun at the bar. Grace gave a papaya to",Diana,"Then, Theresa and Coby had a lot of fun at the bar. George gave a papaya to",Carmen,Grace,Coby
+"After the lunch, Theresa and Teresa went to the river. Teresa gave a grape to",Theresa,"After the lunch, Joel and Keyon went to the river. Tre gave a grape to",Victor,Teresa,Keyon
+"When Marilyn and Stella got a banana at the beach, Marilyn decided to give the banana to",Stella,"When Shirley and Tyson got a banana at the beach, Jessica decided to give the banana to",Rodney,Marilyn,Shirley
+"Then, Wilma and Jackie had a lot of fun at the zoo. Jackie gave a strawberry to",Wilma,"Then, Devon and Milton had a lot of fun at the zoo. Odalys gave a strawberry to",Chyna,Jackie,Milton
+The desert Stella and Carol went to had a pineapple. Carol gave it to,Stella,The desert Lane and Jenny went to had a pineapple. Kenya gave it to,Sebastian,Carol,Jenny
+"While Lorraine and Estelle were commuting to the gym, Estelle gave a blueberry to",Lorraine,"While Jaquelin and Saul were commuting to the gym, Michaela gave a blueberry to",Jailyn,Estelle,Saul
+"When Carol and Theresa got a orange at the bar, Carol decided to give it to",Theresa,"When Shannon and Uriel got a orange at the bar, Roger decided to give it to",Courtney,Carol,Shannon
+"After Kari and David went to the beach, Kari gave a strawberry to",David,"After Oliver and Dan went to the beach, Garret gave a strawberry to",Audrey,Kari,Oliver
+"When Ginger and Alice got a pear at the desert, Alice decided to give the pear to",Ginger,"When Cesar and Mike got a pear at the desert, Milton decided to give the pear to",Hayden,Alice,Mike
+"Then, Brandy and Robin were thinking about going to the mountain. Robin wanted to give a pear to",Brandy,"Then, Janessa and Brook were thinking about going to the mountain. Pierce wanted to give a pear to",Alexia,Robin,Brook
+"Then, Theresa and Estelle had a lot of fun at the store. Estelle gave a peach to",Theresa,"Then, Lilly and Ashlee had a lot of fun at the store. Amira gave a peach to",Clark,Estelle,Ashlee
+"After the lunch, Natasha and Mark went to the school. Natasha gave a honeydew to",Mark,"After the lunch, Sage and Donnell went to the school. Lucia gave a honeydew to",Eleanor,Natasha,Sage
+"When Lorraine and Pat got a blueberry at the forest, Pat decided to give it to",Lorraine,"When Esteban and German got a blueberry at the forest, Alexandra decided to give it to",Kendall,Pat,German
+"After the lunch, Evelyn and Kevin went to the river. Kevin gave a cantaloupe to",Evelyn,"After the lunch, Harmony and Daniel went to the river. Talia gave a cantaloupe to",Fernando,Kevin,Daniel
+"Then, Dianne and Kelly were thinking about going to the theater. Kelly wanted to give a peach to",Dianne,"Then, Greta and Richard were thinking about going to the theater. Sophie wanted to give a peach to",Beau,Kelly,Richard
+The gym Melanie and Fannie went to had a coconut. Fannie gave it to,Melanie,The gym Devon and Jana went to had a coconut. Princess gave it to,Remington,Fannie,Jana
+"While Estelle and Susan were commuting to the park, Estelle gave a apple to",Susan,"While Eli and Kent were commuting to the park, Maiya gave a apple to",Victor,Estelle,Eli
+"Then, Nellie and Lula had a lot of fun at the forest. Lula gave a pear to",Nellie,"Then, Deshaun and Freddy had a lot of fun at the forest. Isabella gave a pear to",Ezequiel,Lula,Freddy
+"Then, Lee and Amanda went to the desert. Lee gave a blackberry to",Amanda,"Then, Neal and Kaiden went to the desert. Isabel gave a blackberry to",Nicole,Lee,Neal
+"After the lunch, Ethel and Charlene went to the theater. Ethel gave a blueberry to",Charlene,"After the lunch, Fiona and Kiana went to the theater. Jimmie gave a blueberry to",Olivia,Ethel,Fiona
+"While Mark and Maggie were commuting to the museum, Maggie gave a blackberry to",Mark,"While Josh and Gianna were commuting to the museum, Stella gave a blackberry to",Michael,Maggie,Gianna
+"Then, Miriam and Angie went to the school. Miriam gave a apple to",Angie,"Then, Jorge and Selina went to the school. Kristian gave a apple to",Antonia,Miriam,Jorge
+Friends Fannie and Ella found a blackberry at the shop. Fannie gave it to,Ella,Friends Brady and Delaney found a blackberry at the shop. Isabela gave it to,Rebeca,Fannie,Brady
+"While Ethel and Amanda were working at the school, Ethel gave a cherry to",Amanda,"While Nico and Edith were working at the school, Rey gave a cherry to",Emerson,Ethel,Nico
+"Then, Robin and David had a lot of fun at the school. Robin gave a pear to",David,"Then, India and Frank had a lot of fun at the school. Patricia gave a pear to",Logan,Robin,India
+Friends Kathryn and Stacey found a kiwi at the river. Stacey gave it to,Kathryn,Friends Dianna and Janice found a kiwi at the river. Sophia gave it to,Peyton,Stacey,Janice
+"Then, Natasha and Jerry were working at the store. Natasha decided to give a orange to",Jerry,"Then, Lacey and Lacey were working at the store. Byron decided to give a orange to",Abdullah,Natasha,Lacey
+"When Robin and Paula got a kiwi at the zoo, Robin decided to give the kiwi to",Paula,"When Blake and Precious got a kiwi at the zoo, Kyle decided to give the kiwi to",Andy,Robin,Blake
+Friends Melanie and Sophia found a coconut at the cafe. Sophia gave it to,Melanie,Friends Conrad and Athena found a coconut at the cafe. Lawson gave it to,Princess,Sophia,Athena
+"After Stella and Fannie went to the park, Fannie gave a banana to",Stella,"After Leslie and Nickolas went to the park, Enrique gave a banana to",Omari,Fannie,Nickolas
+"After Sophia and William went to the zoo, Sophia gave a blackberry to",William,"After Javonte and Ray went to the zoo, Jan gave a blackberry to",Barbara,Sophia,Javonte
+"Then, Stacey and Susan went to the river. Stacey gave a mango to",Susan,"Then, Tori and Davis went to the river. Alice gave a mango to",Phoenix,Stacey,Tori
+Friends Rebecca and Alyssa found a kiwi at the museum. Rebecca gave it to,Alyssa,Friends Tate and Jailyn found a kiwi at the museum. Darrius gave it to,Anaya,Rebecca,Tate
+"While Alyssa and Erika were commuting to the home, Erika gave a apple to",Alyssa,"While Reginald and Lea were commuting to the home, Kyler gave a apple to",Tatianna,Erika,Lea
+"Then, Kelly and Brandy had a lot of fun at the school. Kelly gave a kiwi to",Brandy,"Then, Ross and Zoe had a lot of fun at the school. Alana gave a kiwi to",Deasia,Kelly,Ross
+"Then, Alicia and Miriam were thinking about going to the lake. Miriam wanted to give a orange to",Alicia,"Then, Jaqueline and Elian were thinking about going to the lake. Zion wanted to give a orange to",Joey,Miriam,Elian
+"Then, Leona and Rachel had a lot of fun at the mountain. Rachel gave a blueberry to",Leona,"Then, Talon and Virginia had a lot of fun at the mountain. Krista gave a blueberry to",Rose,Rachel,Virginia
+"After the lunch, Jackie and Jessie went to the bar. Jackie gave a plum to",Jessie,"After the lunch, Fannie and Shania went to the bar. Riley gave a plum to",Mike,Jackie,Fannie
+"While Inez and Carmen were working at the zoo, Inez gave a papaya to",Carmen,"While Darrin and Brennen were working at the zoo, Frank gave a papaya to",Jamar,Inez,Darrin
+"Afterwards, Fannie and Kim went to the cafe. Fannie gave a cherry to",Kim,"Afterwards, Faye and Christopher went to the cafe. Josue gave a cherry to",Triston,Fannie,Faye
+"When Kim and Kari got a cherry at the museum, Kari decided to give the cherry to",Kim,"When Adam and Felix got a cherry at the museum, Aliyah decided to give the cherry to",Hailee,Kari,Felix
+"While Theresa and Fannie were working at the beach, Fannie gave a apple to",Theresa,"While Zaire and Sheldon were working at the beach, Juliette gave a apple to",Omar,Fannie,Sheldon
+"Then, Mona and Paula were thinking about going to the forest. Mona wanted to give a raspberry to",Paula,"Then, Ronald and Brandi were thinking about going to the forest. Norman wanted to give a raspberry to",Dillan,Mona,Ronald
+"After the lunch, Suzanne and Ginger went to the bar. Suzanne gave a raspberry to",Ginger,"After the lunch, Hugh and Issac went to the bar. Frankie gave a raspberry to",Tracy,Suzanne,Hugh
+"While Kim and Faye were commuting to the mountain, Faye gave a strawberry to",Kim,"While Allen and Annette were commuting to the mountain, Jaron gave a strawberry to",Coleman,Faye,Annette
+"While Marsha and Wilma were commuting to the home, Marsha gave a watermelon to",Wilma,"While Quentin and Kadin were commuting to the home, Rebekah gave a watermelon to",Amiya,Marsha,Quentin
+"Then, Maggie and Brian were working at the market. Maggie decided to give a honeydew to",Brian,"Then, Shaniya and Rose were working at the market. Douglas decided to give a honeydew to",Nicole,Maggie,Shaniya
+"After Evelyn and Faye went to the park, Faye gave a blueberry to",Evelyn,"After Janae and Brodie went to the park, Bridget gave a blueberry to",Kai,Faye,Brodie
+"Then, Fannie and Sarah went to the lake. Fannie gave a papaya to",Sarah,"Then, Piper and Hillary went to the lake. Sheridan gave a papaya to",Glen,Fannie,Piper
+"While Pat and Theresa were working at the river, Pat gave a blackberry to",Theresa,"While Tre and Nicholas were working at the river, Stephanie gave a blackberry to",Davis,Pat,Tre
+"Afterwards, Pauline and Marian went to the river. Pauline gave a banana to",Marian,"Afterwards, Jameson and Cassidy went to the river. Nicolas gave a banana to",Alden,Pauline,Jameson
+"After Sophia and Theresa went to the school, Sophia gave a blackberry to",Theresa,"After Ismael and Jenifer went to the school, Mark gave a blackberry to",Charles,Sophia,Ismael
+"While Doris and Lula were commuting to the bar, Lula gave a apple to",Doris,"While Tyson and Adeline were commuting to the bar, Arianna gave a apple to",Zechariah,Lula,Adeline
+"When Mattie and Sonia got a blackberry at the cafe, Sonia decided to give the blackberry to",Mattie,"When Joan and Jett got a blackberry at the cafe, Aubree decided to give the blackberry to",Jordan,Sonia,Jett
+"While Jessica and Juana were commuting to the river, Jessica gave a banana to",Juana,"While German and Mason were commuting to the river, Jasmin gave a banana to",Alexandra,Jessica,German
+The zoo Lee and Janet went to had a mango. Lee gave it to,Janet,The zoo Aaron and Lesly went to had a mango. Olivia gave it to,Eva,Lee,Aaron
+"Then, Angie and Pat were thinking about going to the river. Pat wanted to give a pineapple to",Angie,"Then, Layne and Kyle were thinking about going to the river. Cole wanted to give a pineapple to",Robin,Pat,Kyle
+"Then, Anne and Gwen were thinking about going to the zoo. Gwen wanted to give a peach to",Anne,"Then, Carter and Melvin were thinking about going to the zoo. German wanted to give a peach to",Charles,Gwen,Melvin
+"After Violet and Harriet went to the school, Violet gave a papaya to",Harriet,"After Blaze and Eli went to the school, Georgia gave a papaya to",Tyson,Violet,Blaze
+"When Kari and Kim got a strawberry at the beach, Kari decided to give the strawberry to",Kim,"When Alize and Peter got a strawberry at the beach, Marshall decided to give the strawberry to",Rosa,Kari,Alize
+The market Heidi and Ethel went to had a cherry. Ethel gave it to,Heidi,The market Dimitri and Charlotte went to had a cherry. Jake gave it to,Kristopher,Ethel,Charlotte
+"After Kevin and Paula went to the desert, Kevin gave a watermelon to",Paula,"After Richard and Aliyah went to the desert, Philip gave a watermelon to",Alonso,Kevin,Richard
+The mountain Ginger and Robin went to had a raspberry. Robin gave it to,Ginger,The mountain Christine and Jonathan went to had a raspberry. Travis gave it to,Vaughn,Robin,Jonathan
+The school Rosa and Jackie went to had a watermelon. Jackie gave it to,Rosa,The school Gerard and Abby went to had a watermelon. Phoenix gave it to,Ariel,Jackie,Abby
+"While Sheila and Irma were commuting to the zoo, Irma gave a grape to",Sheila,"While Emilia and Esther were commuting to the zoo, Ali gave a grape to",Damon,Irma,Esther
+"Then, Alicia and Kristina had a lot of fun at the theater. Kristina gave a mango to",Alicia,"Then, Korey and Carli had a lot of fun at the theater. Sasha gave a mango to",Stella,Kristina,Carli
+"Then, Lula and David were working at the cafe. Lula decided to give a strawberry to",David,"Then, Kylee and Albert were working at the cafe. Ellen decided to give a strawberry to",Brock,Lula,Kylee
+"Then, Carmen and Irma were working at the school. Irma decided to give a plum to",Carmen,"Then, Tabitha and Dane were working at the school. Keith decided to give a plum to",Larry,Irma,Dane
+"While Pat and David were working at the desert, Pat gave a raspberry to",David,"While Houston and Angelo were working at the desert, Jarrett gave a raspberry to",Marcus,Pat,Houston
+"Then, Fannie and Mattie were working at the bar. Fannie decided to give a strawberry to",Mattie,"Then, Fidel and Jerome were working at the bar. Jon decided to give a strawberry to",Forrest,Fannie,Fidel
+"Then, Heidi and Natasha were working at the river. Natasha decided to give a coconut to",Heidi,"Then, Jaylan and Victor were working at the river. Anita decided to give a coconut to",Hillary,Natasha,Victor
+"When Marian and Stacey got a apple at the cafe, Stacey decided to give it to",Marian,"When Jena and Frances got a apple at the cafe, Aidan decided to give it to",Kendall,Stacey,Frances
+"When Marsha and Ginger got a kiwi at the zoo, Marsha decided to give it to",Ginger,"When Karen and Aidan got a kiwi at the zoo, Sophia decided to give it to",Mario,Marsha,Karen
+Friends Brian and Fannie found a grape at the lake. Fannie gave it to,Brian,Friends Jordan and Beau found a grape at the lake. Jairo gave it to,Destini,Fannie,Beau
+"Then, Deanna and Agnes went to the home. Agnes gave a pineapple to",Deanna,"Then, Nikki and Ellie went to the home. Emiliano gave a pineapple to",Hernan,Agnes,Ellie
+"Then, Wilma and Leigh had a lot of fun at the shop. Leigh gave a apple to",Wilma,"Then, Stephon and Alexis had a lot of fun at the shop. Princess gave a apple to",Ladarius,Leigh,Alexis
+Friends Eleanor and Mark found a honeydew at the store. Eleanor gave it to,Mark,Friends Jaime and Scott found a honeydew at the store. Melody gave it to,Edgar,Eleanor,Jaime
+"When Irma and Melanie got a apple at the theater, Irma decided to give the apple to",Melanie,"When Eli and Lily got a apple at the theater, Derrick decided to give the apple to",Ernest,Irma,Eli
+"Afterwards, Sheila and Jackie went to the library. Jackie gave a cantaloupe to",Sheila,"Afterwards, Regan and Pablo went to the library. Angelo gave a cantaloupe to",Brenda,Jackie,Pablo
+"After the lunch, Jody and Brandy went to the bar. Jody gave a pear to",Brandy,"After the lunch, Zoe and Micah went to the bar. Terrell gave a pear to",Annamarie,Jody,Zoe
+"When Stacey and Yolanda got a cherry at the museum, Stacey decided to give it to",Yolanda,"When Duncan and Brionna got a cherry at the museum, Samir decided to give it to",Aimee,Stacey,Duncan
+"When Agnes and Loretta got a coconut at the park, Agnes decided to give the coconut to",Loretta,"When Kadin and Janae got a coconut at the park, Ivan decided to give the coconut to",Abril,Agnes,Kadin
+"While Maggie and Kim were working at the school, Maggie gave a cherry to",Kim,"While Brennan and Warren were working at the school, Stephen gave a cherry to",Sharon,Maggie,Brennan
+"When Erika and Mildred got a strawberry at the lake, Erika decided to give the strawberry to",Mildred,"When Aspen and Caitlyn got a strawberry at the lake, Philip decided to give the strawberry to",Courtney,Erika,Aspen
+"Then, Jerry and Kevin were thinking about going to the cave. Kevin wanted to give a grape to",Jerry,"Then, Diamond and Angelo were thinking about going to the cave. Sterling wanted to give a grape to",Pierce,Kevin,Angelo
+"After Kari and Jessie went to the library, Kari gave a mango to",Jessie,"After Brice and Lila went to the library, Remington gave a mango to",Jeff,Kari,Brice
+"While Rosa and Robin were working at the library, Robin gave a coconut to",Rosa,"While Jaime and Todd were working at the library, Jessica gave a coconut to",Trace,Robin,Todd
+"Then, Sarah and Violet were thinking about going to the cave. Violet wanted to give a watermelon to",Sarah,"Then, Harry and Cassidy were thinking about going to the cave. Diana wanted to give a watermelon to",Essence,Violet,Cassidy
+The store Irma and Stella went to had a mango. Irma gave it to,Stella,The store Mohammed and Dennis went to had a mango. Judith gave it to,Hazel,Irma,Mohammed
+"Then, Mildred and Violet went to the zoo. Violet gave a pineapple to",Mildred,"Then, Armando and Asha went to the zoo. Tess gave a pineapple to",Wendy,Violet,Asha
+"While Juana and Kelly were commuting to the market, Kelly gave a grape to",Juana,"While Tamara and Ali were commuting to the market, Zoie gave a grape to",Alexandria,Kelly,Ali
+"Then, Paula and Robin had a lot of fun at the mountain. Robin gave a strawberry to",Paula,"Then, Chaya and John had a lot of fun at the mountain. Stephen gave a strawberry to",Paul,Robin,John
+"While Anne and Sonia were working at the bar, Sonia gave a cantaloupe to",Anne,"While Luke and Carolina were working at the bar, London gave a cantaloupe to",Nash,Sonia,Carolina
+"Then, Estelle and Heidi were thinking about going to the store. Estelle wanted to give a mango to",Heidi,"Then, Madelynn and Celia were thinking about going to the store. Heath wanted to give a mango to",Jayda,Estelle,Madelynn
+"When Janet and Velma got a plum at the library, Velma decided to give it to",Janet,"When Jayda and Felicity got a plum at the library, Kaylan decided to give it to",Trisha,Velma,Felicity
+"While Nellie and Suzanne were working at the desert, Suzanne gave a strawberry to",Nellie,"While Dianna and Johnnie were working at the desert, Dominick gave a strawberry to",Javion,Suzanne,Johnnie
+"Afterwards, Brian and Megan went to the gym. Megan gave a blueberry to",Brian,"Afterwards, Jose and Gavin went to the gym. Sonia gave a blueberry to",Rick,Megan,Gavin
+Friends Fannie and Anita found a mango at the forest. Fannie gave it to,Anita,Friends Antony and Ashton found a mango at the forest. Kassandra gave it to,Leo,Fannie,Antony
+"When Heidi and Kari got a apple at the shop, Kari decided to give the apple to",Heidi,"When Victor and Julie got a apple at the shop, Alexia decided to give the apple to",Jonathan,Kari,Julie
+"Afterwards, Evelyn and Inez went to the park. Inez gave a watermelon to",Evelyn,"Afterwards, Jaxon and Lilliana went to the park. Kendra gave a watermelon to",Kellie,Inez,Lilliana
+"When Alicia and Leigh got a peach at the shop, Leigh decided to give it to",Alicia,"When Jaeden and Rowan got a peach at the shop, Claudia decided to give it to",Matthew,Leigh,Rowan
+"When Alice and Yolanda got a strawberry at the bar, Alice decided to give it to",Yolanda,"When Kent and Briana got a strawberry at the bar, Ayana decided to give it to",Alessandro,Alice,Kent
+"Then, Alice and David had a lot of fun at the library. Alice gave a kiwi to",David,"Then, Jacob and Terry had a lot of fun at the library. Baby gave a kiwi to",Avery,Alice,Jacob
+"Then, Ethel and Stacy had a lot of fun at the river. Ethel gave a papaya to",Stacy,"Then, Kyler and Donovan had a lot of fun at the river. Shelby gave a papaya to",Dejah,Ethel,Kyler
+"Then, Gwen and Deanna were thinking about going to the cafe. Gwen wanted to give a plum to",Deanna,"Then, Daisy and Anissa were thinking about going to the cafe. Angie wanted to give a plum to",Blair,Gwen,Daisy
+"Then, Anne and Pauline had a lot of fun at the beach. Pauline gave a apple to",Anne,"Then, Bruce and Madelynn had a lot of fun at the beach. Damien gave a apple to",Esperanza,Pauline,Madelynn
+"While Megan and Brian were working at the store, Megan gave a honeydew to",Brian,"While Audrey and Fred were working at the store, Tina gave a honeydew to",Chandler,Megan,Audrey
+Friends Nellie and Marsha found a raspberry at the school. Marsha gave it to,Nellie,Friends Trevion and Heaven found a raspberry at the school. Lamont gave it to,Mariela,Marsha,Heaven
+"After Harriet and Melissa went to the store, Melissa gave a orange to",Harriet,"After Francisco and Hanna went to the store, Sky gave a orange to",Hannah,Melissa,Hanna
+"Afterwards, Rebecca and Mark went to the home. Rebecca gave a plum to",Mark,"Afterwards, Annie and Sarah went to the home. Brendan gave a plum to",Kirk,Rebecca,Annie
+The store Suzanne and Stacy went to had a mango. Suzanne gave it to,Stacy,The store Chaya and Edwin went to had a mango. Harry gave it to,Ryder,Suzanne,Chaya
+The theater Chelsea and Marilyn went to had a watermelon. Marilyn gave it to,Chelsea,The theater Reilly and Maximillian went to had a watermelon. Quentin gave it to,Lincoln,Marilyn,Maximillian
+Friends Carol and Paula found a peach at the bar. Carol gave it to,Paula,Friends Taya and Tomas found a peach at the bar. Carlo gave it to,Roman,Carol,Taya
+"Then, Erika and Angie were working at the theater. Erika decided to give a cherry to",Angie,"Then, Kyler and Arely were working at the theater. Kayleigh decided to give a cherry to",Misty,Erika,Kyler
+The cave Janet and Inez went to had a blackberry. Inez gave it to,Janet,The cave Francis and Clarence went to had a blackberry. Nathanial gave it to,Bethany,Inez,Clarence
+"When Gwen and Charlene got a pineapple at the zoo, Gwen decided to give it to",Charlene,"When Moses and Reid got a pineapple at the zoo, Damion decided to give it to",Makayla,Gwen,Moses
+"When Sophia and Diana got a orange at the zoo, Sophia decided to give it to",Diana,"When Rasheed and Isaiah got a orange at the zoo, Xander decided to give it to",Ana,Sophia,Rasheed
+"When Faye and Yolanda got a watermelon at the mountain, Faye decided to give the watermelon to",Yolanda,"When Adonis and Sydnie got a watermelon at the mountain, Annalise decided to give the watermelon to",Jarred,Faye,Adonis
+Friends Rebecca and Stacy found a grape at the museum. Rebecca gave it to,Stacy,Friends Stephan and Adrian found a grape at the museum. Audrey gave it to,America,Rebecca,Stephan
+"Afterwards, Evelyn and Bernadette went to the beach. Bernadette gave a plum to",Evelyn,"Afterwards, Braiden and Brionna went to the beach. Alvaro gave a plum to",Melisa,Bernadette,Brionna
+"Then, Shannon and Ella were thinking about going to the beach. Shannon wanted to give a honeydew to",Ella,"Then, Kobe and Valentin were thinking about going to the beach. Robert wanted to give a honeydew to",Monique,Shannon,Kobe
+"After the lunch, Martha and Leona went to the shop. Martha gave a blackberry to",Leona,"After the lunch, Dexter and Ashlynn went to the shop. Johan gave a blackberry to",Katherine,Martha,Dexter
+"When Megan and Rosa got a strawberry at the bar, Megan decided to give it to",Rosa,"When Sheila and Heather got a strawberry at the bar, Kendall decided to give it to",Drew,Megan,Sheila
+"While Kathryn and Irma were commuting to the cave, Irma gave a honeydew to",Kathryn,"While Carmen and Brett were commuting to the cave, Adam gave a honeydew to",Dakota,Irma,Brett
+"While Agnes and Heidi were working at the beach, Agnes gave a cantaloupe to",Heidi,"While Jeffrey and Malia were working at the beach, Shayne gave a cantaloupe to",Porter,Agnes,Jeffrey
+"After the lunch, Stella and Kevin went to the library. Kevin gave a papaya to",Stella,"After the lunch, Cory and Marco went to the library. Albert gave a papaya to",Cynthia,Kevin,Marco
+"Then, Kristina and Rosa were thinking about going to the beach. Kristina wanted to give a grape to",Rosa,"Then, Lacey and Katy were thinking about going to the beach. Sally wanted to give a grape to",Alanna,Kristina,Lacey
+"Afterwards, Sonia and Brandy went to the river. Sonia gave a orange to",Brandy,"Afterwards, Sadie and Dominique went to the river. Chandler gave a orange to",Ronaldo,Sonia,Sadie
+"Then, David and Yvette had a lot of fun at the cave. Yvette gave a grape to",David,"Then, Paul and Ariel had a lot of fun at the cave. Lauren gave a grape to",Joy,Yvette,Ariel
+Friends Yvette and Diana found a apple at the mountain. Yvette gave it to,Diana,Friends Barrett and Madelyn found a apple at the mountain. Maxim gave it to,Dandre,Yvette,Barrett
+The theater Charlene and Jackie went to had a coconut. Jackie gave it to,Charlene,The theater Courtney and Madelynn went to had a coconut. Xavier gave it to,Kiley,Jackie,Madelynn
+"When Sophia and Sarah got a strawberry at the home, Sophia decided to give the strawberry to",Sarah,"When Hernan and Ross got a strawberry at the home, Alexander decided to give the strawberry to",Santiago,Sophia,Hernan
+"While Rachel and Lorraine were working at the beach, Rachel gave a cantaloupe to",Lorraine,"While Josh and Alonzo were working at the beach, Danielle gave a cantaloupe to",Reese,Rachel,Josh
+"Then, Violet and Evelyn were thinking about going to the library. Violet wanted to give a blackberry to",Evelyn,"Then, Devyn and Delilah were thinking about going to the library. Jamie wanted to give a blackberry to",Graciela,Violet,Devyn
+"While Jessie and Kristi were commuting to the shop, Kristi gave a mango to",Jessie,"While Blaze and Keanu were commuting to the shop, Krystal gave a mango to",Adam,Kristi,Keanu
+"When Kevin and Mildred got a plum at the park, Kevin decided to give the plum to",Mildred,"When Lisa and Dewayne got a plum at the park, Alivia decided to give the plum to",Mekhi,Kevin,Lisa
+"Then, Amanda and Pat were thinking about going to the lake. Pat wanted to give a pineapple to",Amanda,"Then, Jaydon and Gordon were thinking about going to the lake. Tobias wanted to give a pineapple to",Jaime,Pat,Gordon
+"When Lorraine and Robin got a blueberry at the cafe, Robin decided to give the blueberry to",Lorraine,"When Sabastian and Stone got a blueberry at the cafe, Liam decided to give the blueberry to",Lloyd,Robin,Stone
+"When Leona and Mona got a banana at the lake, Mona decided to give the banana to",Leona,"When Estrella and Timothy got a banana at the lake, Deborah decided to give the banana to",Yamilet,Mona,Timothy
+"When Stacy and Marilyn got a cantaloupe at the shop, Marilyn decided to give it to",Stacy,"When Kathy and Jackeline got a cantaloupe at the shop, Dillon decided to give it to",Kennedy,Marilyn,Jackeline
+"After Rosa and Velma went to the museum, Velma gave a mango to",Rosa,"After Deion and Lexie went to the museum, Melissa gave a mango to",Alexandra,Velma,Lexie
+"After the lunch, Fannie and Stella went to the theater. Fannie gave a cherry to",Stella,"After the lunch, Dominique and Collin went to the theater. Jade gave a cherry to",Drew,Fannie,Dominique
+"Then, Kristi and Harriet were working at the museum. Kristi decided to give a strawberry to",Harriet,"Then, Alaina and Geneva were working at the museum. Maxwell decided to give a strawberry to",Maria,Kristi,Alaina
+"After the lunch, Kristina and Stella went to the cave. Kristina gave a cherry to",Stella,"After the lunch, Irvin and Juliet went to the cave. Harry gave a cherry to",Nasir,Kristina,Irvin
+Friends Eleanor and Lorraine found a banana at the river. Eleanor gave it to,Lorraine,Friends Harold and Kirstin found a banana at the river. Cali gave it to,Quinn,Eleanor,Harold
+"Then, Janet and Bernadette were working at the theater. Bernadette decided to give a grape to",Janet,"Then, Dennis and Kavon were working at the theater. Sierra decided to give a grape to",Hernan,Bernadette,Kavon
+Friends Lula and Angie found a coconut at the market. Lula gave it to,Angie,Friends Shemar and Cali found a coconut at the market. Mauricio gave it to,Pierce,Lula,Shemar
+"While Leona and Gwen were commuting to the market, Gwen gave a raspberry to",Leona,"While Jarod and Aliyah were commuting to the market, Everett gave a raspberry to",Annabel,Gwen,Aliyah
+"After Jackie and Wilma went to the park, Jackie gave a blackberry to",Wilma,"After Delia and Sandy went to the park, Marques gave a blackberry to",Dustin,Jackie,Delia
+"Then, Evelyn and Lee were working at the mountain. Lee decided to give a grape to",Evelyn,"Then, Desiree and Paul were working at the mountain. Reilly decided to give a grape to",Silvia,Lee,Paul
+"Then, Stacey and Anita were thinking about going to the school. Stacey wanted to give a blackberry to",Anita,"Then, Denise and Denzel were thinking about going to the school. Adolfo wanted to give a blackberry to",Jesus,Stacey,Denise
+"After Mattie and Suzanne went to the bar, Suzanne gave a strawberry to",Mattie,"After Sheila and Darion went to the bar, Damion gave a strawberry to",Kayley,Suzanne,Darion
+"Then, Irma and Lorraine had a lot of fun at the shop. Irma gave a orange to",Lorraine,"Then, Derrick and Vernon had a lot of fun at the shop. Carson gave a orange to",Kennedy,Irma,Derrick
+"When Virginia and Fannie got a apple at the cave, Fannie decided to give the apple to",Virginia,"When Sarah and Irene got a apple at the cave, Mark decided to give the apple to",Kimberly,Fannie,Irene
+"While Mark and Shannon were commuting to the theater, Shannon gave a orange to",Mark,"While Jan and Garrison were commuting to the theater, Megan gave a orange to",Ellie,Shannon,Garrison
+"After Jessie and Melissa went to the gym, Melissa gave a blueberry to",Jessie,"After Adonis and Lucas went to the gym, Brock gave a blueberry to",Meredith,Melissa,Lucas
+"After Stella and Marilyn went to the gym, Marilyn gave a banana to",Stella,"After Tyreek and Jackeline went to the gym, Jessie gave a banana to",Alonso,Marilyn,Jackeline
+"Then, Sonia and William were thinking about going to the theater. Sonia wanted to give a raspberry to",William,"Then, Forrest and Austin were thinking about going to the theater. Anderson wanted to give a raspberry to",Eugene,Sonia,Forrest
+"Then, Heidi and Kari had a lot of fun at the cafe. Kari gave a papaya to",Heidi,"Then, Alina and Nigel had a lot of fun at the cafe. Joanne gave a papaya to",Seamus,Kari,Nigel
+"Then, Nellie and Grace had a lot of fun at the museum. Grace gave a blueberry to",Nellie,"Then, Agustin and Mariah had a lot of fun at the museum. Meagan gave a blueberry to",Brooks,Grace,Mariah
+"Then, Jessie and Marsha were working at the mountain. Marsha decided to give a apple to",Jessie,"Then, Jacklyn and Axel were working at the mountain. Jake decided to give a apple to",Brandy,Marsha,Axel
+"Then, Diana and Kevin were working at the forest. Kevin decided to give a pear to",Diana,"Then, Raquel and Stone were working at the forest. Naomi decided to give a pear to",Bailey,Kevin,Stone
+"When Shannon and Mattie got a papaya at the school, Shannon decided to give the papaya to",Mattie,"When Samson and Allie got a papaya at the school, Kaylan decided to give the papaya to",Ricky,Shannon,Samson
+"When Kelly and Heidi got a papaya at the forest, Kelly decided to give it to",Heidi,"When Gary and Noel got a papaya at the forest, Shannon decided to give it to",Brittany,Kelly,Gary
+"Then, Kevin and Mark had a lot of fun at the cafe. Kevin gave a mango to",Mark,"Then, Alex and Laura had a lot of fun at the cafe. Clay gave a mango to",Brady,Kevin,Alex
+"Then, Erika and Evelyn had a lot of fun at the shop. Erika gave a watermelon to",Evelyn,"Then, Nadia and Ericka had a lot of fun at the shop. Litzy gave a watermelon to",Jena,Erika,Nadia
+The gym Martha and Stella went to had a kiwi. Martha gave it to,Stella,The gym Harold and Amos went to had a kiwi. Daisy gave it to,Alonso,Martha,Harold
+"While Theresa and Pauline were working at the bar, Pauline gave a cherry to",Theresa,"While Nia and Nicolas were working at the bar, Gunnar gave a cherry to",Bo,Pauline,Nicolas
+"Then, Violet and Mildred were working at the school. Violet decided to give a blackberry to",Mildred,"Then, Frances and Jazmine were working at the school. Nadine decided to give a blackberry to",Cristian,Violet,Frances
+The mountain Mildred and Faye went to had a kiwi. Faye gave it to,Mildred,The mountain Katarina and Jonathon went to had a kiwi. Cali gave it to,Kirk,Faye,Jonathon
+The cafe Lorraine and Teresa went to had a banana. Teresa gave it to,Lorraine,The cafe Jolie and Teagan went to had a banana. Alex gave it to,Craig,Teresa,Teagan
+"After Heidi and Martha went to the river, Martha gave a blackberry to",Heidi,"After Joey and Ashly went to the river, Lindsay gave a blackberry to",Dayton,Martha,Ashly
+"Afterwards, Carmen and Violet went to the store. Violet gave a pear to",Carmen,"Afterwards, Braiden and Trey went to the store. Riley gave a pear to",Graham,Violet,Trey
+"Then, Mark and Sonia went to the beach. Sonia gave a coconut to",Mark,"Then, Unique and Dion went to the beach. Raymond gave a coconut to",Derek,Sonia,Dion
+"Then, Suzanne and Rosemarie were thinking about going to the market. Suzanne wanted to give a grape to",Rosemarie,"Then, Tatum and Isabela were thinking about going to the market. Weston wanted to give a grape to",Elisa,Suzanne,Tatum
+"Then, Sarah and Robin went to the home. Robin gave a blackberry to",Sarah,"Then, Amy and Joshua went to the home. Wade gave a blackberry to",Joe,Robin,Joshua
+"Then, Jessie and Miriam had a lot of fun at the school. Miriam gave a banana to",Jessie,"Then, Tamia and Nora had a lot of fun at the school. Shea gave a banana to",Kobe,Miriam,Nora
+"Then, Ginger and Marsha had a lot of fun at the school. Marsha gave a watermelon to",Ginger,"Then, Emanuel and Kira had a lot of fun at the school. Sydnie gave a watermelon to",Tyra,Marsha,Kira
+"Then, Marian and Violet had a lot of fun at the park. Violet gave a strawberry to",Marian,"Then, Adrian and Jefferson had a lot of fun at the park. Jerry gave a strawberry to",Wilson,Violet,Jefferson
+"After Brian and Gwen went to the store, Gwen gave a peach to",Brian,"After Denver and Scarlett went to the store, Porter gave a peach to",Alejandra,Gwen,Scarlett
+"Then, Lula and Leona went to the river. Lula gave a raspberry to",Leona,"Then, Kristen and Fidel went to the river. Rhett gave a raspberry to",Brady,Lula,Kristen
+"When Anne and Faye got a watermelon at the river, Faye decided to give it to",Anne,"When Reilly and Ashly got a watermelon at the river, Katia decided to give it to",Dexter,Faye,Ashly
+"After Paula and Yvette went to the shop, Yvette gave a banana to",Paula,"After Reina and Melisa went to the shop, Darren gave a banana to",Marian,Yvette,Melisa
+"After the lunch, Kelly and Brandy went to the museum. Kelly gave a peach to",Brandy,"After the lunch, Jean and Anita went to the museum. Andrew gave a peach to",Luca,Kelly,Jean
+"After Charlene and Teresa went to the school, Teresa gave a blackberry to",Charlene,"After Raphael and Mercedes went to the school, Amani gave a blackberry to",Abel,Teresa,Mercedes
+The theater Fannie and Janet went to had a cherry. Fannie gave it to,Janet,The theater Destiny and Itzel went to had a cherry. Titus gave it to,Nyasia,Fannie,Destiny
+"Afterwards, Susan and Irma went to the zoo. Irma gave a apple to",Susan,"Afterwards, Elsa and Franklin went to the zoo. Grant gave a apple to",Juliet,Irma,Franklin
+The bar Marian and Lee went to had a papaya. Lee gave it to,Marian,The bar Mikel and Christian went to had a papaya. Dante gave it to,Peyton,Lee,Christian
+"Then, Rebecca and Ella had a lot of fun at the beach. Rebecca gave a banana to",Ella,"Then, Barbara and Nora had a lot of fun at the beach. Larissa gave a banana to",Melisa,Rebecca,Barbara
+"Afterwards, Diana and Alice went to the library. Alice gave a mango to",Diana,"Afterwards, Elliot and Blake went to the library. Miranda gave a mango to",Melanie,Alice,Blake
+"While Janet and Yvette were commuting to the school, Yvette gave a blueberry to",Janet,"While Jaylin and Wade were commuting to the school, Salvador gave a blueberry to",Kristy,Yvette,Wade
+"Then, Megan and Alyssa were thinking about going to the forest. Megan wanted to give a peach to",Alyssa,"Then, Catalina and Jazmin were thinking about going to the forest. Aniyah wanted to give a peach to",Trace,Megan,Catalina
+"Then, Dianne and Rachel were working at the forest. Rachel decided to give a coconut to",Dianne,"Then, Arnold and Hope were working at the forest. Brennan decided to give a coconut to",Mara,Rachel,Hope
+"After Rachel and David went to the museum, Rachel gave a cherry to",David,"After Ann and Gary went to the museum, Carson gave a cherry to",Trent,Rachel,Ann
+The theater Rachel and Anne went to had a grape. Rachel gave it to,Anne,The theater Nick and Cole went to had a grape. Elena gave it to,Julius,Rachel,Nick
+"While Nellie and Kristina were commuting to the museum, Kristina gave a pineapple to",Nellie,"While Emiliano and Irvin were commuting to the museum, Thalia gave a pineapple to",Darryl,Kristina,Irvin
+"After the lunch, Ethel and Jerry went to the lake. Ethel gave a kiwi to",Jerry,"After the lunch, Eileen and German went to the lake. Josh gave a kiwi to",Laney,Ethel,Eileen
+"When Alicia and Richard got a watermelon at the home, Richard decided to give the watermelon to",Alicia,"When Matteo and Walker got a watermelon at the home, Scott decided to give the watermelon to",Holly,Richard,Walker
+"When Irma and Sheila got a cherry at the market, Irma decided to give it to",Sheila,"When Glen and Andreas got a cherry at the market, Emily decided to give it to",Donald,Irma,Glen
+"After Robin and Stella went to the cafe, Robin gave a cherry to",Stella,"After Prince and Paola went to the cafe, Jared gave a cherry to",Brendan,Robin,Prince
+"While Kelly and Yolanda were working at the cafe, Kelly gave a papaya to",Yolanda,"While Alice and Reece were working at the cafe, Deshawn gave a papaya to",London,Kelly,Alice
+"Then, Robin and Mattie were working at the river. Robin decided to give a strawberry to",Mattie,"Then, Steve and Dustin were working at the river. Tyreek decided to give a strawberry to",Donte,Robin,Steve
+"Then, Natasha and William were working at the lake. Natasha decided to give a grape to",William,"Then, Damon and Roy were working at the lake. Anthony decided to give a grape to",Malcolm,Natasha,Damon
+"Then, Estelle and Brandy had a lot of fun at the school. Estelle gave a mango to",Brandy,"Then, Jamal and Reese had a lot of fun at the school. Fatima gave a mango to",Kayden,Estelle,Jamal
+"When Anne and Rebecca got a banana at the school, Rebecca decided to give it to",Anne,"When Hope and Parker got a banana at the school, Sara decided to give it to",Alexandria,Rebecca,Parker
+"Afterwards, Yolanda and Irma went to the library. Irma gave a peach to",Yolanda,"Afterwards, Rogelio and Gina went to the library. Addison gave a peach to",Tina,Irma,Gina
+"Then, Velma and Jacqueline were working at the park. Velma decided to give a kiwi to",Jacqueline,"Then, Trent and Chasity were working at the park. Hassan decided to give a kiwi to",Aylin,Velma,Trent
+"After the lunch, Jackie and Anita went to the mountain. Jackie gave a honeydew to",Anita,"After the lunch, Helen and Karlie went to the mountain. Jenna gave a honeydew to",Ryan,Jackie,Helen
+"Then, Lula and Wilma had a lot of fun at the lake. Lula gave a blackberry to",Wilma,"Then, Raphael and Dimitri had a lot of fun at the lake. Alden gave a blackberry to",Dillan,Lula,Raphael
+"Then, Robin and Sheila were working at the store. Robin decided to give a plum to",Sheila,"Then, Jacob and Bennett were working at the store. James decided to give a plum to",Gerard,Robin,Jacob
+The cave Pauline and Anne went to had a strawberry. Pauline gave it to,Anne,The cave Eliana and Anderson went to had a strawberry. Alanna gave it to,Rebecca,Pauline,Eliana
+"Then, Virginia and Suzanne went to the desert. Suzanne gave a pear to",Virginia,"Then, Larry and Gage went to the desert. Abby gave a pear to",Glenn,Suzanne,Gage
+"Then, Juana and Kristina were working at the library. Kristina decided to give a pineapple to",Juana,"Then, Taryn and Nancy were working at the library. Phoebe decided to give a pineapple to",Dwayne,Kristina,Nancy
+"After Miriam and Virginia went to the forest, Miriam gave a blueberry to",Virginia,"After Lexus and Jeff went to the forest, Malia gave a blueberry to",Derrick,Miriam,Lexus
+The school Marilyn and Paula went to had a plum. Marilyn gave it to,Paula,The school Nathaniel and Damien went to had a plum. Rocky gave it to,Daniel,Marilyn,Nathaniel
+"Afterwards, Mattie and Teresa went to the forest. Teresa gave a grape to",Mattie,"Afterwards, Moshe and Troy went to the forest. Steven gave a grape to",Brenton,Teresa,Troy
+"Then, Mona and Paula went to the river. Mona gave a coconut to",Paula,"Then, Madelyn and Raquel went to the river. Billy gave a coconut to",Katharine,Mona,Madelyn
+"After Melissa and Theresa went to the bar, Melissa gave a watermelon to",Theresa,"After Tucker and Jenna went to the bar, Chelsea gave a watermelon to",Hazel,Melissa,Tucker
+"While Velma and Brian were working at the bar, Velma gave a blackberry to",Brian,"While Gerard and Paris were working at the bar, Bobby gave a blackberry to",Destany,Velma,Gerard
+"When Kim and Alice got a watermelon at the forest, Alice decided to give the watermelon to",Kim,"When Emily and Ben got a watermelon at the forest, Jessie decided to give the watermelon to",Amanda,Alice,Ben
+"After the lunch, Dianne and Gwen went to the cafe. Gwen gave a kiwi to",Dianne,"After the lunch, Marilyn and Bailey went to the cafe. Shemar gave a kiwi to",Jerome,Gwen,Bailey
+"After the lunch, Jessie and Agnes went to the bar. Agnes gave a apple to",Jessie,"After the lunch, Fatima and Cali went to the bar. Harrison gave a apple to",Frances,Agnes,Cali
+"Then, Carol and Virginia had a lot of fun at the park. Carol gave a papaya to",Virginia,"Then, Randy and Daniel had a lot of fun at the park. Gilbert gave a papaya to",Xavier,Carol,Randy
+"Then, Lorraine and Miriam went to the market. Miriam gave a papaya to",Lorraine,"Then, Keaton and Darren went to the market. Octavio gave a papaya to",Bonnie,Miriam,Darren
+"Then, Juana and Kelly were working at the zoo. Kelly decided to give a orange to",Juana,"Then, Denzel and Amy were working at the zoo. Levi decided to give a orange to",Leonardo,Kelly,Amy
+"When Jacqueline and Miriam got a kiwi at the lake, Miriam decided to give the kiwi to",Jacqueline,"When Mackenzie and Leo got a kiwi at the lake, Nathanial decided to give the kiwi to",Amara,Miriam,Leo
+"While Kristi and Alyssa were working at the school, Kristi gave a cherry to",Alyssa,"While Irvin and Eliseo were working at the school, Elian gave a cherry to",Cristobal,Kristi,Irvin
+"Then, Virginia and Bernadette had a lot of fun at the school. Bernadette gave a honeydew to",Virginia,"Then, Edward and Jamarcus had a lot of fun at the school. Ramiro gave a honeydew to",Elias,Bernadette,Jamarcus
+"While Sophia and Sarah were commuting to the lake, Sophia gave a pear to",Sarah,"While Chantel and Jay were commuting to the lake, Jonathan gave a pear to",Griffin,Sophia,Chantel
+Friends Mattie and Martha found a honeydew at the cave. Martha gave it to,Mattie,Friends Kristine and Darrius found a honeydew at the cave. Bradley gave it to,Houston,Martha,Darrius
+"When Juana and Pat got a raspberry at the cafe, Pat decided to give the raspberry to",Juana,"When Jarrett and Ben got a raspberry at the cafe, Charles decided to give the raspberry to",Joy,Pat,Ben
+"When Ginger and Suzanne got a watermelon at the bar, Suzanne decided to give it to",Ginger,"When Colin and Diego got a watermelon at the bar, Jared decided to give it to",Joy,Suzanne,Diego
+"While Kristi and Leona were commuting to the library, Kristi gave a apple to",Leona,"While Britney and Katlyn were commuting to the library, Lamont gave a apple to",Luisa,Kristi,Britney
+"Then, Sophia and Rosa had a lot of fun at the library. Sophia gave a pear to",Rosa,"Then, Ibrahim and Elissa had a lot of fun at the library. Ann gave a pear to",Miranda,Sophia,Ibrahim
+"Then, Yolanda and Inez went to the school. Inez gave a pear to",Yolanda,"Then, Sarai and Maeve went to the school. Karla gave a pear to",Maeve,Inez,Maeve
+"When Miriam and Kim got a apple at the desert, Miriam decided to give it to",Kim,"When Dario and August got a apple at the desert, Dan decided to give it to",Tess,Miriam,Dario
+"Then, Susan and Jessica were thinking about going to the bar. Jessica wanted to give a mango to",Susan,"Then, German and Martin were thinking about going to the bar. Cooper wanted to give a mango to",Audrey,Jessica,Martin
