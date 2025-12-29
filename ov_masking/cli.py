@@ -15,7 +15,7 @@ from .svd_cache import load_svd_tensors, maybe_compute_and_save_svd_cache
 from .teacher_cache import load_teacher_cache, maybe_build_teacher_cache, teacher_cache_paths
 from .train import TrainConfig, _collate_fn, eval_split, train_loop
 from .utils import ensure_dir, get_device, get_git_commit_hash, json_dump, parse_dtype, set_seed, setup_logger, timestamp
-from ov_masking.train import train_loop_joint, JointSplitCaches, eval_joint
+from ov_masking.train import train_loop_joint
 
 
 def _set_use_attn_result(model) -> None:
