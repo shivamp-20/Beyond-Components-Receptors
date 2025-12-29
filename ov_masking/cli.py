@@ -96,7 +96,9 @@ def _load_models(model_name: str, device: torch.device, dtype: torch.dtype):
     # Teacher (original)
     teacher = HookedTransformer.from_pretrained(model_name)
     _set_use_attn_result(teacher)
-    teacher.to(device=device, dtype=dtype)
+    # teacher.to(device=device, dtype=dtype)
+    teacher.to(device)
+    teacher.to(dtype)  
     teacher.eval()
 
     # Student (same weights, but b_O zeroed; OV replaced by hooks)
@@ -116,6 +118,25 @@ def _load_models(model_name: str, device: torch.device, dtype: torch.dtype):
         student.tokenizer.pad_token = student.tokenizer.eos_token
 
     return teacher, student
+
+
+# def _load_models(model_name: str, device, dtype: torch.dtype):
+#     # TransformerLens expects device as a string like "cuda" / "cpu"
+#     device_str = str(device)
+
+#     # Load directly on the right device/dtype (supported by TL) :contentReference[oaicite:1]{index=1}
+#     teacher = HookedTransformer.from_pretrained(model_name, device=device_str, dtype=dtype)
+#     teacher.eval()
+#     for p in teacher.parameters():
+#         p.requires_grad_(False)
+
+#     student_base = HookedTransformer.from_pretrained(model_name, device=device_str, dtype=dtype)
+#     student_base.eval()
+#     for p in student_base.parameters():
+#         p.requires_grad_(False)
+
+#     return teacher, student_base
+
 
 
 def _prepare_split(
