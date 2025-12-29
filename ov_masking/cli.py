@@ -15,6 +15,7 @@ from .svd_cache import load_svd_tensors, maybe_compute_and_save_svd_cache
 from .teacher_cache import load_teacher_cache, maybe_build_teacher_cache, teacher_cache_paths
 from .train import TrainConfig, _collate_fn, eval_split, train_loop
 from .utils import ensure_dir, get_device, get_git_commit_hash, json_dump, parse_dtype, set_seed, setup_logger, timestamp
+from ov_masking.train import train_loop_joint, JointSplitCaches, eval_joint
 
 
 def _set_use_attn_result(model) -> None:
@@ -88,6 +89,20 @@ def build_arg_parser() -> argparse.ArgumentParser:
     p.add_argument("--num_workers", type=int, default=0)
     p.add_argument("--force_recompute_svd", action="store_true")
     p.add_argument("--force_recompute_teacher", action="store_true")
+
+    # ---- joint mode CSVs ----
+    p.add_argument("--gp_train_csv", type=str, default=None)
+    p.add_argument("--gp_val_csv", type=str, default=None)
+    p.add_argument("--gp_test_csv", type=str, default=None)
+
+    p.add_argument("--ioi_train_csv", type=str, default=None)
+    p.add_argument("--ioi_val_csv", type=str, default=None)
+    p.add_argument("--ioi_test_csv", type=str, default=None)
+
+    p.add_argument("--gt_train_csv", type=str, default=None)
+    p.add_argument("--gt_val_csv", type=str, default=None)
+    p.add_argument("--gt_test_csv", type=str, default=None)
+
 
     return p
 
@@ -363,12 +378,222 @@ def run_separate(args) -> None:
     logger.info("DONE.")
 
 
-def run_joint(args) -> None:
-    raise NotImplementedError(
-        "Joint mode wiring is intentionally omitted in this minimal first pass.\n"
-        "You said optional; separate mode is the default and fully implemented.\n"
-        "If you want, I can extend joint mode next (it is straightforward)."
+# def run_joint(args) -> None:
+#     raise NotImplementedError(
+#         "Joint mode wiring is intentionally omitted in this minimal first pass.\n"
+#         "You said optional; separate mode is the default and fully implemented.\n"
+#         "If you want, I can extend joint mode next (it is straightforward)."
+#     )
+
+def run_joint(args):
+    """
+    Joint mode:
+      - Build 3 task datasets (gp/ioi/gt)
+      - Build per-task teacher caches (clean/corr for train/val/test)
+      - Train ONE shared mask with equal minibatches per task
+      - Save one run_dir under runs/joint/...
+    """
+    import json
+    from pathlib import Path
+    from datetime import datetime
+
+    import torch
+
+    # --- setup ---
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    dtype = torch.float16 if getattr(args, "fp16", True) and device.type == "cuda" else torch.float32
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    run_dir = Path("runs") / "joint" / f"ov_mask_{timestamp}"
+    run_dir.mkdir(parents=True, exist_ok=True)
+    (run_dir / "masks").mkdir(exist_ok=True)
+    (run_dir / "teacher").mkdir(exist_ok=True)
+
+    # logger: reuse your existing logger if you have one; otherwise minimal
+    log_path = run_dir / "train.log"
+    def log_fn(msg: str):
+        print(msg, flush=True)
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(msg + "\n")
+
+    # --- load models ---
+    teacher, student = _load_models(args.model_name, device=device, dtype=dtype)
+
+    # Ensure hook_result exists (TransformerLens feature flag)
+    student.cfg.use_attn_result = True
+
+    tokenizer = student.tokenizer
+    if tokenizer is None:
+        raise RuntimeError("Tokenizer missing on TransformerLens model.")
+
+    # --- SVD cache + mask params + runner ---
+    svd_cache = build_or_load_svd_cache(student, cache_root=Path("cache") / "svd", log_fn=log_fn)
+    mask_params = init_mask_params_like_svd(svd_cache, init_logit=4.0, device=device)
+    runner = MaskedOVRunner(student, svd_cache, mask_params)
+
+    # Freeze base weights (masks only)
+    for p in student.parameters():
+        p.requires_grad_(False)
+    mask_params.theta.requires_grad_(True)
+
+    # --- load datasets (reuse your existing loader used in run_separate) ---
+    data_dir = Path(args.data_dir)
+
+    task_specs = {
+        "gp":  {"train": args.gp_train_csv,  "val": args.gp_val_csv,  "test": args.gp_test_csv},
+        "ioi": {"train": args.ioi_train_csv, "val": args.ioi_val_csv, "test": args.ioi_test_csv},
+        "gt":  {"train": args.gt_train_csv,  "val": args.gt_val_csv,  "test": args.gt_test_csv},
+    }
+
+    splits = ["train", "val", "test"]
+
+    # examples[task][split] = list of examples (same type you already use in separate mode)
+    examples = {t: {} for t in task_specs}
+    for task, spec in task_specs.items():
+        for split in splits:
+            csv_path = data_dir / spec[split]
+            examples[task][split] = load_examples_for_task(task, csv_path)  # <-- same helper as separate mode
+
+    # --- teacher cache build/load ---
+    # teacher/{task}_{split}_{clean|corr}_logp.pt
+    def teacher_path(task: str, split: str, variant: str) -> Path:
+        return run_dir / "teacher" / f"{task}_{split}_{variant}_logp.pt"
+
+    @torch.no_grad()
+    def build_teacher_cache(task: str, split: str, variant: str):
+        out_path = teacher_path(task, split, variant)
+        if out_path.exists():
+            return
+        exs = examples[task][split]
+        prompts = [ex.prompt_clean if variant == "clean" else ex.prompt_corr for ex in exs]
+        # tokenize in batches
+        all_logp = []
+        bs = args.batch_size  # reuse
+        max_len = getattr(args, "max_length", 1024)
+        teacher.eval()
+        for i in range(0, len(prompts), bs):
+            chunk = prompts[i:i+bs]
+            enc = tokenizer(
+                chunk,
+                return_tensors="pt",
+                padding=True,
+                truncation=True,
+                max_length=max_len,
+                add_special_tokens=False,
+            )
+            toks = enc["input_ids"].to(device)
+            am = enc["attention_mask"].to(device)
+            logits = teacher(toks, attention_mask=am)  # TL forward supports attention_mask
+            logits_last = logits[:, -1, :]
+            logp = torch.log_softmax(logits_last.float(), dim=-1).to(torch.float16).cpu()
+            all_logp.append(logp)
+        full = torch.cat(all_logp, dim=0)
+        torch.save(full, out_path)
+        log_fn(f"[teacher] saved {out_path.name} shape={tuple(full.shape)} dtype={full.dtype}")
+
+    # Build all caches
+    log_fn("[joint] Building/loading teacher caches...")
+    for task in task_specs:
+        for split in splits:
+            build_teacher_cache(task, split, "clean")
+            build_teacher_cache(task, split, "corr")
+
+    # Load caches into CPU tensors
+    train_caches = JointSplitCaches(teacher_logp={})
+    val_caches = JointSplitCaches(teacher_logp={})
+    test_caches = JointSplitCaches(teacher_logp={})
+
+    for task in task_specs:
+        train_caches.teacher_logp[task] = {
+            "clean": torch.load(teacher_path(task, "train", "clean"), map_location="cpu"),
+            "corr":  torch.load(teacher_path(task, "train", "corr"),  map_location="cpu"),
+        }
+        val_caches.teacher_logp[task] = {
+            "clean": torch.load(teacher_path(task, "val", "clean"), map_location="cpu"),
+            "corr":  torch.load(teacher_path(task, "val", "corr"),  map_location="cpu"),
+        }
+        test_caches.teacher_logp[task] = {
+            "clean": torch.load(teacher_path(task, "test", "clean"), map_location="cpu"),
+            "corr":  torch.load(teacher_path(task, "test", "corr"),  map_location="cpu"),
+        }
+
+    # --- dataloaders: equal minibatches per task ---
+    per_task_bs = args.batch_size // 3
+    train_loaders = {}
+    val_loaders = {}
+    test_loaders = {}
+
+    for task in task_specs:
+        train_loaders[task] = make_dataloader(examples[task]["train"], batch_size=per_task_bs, shuffle=True, seed=args.seed)
+        val_loaders[task]   = make_dataloader(examples[task]["val"],   batch_size=per_task_bs, shuffle=False, seed=args.seed)
+        test_loaders[task]  = make_dataloader(examples[task]["test"],  batch_size=per_task_bs, shuffle=False, seed=args.seed)
+
+    # --- save config ---
+    config = vars(args).copy()
+    config["mode"] = "joint"
+    config["run_dir"] = str(run_dir)
+    config["per_task_batch_size"] = per_task_bs
+    with open(run_dir / "config.json", "w", encoding="utf-8") as f:
+        json.dump(config, f, indent=2)
+
+    # --- training ---
+    best_mask_logits_path = run_dir / "masks" / "best_mask_logits.pt"
+    best_mask_values_path = run_dir / "masks" / "best_mask_values.pt"
+
+    def save_best_fn(epoch: int):
+        torch.save(mask_params.theta.detach().cpu(), best_mask_logits_path)
+        torch.save(torch.sigmoid(mask_params.theta.detach()).cpu(), best_mask_values_path)
+        log_fn(f"[joint] Saved best masks at epoch {epoch}")
+
+    train_result = train_loop_joint(
+        runner=runner,
+        mask_theta=mask_params.theta,
+        tokenizer=tokenizer,
+        train_loaders=train_loaders,
+        val_loaders=val_loaders,
+        train_caches=train_caches,
+        val_caches=val_caches,
+        epochs=args.epochs,
+        lr=args.lr,
+        lambda_l1=args.lambda_l1,
+        grad_clip=args.grad_clip,
+        early_stopping_patience=args.early_stopping_patience,
+        device=device,
+        max_length=getattr(args, "max_length", 1024),
+        log_fn=log_fn,
+        save_best_fn=save_best_fn,
     )
+
+    # Save full masks (final)
+    torch.save(mask_params.theta.detach().cpu(), run_dir / "masks" / "mask_logits.pt")
+    torch.save(torch.sigmoid(mask_params.theta.detach()).cpu(), run_dir / "masks" / "mask_values.pt")
+
+    # Save metrics
+    with open(run_dir / "metrics.json", "w", encoding="utf-8") as f:
+        json.dump(train_result, f, indent=2)
+
+    # --- test eval using best masks (if present) ---
+    if best_mask_logits_path.exists():
+        mask_params.theta.data.copy_(torch.load(best_mask_logits_path, map_location=device))
+
+    test_report = eval_joint(
+        runner=runner,
+        tokenizer=tokenizer,
+        loaders=test_loaders,
+        caches=test_caches,
+        device=device,
+        max_length=getattr(args, "max_length", 1024),
+    )
+    with open(run_dir / "final_eval.json", "w", encoding="utf-8") as f:
+        json.dump(test_report, f, indent=2)
+
+    # selected.json (rank by m_i * S_i)
+    selected = build_selected_directions_json(svd_cache, torch.sigmoid(mask_params.theta.detach()).cpu())
+    with open(run_dir / "selected.json", "w", encoding="utf-8") as f:
+        json.dump(selected, f, indent=2)
+
+    log_fn(f"[joint] Done. Outputs in: {run_dir}")
+
 
 
 def main() -> None:
@@ -379,5 +604,15 @@ def main() -> None:
         if not args.task or not args.train_csv or not args.val_csv or not args.test_csv:
             raise ValueError("Separate mode requires --task and --train_csv/--val_csv/--test_csv.")
         run_separate(args)
+    elif args.mode == "joint":
+        needed = [
+            args.gp_train_csv, args.gp_val_csv, args.gp_test_csv,
+            args.ioi_train_csv, args.ioi_val_csv, args.ioi_test_csv,
+            args.gt_train_csv, args.gt_val_csv, args.gt_test_csv,
+        ]
+        if any(x is None for x in needed):
+            raise ValueError("Joint mode requires all 9 CSV args: gp_*, ioi_*, gt_*.")
+        if args.batch_size % 3 != 0:
+            raise ValueError("Joint mode requires --batch_size divisible by 3 (equal minibatches per task).")
     else:
         run_joint(args)
