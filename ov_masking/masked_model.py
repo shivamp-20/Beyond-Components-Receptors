@@ -71,31 +71,63 @@ class OVMaskedRunner:
                 return z
             return hook_z
 
+        # def make_hook_result(layer: int):
+        #     def hook_result(result, hook):
+        #         # result: [B, P, H, d_model] (we will replace it)
+        #         z = z_store.pop(layer)  # [B,P,H,d_head]
+        #         B, P, H, d_head = z.shape
+        #         device = z.device
+        #         dtype = z.dtype
+
+        #         ones = torch.ones((B, P, H, 1), device=device, dtype=dtype)
+        #         z_aug = torch.cat([z, ones], dim=-1)  # [B,P,H,d_aug]
+
+        #         # Get per-layer tensors
+        #         U = self.U[layer]    # [H,d_aug,R]
+        #         S = self.S[layer]    # [H,R]
+        #         Vh = self.Vh[layer]  # [H,R,d_model]
+
+        #         m = torch.sigmoid(self.mask_params.theta[layer])  # [H,R]
+        #         S_mask = m * S  # [H,R]
+
+        #         # Efficient: (z_aug @ U) * S_mask @ Vh
+        #         # t: [B,P,H,R]
+        #         t = torch.einsum("bphd,hdr->bphr", z_aug, U)
+        #         t = t * S_mask.unsqueeze(0).unsqueeze(0)  # broadcast over B,P
+        #         out = torch.einsum("bphr,hrm->bphm", t, Vh)
+        #         return out
+        #     return hook_result
+
         def make_hook_result(layer: int):
             def hook_result(result, hook):
-                # result: [B, P, H, d_model] (we will replace it)
-                z = z_store.pop(layer)  # [B,P,H,d_head]
-                B, P, H, d_head = z.shape
-                device = z.device
-                dtype = z.dtype
+                # result: [B, P, H, d_model]
+                target_dtype = result.dtype
+                device = result.device
 
-                ones = torch.ones((B, P, H, 1), device=device, dtype=dtype)
+                z = z_store.pop(layer)  # [B,P,H,d_head]
+                z = z.to(device=device, dtype=target_dtype)
+
+                B, P, H, d_head = z.shape
+
+                ones = torch.ones((B, P, H, 1), device=device, dtype=target_dtype)
                 z_aug = torch.cat([z, ones], dim=-1)  # [B,P,H,d_aug]
 
-                # Get per-layer tensors
-                U = self.U[layer]    # [H,d_aug,R]
-                S = self.S[layer]    # [H,R]
-                Vh = self.Vh[layer]  # [H,R,d_model]
+                # Per-layer tensors (cast to match result dtype)
+                U = self.U[layer].to(dtype=target_dtype)
+                S = self.S[layer].to(dtype=target_dtype)
+                Vh = self.Vh[layer].to(dtype=target_dtype)
 
-                m = torch.sigmoid(self.mask_params.theta[layer])  # [H,R]
+                # Mask values in same dtype
+                m = torch.sigmoid(self.mask_params.theta[layer]).to(dtype=target_dtype)  # [H,R]
                 S_mask = m * S  # [H,R]
 
-                # Efficient: (z_aug @ U) * S_mask @ Vh
-                # t: [B,P,H,R]
+                # (z_aug @ U) * S_mask @ Vh
                 t = torch.einsum("bphd,hdr->bphr", z_aug, U)
-                t = t * S_mask.unsqueeze(0).unsqueeze(0)  # broadcast over B,P
+                t = t * S_mask.unsqueeze(0).unsqueeze(0)
                 out = torch.einsum("bphr,hrm->bphm", t, Vh)
-                return out
+
+                # Return same dtype as original result to avoid downstream dtype issues
+                return out.to(dtype=target_dtype)
             return hook_result
 
         hooks = []
