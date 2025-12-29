@@ -1,0 +1,17 @@
+# Keep CSVs tracked (do NOT ignore data_main/)
+# data_main/
+
+# Big artifacts (recommended NOT to commit)
+cache/
+runs/**/teacher/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# Editor
+.vscode/
+data_main/train_100k_ioi.csv
