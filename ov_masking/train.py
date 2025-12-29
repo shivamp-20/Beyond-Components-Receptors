@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Iterable, Iterator
+from typing import Dict, List, Optional, Tuple, Iterable, Iterator, Any
 
 import torch
 import torch.nn as nn
@@ -266,400 +266,225 @@ def train_loop(
         "best_mask_path": str(best_mask_path),
     }
 
-
 # ============================
 # Joint-mode training utilities
 # ============================
 
-
-
-def _cycle(loader: Iterable):
-    """Infinite iterator over a dataloader."""
+def _cycle(loader: DataLoader):
     while True:
         for batch in loader:
             yield batch
 
-
-def _encode_first_token_id(tokenizer, label_strs: List[str]) -> torch.Tensor:
-    """
-    Encode ' ' + label_str and take the first token id (per spec).
-    Returns int64 tensor on CPU, shape [B].
-    """
-    ids: List[int] = []
-    for s in label_strs:
-        tok = tokenizer.encode(" " + str(s), add_special_tokens=False)
-        ids.append(int(tok[0]))
-    return torch.tensor(ids, dtype=torch.long)
-
-
-def _tokenize_prompts(tokenizer, prompts: List[str], device: torch.device, max_length: int) -> Tuple[torch.Tensor, torch.Tensor]:
-    """
-    Tokenize prompts into (tokens, attention_mask), moved to device.
-    Truncation protects against > context window.
-    """
-    enc = tokenizer(
-        prompts,
-        return_tensors="pt",
-        padding=True,
-        truncation=True,
-        max_length=max_length,
-        add_special_tokens=False,
-    )
-    tokens = enc["input_ids"].to(device)
-    attn_mask = enc["attention_mask"].to(device)
-    return tokens, attn_mask
-
-
-def _kl_teacher_student(teacher_logp: torch.Tensor, student_logp: torch.Tensor) -> torch.Tensor:
-    """
-    KL(teacher || student) where both are log-probs: E_t[ log t - log s ].
-    teacher_logp, student_logp: [B, V] float tensors on same device.
-    """
-    teacher_p = teacher_logp.exp()
-    return (teacher_p * (teacher_logp - student_logp)).sum(dim=-1).mean()
-
-
-@dataclass
-class JointSplitCaches:
-    # teacher_logp[task]["clean"|"corr"] = tensor [N, V] on CPU (float16 or float32)
-    teacher_logp: Dict[str, Dict[str, torch.Tensor]]
-
-
-@torch.no_grad()
-def _eval_one_task(
-    runner,
-    tokenizer,
-    loader,
-    caches: JointSplitCaches,
-    task: str,
-    device: torch.device,
-    max_length: int,
-) -> Dict[str, Optional[float]]:
-    """
-    Full-pass evaluation for one task over loader.
-    Returns mean metrics for clean/corr/total.
-    """
-    sums = {
-        "kl_clean": 0.0, "kl_corr": 0.0,
-        "acc_clean": 0.0, "acc_corr": 0.0,
-        "logitdiff_clean": 0.0, "logitdiff_corr": 0.0,
-    }
-    counts = {"n": 0, "n_logitdiff": 0}
-
-    teacher_clean_all = caches.teacher_logp[task]["clean"]
-    teacher_corr_all = caches.teacher_logp[task]["corr"]
-
-    for batch in loader:
-        # batch is a list of examples
-        B = len(batch)
-        if B == 0:
-            continue
-
-        idxs = torch.tensor([ex.idx for ex in batch], dtype=torch.long)
-        prompts_clean = [ex.prompt_clean for ex in batch]
-        prompts_corr = [ex.prompt_corr for ex in batch]
-
-        label_clean_ids = _encode_first_token_id(tokenizer, [ex.label_clean_str for ex in batch]).to(device)
-        label_corr_ids  = _encode_first_token_id(tokenizer, [ex.label_corr_str  for ex in batch]).to(device)
-
-        # wrong labels (may be missing)
-        have_wrong = all(getattr(ex, "wrong_clean_str", None) is not None and getattr(ex, "wrong_corr_str", None) is not None for ex in batch)
-        if have_wrong:
-            wrong_clean_ids = _encode_first_token_id(tokenizer, [ex.wrong_clean_str for ex in batch]).to(device)
-            wrong_corr_ids  = _encode_first_token_id(tokenizer, [ex.wrong_corr_str  for ex in batch]).to(device)
-        else:
-            wrong_clean_ids = None
-            wrong_corr_ids = None
-
-        tokens_clean, attn_clean = _tokenize_prompts(tokenizer, prompts_clean, device, max_length)
-        logits_clean = runner(tokens_clean, attn_clean)  # [B,P,V]
-        logits_last_clean = logits_clean[:, -1, :]
-        logp_student_clean = torch.log_softmax(logits_last_clean.float(), dim=-1)
-
-        teacher_clean = teacher_clean_all.index_select(0, idxs).to(device).float()
-        kl_clean = _kl_teacher_student(teacher_clean, logp_student_clean)
-
-        pred_clean = logits_last_clean.argmax(dim=-1)
-        acc_clean = (pred_clean == label_clean_ids).float().mean()
-
-        if have_wrong:
-            lc = logits_last_clean.gather(-1, label_clean_ids.unsqueeze(-1)).squeeze(-1)
-            lw = logits_last_clean.gather(-1, wrong_clean_ids.unsqueeze(-1)).squeeze(-1)
-            logitdiff_clean = (lc - lw).float().mean()
-        else:
-            logitdiff_clean = None
-
-        tokens_corr, attn_corr = _tokenize_prompts(tokenizer, prompts_corr, device, max_length)
-        logits_corr = runner(tokens_corr, attn_corr)
-        logits_last_corr = logits_corr[:, -1, :]
-        logp_student_corr = torch.log_softmax(logits_last_corr.float(), dim=-1)
-
-        teacher_corr = teacher_corr_all.index_select(0, idxs).to(device).float()
-        kl_corr = _kl_teacher_student(teacher_corr, logp_student_corr)
-
-        pred_corr = logits_last_corr.argmax(dim=-1)
-        acc_corr = (pred_corr == label_corr_ids).float().mean()
-
-        if have_wrong:
-            lc2 = logits_last_corr.gather(-1, label_corr_ids.unsqueeze(-1)).squeeze(-1)
-            lw2 = logits_last_corr.gather(-1, wrong_corr_ids.unsqueeze(-1)).squeeze(-1)
-            logitdiff_corr = (lc2 - lw2).float().mean()
-        else:
-            logitdiff_corr = None
-
-        # accumulate
-        sums["kl_clean"] += float(kl_clean.item()) * B
-        sums["kl_corr"] += float(kl_corr.item()) * B
-        sums["acc_clean"] += float(acc_clean.item()) * B
-        sums["acc_corr"] += float(acc_corr.item()) * B
-
-        if have_wrong:
-            sums["logitdiff_clean"] += float(logitdiff_clean.item()) * B
-            sums["logitdiff_corr"] += float(logitdiff_corr.item()) * B
-            counts["n_logitdiff"] += B
-
-        counts["n"] += B
-
-    n = max(counts["n"], 1)
-    out: Dict[str, Optional[float]] = {}
-    out["kl_clean"] = sums["kl_clean"] / n
-    out["kl_corr"] = sums["kl_corr"] / n
-    out["kl_total"] = 0.5 * (out["kl_clean"] + out["kl_corr"])
-    out["acc_clean"] = sums["acc_clean"] / n
-    out["acc_corr"] = sums["acc_corr"] / n
-    out["acc_total"] = 0.5 * (out["acc_clean"] + out["acc_corr"])
-
-    if counts["n_logitdiff"] > 0:
-        out["logitdiff_clean"] = sums["logitdiff_clean"] / n
-        out["logitdiff_corr"] = sums["logitdiff_corr"] / n
-        out["logitdiff_total"] = 0.5 * (out["logitdiff_clean"] + out["logitdiff_corr"])
-    else:
-        out["logitdiff_clean"] = None
-        out["logitdiff_corr"] = None
-        out["logitdiff_total"] = None
-
+def _avg_metrics_equal_weight(per_task: Dict[str, Dict[str, float]]) -> Dict[str, float]:
+    tasks = list(per_task.keys())
+    out: Dict[str, float] = {}
+    for k in per_task[tasks[0]].keys():
+        out[k] = float(sum(per_task[t][k] for t in tasks) / len(tasks))
     return out
 
-
-@torch.no_grad()
-def eval_joint(
-    runner,
-    tokenizer,
-    loaders: Dict[str, Iterable],
-    caches: JointSplitCaches,
-    device: torch.device,
-    max_length: int,
-) -> Dict[str, object]:
-    """
-    Evaluate each task fully and average metrics equally across tasks.
-    Returns:
-      {
-        "per_task": {task: metrics},
-        "overall": averaged_metrics
-      }
-    """
-    per_task: Dict[str, Dict[str, Optional[float]]] = {}
-    for task, loader in loaders.items():
-        per_task[task] = _eval_one_task(runner, tokenizer, loader, caches, task, device, max_length)
-
-    # equal-weight average across tasks
-    tasks = list(per_task.keys())
-    def avg(key: str) -> Optional[float]:
-        vals = [per_task[t][key] for t in tasks]
-        if any(v is None for v in vals):
-            return None
-        return float(sum(vals) / len(vals))  # type: ignore
-
-    overall = {
-        "kl_clean": avg("kl_clean"),
-        "kl_corr": avg("kl_corr"),
-        "kl_total": avg("kl_total"),
-        "acc_clean": avg("acc_clean"),
-        "acc_corr": avg("acc_corr"),
-        "acc_total": avg("acc_total"),
-        "logitdiff_clean": avg("logitdiff_clean"),
-        "logitdiff_corr": avg("logitdiff_corr"),
-        "logitdiff_total": avg("logitdiff_total"),
-    }
-    return {"per_task": per_task, "overall": overall}
-
-
 def train_loop_joint(
-    runner,
-    mask_theta: torch.nn.Parameter,
-    tokenizer,
-    train_loaders: Dict[str, Iterable],
-    val_loaders: Dict[str, Iterable],
-    train_caches: JointSplitCaches,
-    val_caches: JointSplitCaches,
     *,
-    epochs: int,
-    lr: float,
-    lambda_l1: float,
-    grad_clip: float,
-    early_stopping_patience: int,
+    runner,
+    mask_params,
+    tokenizer,
+    teacher_cache_train_by_task: Dict[str, Dict[str, torch.Tensor]],  # task -> {"clean": [N,V], "corr": [N,V]} CPU
+    teacher_cache_val_by_task: Dict[str, Dict[str, torch.Tensor]],    # same
+    train_loaders_by_task: Dict[str, DataLoader],
+    val_loaders_by_task: Dict[str, DataLoader],
     device: torch.device,
-    max_length: int,
-    log_fn,
-    save_best_fn,
-) -> Dict[str, object]:
+    cfg: TrainConfig,
+    logger,
+    run_dir: Path,
+) -> Dict[str, Any]:
     """
-    Joint training:
-      - Each step samples one minibatch per task (equal batch size per task)
-      - Concatenates them, runs one clean forward + one corr forward
-      - Loss = avg_task(KL_total) + lambda_l1 * mean(sigmoid(theta))
-      - Early stop on overall val KL_total (equal-weighted across tasks)
-    `save_best_fn(epoch)` is called when val improves (you save masks in CLI).
+    Joint training with one shared theta:
+      - Each step: take one minibatch from each task (equal task batch sizes by construction)
+      - Do ONE clean forward + ONE corr forward on the concatenated batch
+      - KL_total = mean_task( 0.5*(KL_clean_task + KL_corr_task) )
+      - loss = KL_total + lambda_l1 * mean(sigmoid(theta))
+      - early stop on equal-weight avg val KL_total
     """
-    optimizer = torch.optim.AdamW([mask_theta], lr=lr)
+    runner.model.train()
+    mask_params.train()
+    opt = torch.optim.AdamW([mask_params.theta], lr=cfg.lr)
 
-    # cycle iterators so all tasks contribute equally each epoch
-    iters = {t: _cycle(dl) for t, dl in train_loaders.items()}
-    tasks = list(train_loaders.keys())
+    tasks = list(train_loaders_by_task.keys())
+    iters = {t: _cycle(train_loaders_by_task[t]) for t in tasks}
+    steps_per_epoch = min(len(train_loaders_by_task[t]) for t in tasks)
 
-    # define steps/epoch as the minimum number of batches among loaders
-    # (so we don't hang if one loader is short)
-    steps_per_epoch = min(len(train_loaders[t]) for t in tasks)
-
-    history: List[Dict[str, object]] = []
     best_val = float("inf")
     best_epoch = -1
-    bad_epochs = 0
+    patience = 0
+    history: List[Dict[str, Any]] = []
 
-    for epoch in range(1, epochs + 1):
-        runner.model.eval()  # model frozen; but keeps deterministic behavior
-        total_loss_sum = 0.0
+    best_theta_path = run_dir / "masks" / "best_mask_logits.pt"
+    best_mask_path = run_dir / "masks" / "best_mask_values.pt"
+    best_theta_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # accumulators
-        train_task_sums = {t: {"kl_clean": 0.0, "kl_corr": 0.0, "n": 0} for t in tasks}
+    for epoch in range(cfg.epochs):
+        runner.model.train()
+        mask_params.train()
 
-        for _ in range(steps_per_epoch):
+        train_sums = {t: {"kl_clean": 0.0, "kl_corr": 0.0, "kl_total": 0.0,
+                          "acc_clean": 0.0, "acc_corr": 0.0, "acc_total": 0.0,
+                          "logitdiff_clean": 0.0, "logitdiff_corr": 0.0, "logitdiff_total": 0.0}
+                      for t in tasks}
+        loss_sum = 0.0
+        l1_sum = 0.0
+        n_steps = 0
+
+        for _ in tqdm(range(steps_per_epoch), desc=f"joint train epoch {epoch}", leave=False):
             # fetch one batch per task
             batches = {t: next(iters[t]) for t in tasks}
-            lens = {t: len(batches[t]) for t in tasks}
-            if any(lens[t] == 0 for t in tasks):
-                continue
 
-            # build combined batch
-            combined = []
+            # concatenate
+            idxs_all = []
+            prompts_clean_all = []
+            prompts_corr_all = []
+            label_clean_all = []
+            label_corr_all = []
+            wrong_clean_all = []
+            wrong_corr_all = []
+
+            sizes = {}
             for t in tasks:
-                combined.extend(batches[t])
+                idxs, pclean, pcorr, lcid, lcoid, wcid, wcoid = batches[t]
+                sizes[t] = int(idxs.shape[0])
+                idxs_all.append(idxs)
+                prompts_clean_all += list(pclean)
+                prompts_corr_all += list(pcorr)
+                label_clean_all.append(lcid)
+                label_corr_all.append(lcoid)
+                wrong_clean_all.append(wcid)
+                wrong_corr_all.append(wcoid)
 
-            B = len(combined)
-            # prompts / idxs
-            idxs_by_task = {t: torch.tensor([ex.idx for ex in batches[t]], dtype=torch.long) for t in tasks}
-            prompts_clean = [ex.prompt_clean for ex in combined]
-            prompts_corr  = [ex.prompt_corr  for ex in combined]
+            idxs_all = torch.cat(idxs_all, dim=0)
+            label_clean_all = torch.cat(label_clean_all, dim=0).to(device)
+            label_corr_all = torch.cat(label_corr_all, dim=0).to(device)
+            wrong_clean_all = torch.cat(wrong_clean_all, dim=0).to(device)
+            wrong_corr_all = torch.cat(wrong_corr_all, dim=0).to(device)
 
-            # labels
-            label_clean_ids = _encode_first_token_id(tokenizer, [ex.label_clean_str for ex in combined]).to(device)
-            label_corr_ids  = _encode_first_token_id(tokenizer, [ex.label_corr_str  for ex in combined]).to(device)
-
-            have_wrong = all(getattr(ex, "wrong_clean_str", None) is not None and getattr(ex, "wrong_corr_str", None) is not None for ex in combined)
-            if have_wrong:
-                wrong_clean_ids = _encode_first_token_id(tokenizer, [ex.wrong_clean_str for ex in combined]).to(device)
-                wrong_corr_ids  = _encode_first_token_id(tokenizer, [ex.wrong_corr_str  for ex in combined]).to(device)
-            else:
-                wrong_clean_ids = None
-                wrong_corr_ids = None
-
-            # tokenize once
-            tokens_clean, attn_clean = _tokenize_prompts(tokenizer, prompts_clean, device, max_length)
-            logits_clean = runner(tokens_clean, attn_clean)
-            logits_last_clean = logits_clean[:, -1, :]
+            # tokenize + forward clean
+            tokens, attn_mask, last_pos = tokenize_prompts(tokenizer, prompts_clean_all, device=device)
+            logits = runner(tokens, attn_mask)
+            bsz = logits.size(0)
+            logits_last_clean = logits[torch.arange(bsz, device=device), last_pos]
             logp_student_clean = torch.log_softmax(logits_last_clean.float(), dim=-1)
 
-            tokens_corr, attn_corr = _tokenize_prompts(tokenizer, prompts_corr, device, max_length)
-            logits_corr = runner(tokens_corr, attn_corr)
-            logits_last_corr = logits_corr[:, -1, :]
+            # tokenize + forward corr
+            tokens, attn_mask, last_pos = tokenize_prompts(tokenizer, prompts_corr_all, device=device)
+            logits = runner(tokens, attn_mask)
+            bsz = logits.size(0)
+            logits_last_corr = logits[torch.arange(bsz, device=device), last_pos]
             logp_student_corr = torch.log_softmax(logits_last_corr.float(), dim=-1)
 
-            # build teacher batches by concatenating per-task gathered tensors
+            # build teacher batches (concat in same order)
             teacher_clean_parts = []
             teacher_corr_parts = []
-            for t in tasks:
-                tc = train_caches.teacher_logp[t]["clean"].index_select(0, idxs_by_task[t])
-                tr = train_caches.teacher_logp[t]["corr"].index_select(0, idxs_by_task[t])
-                teacher_clean_parts.append(tc)
-                teacher_corr_parts.append(tr)
-            teacher_clean = torch.cat(teacher_clean_parts, dim=0).to(device).float()
-            teacher_corr  = torch.cat(teacher_corr_parts, dim=0).to(device).float()
-
-            # KL per task (slice)
             offset = 0
-            task_kls_clean = {}
-            task_kls_corr = {}
+            slices = {}
             for t in tasks:
-                n = lens[t]
+                n = sizes[t]
                 sl = slice(offset, offset + n)
-                task_kls_clean[t] = _kl_teacher_student(teacher_clean[sl], logp_student_clean[sl])
-                task_kls_corr[t]  = _kl_teacher_student(teacher_corr[sl],  logp_student_corr[sl])
+                slices[t] = sl
+                idxs_t = idxs_all[sl].tolist()
+
+                teacher_clean_parts.append(teacher_cache_train_by_task[t]["clean"][idxs_t])
+                teacher_corr_parts.append(teacher_cache_train_by_task[t]["corr"][idxs_t])
+
                 offset += n
 
-            # equal-weight KL across tasks
-            kl_clean = sum(task_kls_clean.values()) / len(tasks)
-            kl_corr  = sum(task_kls_corr.values()) / len(tasks)
-            kl_total = 0.5 * (kl_clean + kl_corr)
+            teacher_clean = torch.cat(teacher_clean_parts, dim=0).to(device=device, dtype=torch.float32)
+            teacher_corr = torch.cat(teacher_corr_parts, dim=0).to(device=device, dtype=torch.float32)
 
-            # sparsity
-            l1_mean = torch.sigmoid(mask_theta).mean()
-            loss = kl_total + (lambda_l1 * l1_mean)
-
-            optimizer.zero_grad(set_to_none=True)
-            loss.backward()
-            torch.nn.utils.clip_grad_norm_([mask_theta], grad_clip)
-            optimizer.step()
-
-            total_loss_sum += float(loss.item())
-
-            # update train sums (store per-task KLs as weighted by n)
+            # per-task KLs (equal-weight)
+            task_kl_totals = []
             for t in tasks:
-                n = lens[t]
-                train_task_sums[t]["kl_clean"] += float(task_kls_clean[t].item()) * n
-                train_task_sums[t]["kl_corr"]  += float(task_kls_corr[t].item()) * n
-                train_task_sums[t]["n"]        += n
+                sl = slices[t]
+                kcl = kl_teacher_student(logp_student_clean[sl], teacher_clean[sl])
+                kco = kl_teacher_student(logp_student_corr[sl], teacher_corr[sl])
+                kt = 0.5 * (kcl + kco)
+                task_kl_totals.append(kt)
 
-        # compute epoch train averages
-        train_per_task = {}
+                # metrics for logging
+                acc_c = accuracy_from_logits(logits_last_clean[sl], label_clean_all[sl])
+                acc_k = accuracy_from_logits(logits_last_corr[sl], label_corr_all[sl])
+                ld_c = logit_diff(logits_last_clean[sl], label_clean_all[sl], wrong_clean_all[sl])
+                ld_k = logit_diff(logits_last_corr[sl], label_corr_all[sl], wrong_corr_all[sl])
+
+                train_sums[t]["kl_clean"] += float(kcl.item())
+                train_sums[t]["kl_corr"] += float(kco.item())
+                train_sums[t]["kl_total"] += float(kt.item())
+                train_sums[t]["acc_clean"] += float(acc_c.item())
+                train_sums[t]["acc_corr"] += float(acc_k.item())
+                train_sums[t]["acc_total"] += 0.5 * float(acc_c.item() + acc_k.item())
+                train_sums[t]["logitdiff_clean"] += float(ld_c.item())
+                train_sums[t]["logitdiff_corr"] += float(ld_k.item())
+                train_sums[t]["logitdiff_total"] += 0.5 * float(ld_c.item() + ld_k.item())
+
+            kl_total = sum(task_kl_totals) / len(task_kl_totals)
+            l1 = mask_params.l1_mean()
+            loss = kl_total + (cfg.lambda_l1 * l1)
+
+            opt.zero_grad(set_to_none=True)
+            loss.backward()
+            if cfg.grad_clip is not None and cfg.grad_clip > 0:
+                torch.nn.utils.clip_grad_norm_([mask_params.theta], cfg.grad_clip)
+            opt.step()
+
+            loss_sum += float(loss.item())
+            l1_sum += float(l1.item())
+            n_steps += 1
+
+        # train averages
+        train_per_task = {t: {k: v / max(n_steps, 1) for k, v in train_sums[t].items()} for t in tasks}
+        train_overall = _avg_metrics_equal_weight(train_per_task)
+
+        # val eval per task (full pass) using existing eval_split
+        val_per_task = {}
         for t in tasks:
-            n = max(train_task_sums[t]["n"], 1)
-            kcl = train_task_sums[t]["kl_clean"] / n
-            kco = train_task_sums[t]["kl_corr"] / n
-            train_per_task[t] = {
-                "kl_clean": kcl,
-                "kl_corr": kco,
-                "kl_total": 0.5 * (kcl + kco),
-            }
+            val_per_task[t] = eval_split(
+                runner=runner,
+                tokenizer=tokenizer,
+                teacher_cache=teacher_cache_val_by_task[t],
+                dataloader=val_loaders_by_task[t],
+                device=device,
+            )
+        val_overall = _avg_metrics_equal_weight(val_per_task)
 
-        # val full eval per task, equal-weighted overall
-        val_report = eval_joint(runner, tokenizer, val_loaders, val_caches, device, max_length)
-        val_kl_total = float(val_report["overall"]["kl_total"])
-
-        # log
-        log_fn(f"[joint][epoch {epoch}] train_loss={total_loss_sum/max(steps_per_epoch,1):.6f} "
-               f"val_kl_total={val_kl_total:.6f} l1_mean={float(torch.sigmoid(mask_theta).mean().item()):.6f}")
-
-        history.append({
+        rec = {
             "epoch": epoch,
-            "train_per_task": train_per_task,
-            "val": val_report,
-            "l1_mean_mask": float(torch.sigmoid(mask_theta).mean().item()),
-        })
+            "train": {"per_task": train_per_task, "overall": train_overall, "loss": loss_sum / max(n_steps,1), "l1": l1_sum / max(n_steps,1)},
+            "val": {"per_task": val_per_task, "overall": val_overall},
+            "l1_mean_mask": float(mask_params.l1_mean().item()),
+        }
+        history.append(rec)
 
-        # early stopping on overall val KL_total
-        if val_kl_total < best_val - 1e-8:
-            best_val = val_kl_total
+        logger.info(
+            f"[joint epoch {epoch}] "
+            f"train KL={train_overall['kl_total']:.4f} "
+            f"val KL={val_overall['kl_total']:.4f} "
+            f"L1={rec['l1_mean_mask']:.4f}"
+        )
+
+        # early stop on overall val KL_total
+        if val_overall["kl_total"] < best_val - 1e-6:
+            best_val = val_overall["kl_total"]
             best_epoch = epoch
-            bad_epochs = 0
-            save_best_fn(epoch)
+            patience = 0
+            torch.save(mask_params.theta.detach().cpu(), best_theta_path)
+            torch.save(mask_params.mask_values().detach().cpu(), best_mask_path)
         else:
-            bad_epochs += 1
-            if bad_epochs >= early_stopping_patience:
-                log_fn(f"[joint] Early stopping at epoch {epoch} (best_epoch={best_epoch}, best_val_kl={best_val:.6f})")
+            patience += 1
+            if patience >= cfg.early_stopping_patience:
+                logger.info(f"[joint] Early stopping: no improvement for {cfg.early_stopping_patience} epochs.")
                 break
 
     return {
+        "mode": "joint",
         "history": history,
         "best_epoch": best_epoch,
-        "best_val_kl_total": best_val,
+        "best_val_kl": best_val,
+        "best_theta_path": str(best_theta_path),
+        "best_mask_path": str(best_mask_path),
     }
