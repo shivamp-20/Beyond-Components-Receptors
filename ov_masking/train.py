@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Iterable, Iterator
 
 import torch
 import torch.nn as nn
@@ -271,11 +271,6 @@ def train_loop(
 # Joint-mode training utilities
 # ============================
 
-from __future__ import annotations
-from dataclasses import dataclass
-from typing import Dict, Iterable, Iterator, List, Optional, Tuple
-
-import torch
 
 
 def _cycle(loader: Iterable):
