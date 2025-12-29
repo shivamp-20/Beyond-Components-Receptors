@@ -104,7 +104,9 @@ def _load_models(model_name: str, device: torch.device, dtype: torch.dtype):
     # Student (same weights, but b_O zeroed; OV replaced by hooks)
     student = HookedTransformer.from_pretrained(model_name)
     _set_use_attn_result(student)
-    student.to(device=device, dtype=dtype)
+    # student.to(device=device, dtype=dtype)
+    student.to(device)
+    student.to(dtype)
     _zero_out_b_O(student)
     student.eval()
 
