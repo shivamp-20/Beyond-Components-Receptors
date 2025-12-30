@@ -297,10 +297,10 @@ def eval_split(
             # label_lp_corr = completion_logprob_sum(student_model, batch["prompt_corr"], batch["label_corr_str"], device)
             # wrong_lp_corr = completion_logprob_sum(student_model, batch["prompt_corr"], batch["wrong_corr_str"], device)
             label_lp_clean, label_lp_corr = paired_completion_logprob_sum(
-                student_model, batch["prompt_clean"], batch["label_clean_str"], device
+                student_model, batch["prompt_clean"], batch["label_clean_str"], batch["prompt_corr"], batch["label_corr_str"], device
             )
             wrong_lp_clean, wrong_lp_corr = paired_completion_logprob_sum(
-                student_model, batch["prompt_clean"], batch["label_clean_str"], device
+                student_model, batch["prompt_clean"], batch["wrong_clean_str"], batch["prompt_corr"], batch["wrong_corr_str"], device
             )
             # label_lp_corr = paired_completion_logprob_sum(student_model, batch["prompt_corr"], batch["label_corr_str"], device)
             # wrong_lp_corr = paired_completion_logprob_sum(student_model, batch["prompt_corr"], batch["wrong_corr_str"], device)
