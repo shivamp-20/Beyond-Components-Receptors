@@ -166,6 +166,76 @@ def completion_logprob_sum(
     return scores
 
 
+def paired_completion_logprob_sum(
+    model,
+    prompts_clean,
+    completions_clean,
+    prompts_corr,
+    completions_corr,
+    device,
+):
+    """
+    Runs ONE forward pass on joint batch:
+      [clean_0..clean_{B-1}, corr_0..corr_{B-1}]
+    Returns (scores_clean, scores_corr), each [B], sum logprob of completion tokens.
+    """
+    assert len(prompts_clean) == len(prompts_corr)
+
+    tok = model.tokenizer
+    pad_id = tok.pad_token_id if tok.pad_token_id is not None else tok.eos_token_id
+
+    all_prompts = list(prompts_clean) + list(prompts_corr)
+    all_comps   = list(completions_clean) + list(completions_corr)
+
+    input_id_tensors = []
+    start_idxs = []
+    seq_lens = []
+
+    for p, c in zip(all_prompts, all_comps):
+        if c is None:
+            ids = tok.encode(p, add_special_tokens=False)
+            if len(ids) == 0:
+                ids = [tok.eos_token_id]
+            input_id_tensors.append(torch.tensor(ids, dtype=torch.long))
+            start_idxs.append(len(ids))
+            seq_lens.append(len(ids))
+            continue
+
+        full = p + c
+        prompt_ids = tok.encode(p, add_special_tokens=False)
+        full_ids   = tok.encode(full, add_special_tokens=False)
+        start = len(prompt_ids)
+
+        input_id_tensors.append(torch.tensor(full_ids, dtype=torch.long))
+        start_idxs.append(start)
+        seq_lens.append(len(full_ids))
+
+    input_ids = torch.nn.utils.rnn.pad_sequence(
+        input_id_tensors, batch_first=True, padding_value=pad_id
+    ).to(device)
+
+    logits = model(input_ids)  # [2B, seq, vocab]
+    logp_step = torch.log_softmax(logits[:, :-1, :].float(), dim=-1)
+
+    bsz = input_ids.shape[0]
+    scores = torch.zeros((bsz,), device=device, dtype=torch.float32)
+
+    for b in range(bsz):
+        start = int(start_idxs[b])
+        L = int(seq_lens[b])
+        if start >= L:
+            continue
+        start_eff = max(start, 1)
+        if start_eff >= L:
+            continue
+        pos = torch.arange(start_eff, L, device=device, dtype=torch.long)
+        prev = pos - 1
+        tgt = input_ids[b, pos]
+        scores[b] = logp_step[b, prev, tgt].sum()
+
+    half = bsz // 2
+    return scores[:half], scores[half:]
+
 def pairwise_acc_and_diff(label_scores: torch.Tensor, wrong_scores: torch.Tensor) -> Tuple[float, float]:
     """Return (accuracy, mean_diff) for label vs wrong using summed log-probs."""
     diff = label_scores - wrong_scores
@@ -222,10 +292,18 @@ def eval_split(
         )
         if use_multitoken:
             # Sum log p(label | prompt) over all label tokens, and compare vs wrong label.
-            label_lp_clean = completion_logprob_sum(student_model, batch["prompt_clean"], batch["label_clean_str"], device)
-            wrong_lp_clean = completion_logprob_sum(student_model, batch["prompt_clean"], batch["wrong_clean_str"], device)
-            label_lp_corr = completion_logprob_sum(student_model, batch["prompt_corr"], batch["label_corr_str"], device)
-            wrong_lp_corr = completion_logprob_sum(student_model, batch["prompt_corr"], batch["wrong_corr_str"], device)
+            # label_lp_clean = completion_logprob_sum(student_model, batch["prompt_clean"], batch["label_clean_str"], device)
+            # wrong_lp_clean = completion_logprob_sum(student_model, batch["prompt_clean"], batch["wrong_clean_str"], device)
+            # label_lp_corr = completion_logprob_sum(student_model, batch["prompt_corr"], batch["label_corr_str"], device)
+            # wrong_lp_corr = completion_logprob_sum(student_model, batch["prompt_corr"], batch["wrong_corr_str"], device)
+            label_lp_clean, label_lp_corr = paired_completion_logprob_sum(
+                student_model, batch["prompt_clean"], batch["label_clean_str"], device
+            )
+            wrong_lp_clean, wrong_lp_corr = paired_completion_logprob_sum(
+                student_model, batch["prompt_clean"], batch["label_clean_str"], device
+            )
+            label_lp_corr = paired_completion_logprob_sum(student_model, batch["prompt_corr"], batch["label_corr_str"], device)
+            wrong_lp_corr = paired_completion_logprob_sum(student_model, batch["prompt_corr"], batch["wrong_corr_str"], device)
             acc_clean, diff_clean = pairwise_acc_and_diff(label_lp_clean, wrong_lp_clean)
             acc_corr, diff_corr = pairwise_acc_and_diff(label_lp_corr, wrong_lp_corr)
         else:
@@ -304,7 +382,12 @@ def _build_models_and_data_single(args, task: str, train_csv: str, val_csv: str,
     spec = precompute_svd(args.svd_cache_dir, teacher_model, force=args.force_recompute_svd)
 
     U, S, Vh = load_all_svd(args.svd_cache_dir, spec, device=device, dtype=dtype)
-    state = build_mask_state(U, S, Vh, init_theta=4.0, device=device)
+    # state = build_mask_state(U, S, Vh, init_theta=4.0, device=device)
+    state = build_mask_state(
+        U, S, Vh,
+        init_theta=float(getattr(args, "init_theta", 4.0)),
+        device=device
+        )
     masked_hook = MaskedOVHook(state).to(device)
 
     # Register hooks (IMPORTANT: reset first so we don't stack hooks if user runs multiple times)
@@ -505,9 +588,17 @@ def train_separate_task(args):
         else:
             patience += 1
             logger.info(f"No improvement. patience={patience}/{args.early_stopping_patience}")
+            # if patience >= args.early_stopping_patience:
+            #     logger.info("Early stopping triggered.")
+            #     break
             if patience >= args.early_stopping_patience:
-                logger.info("Early stopping triggered.")
-                break
+                min_ep = int(getattr(args, "early_stopping_min_epochs", 0))
+                if (epoch + 1) >= min_ep:
+                    logger.info("Early stopping triggered.")
+                    break
+                else:
+                    logger.info(f"Patience reached, but epoch<{min_ep}. Continuing (min epochs guard).")
+
 
     # Load best mask for final test eval
     if os.path.exists(best_path):
@@ -560,7 +651,12 @@ def train_joint_tasks(args):
     # SVD once
     spec = precompute_svd(args.svd_cache_dir, teacher_model, force=args.force_recompute_svd)
     U, S, Vh = load_all_svd(args.svd_cache_dir, spec, device=device, dtype=dtype)
-    state = build_mask_state(U, S, Vh, init_theta=4.0, device=device)
+    # state = build_mask_state(U, S, Vh, init_theta=4.0, device=device)
+    state = build_mask_state(
+        U, S, Vh,
+        init_theta=float(getattr(args, "init_theta", 4.0)),
+        device=device
+        )
     masked_hook = MaskedOVHook(state).to(device)
 
     student_model.reset_hooks()
@@ -688,9 +784,16 @@ def train_joint_tasks(args):
             logger.info("New best -> saved best mask.")
         else:
             patience += 1
+            # if patience >= args.early_stopping_patience:
+            #     logger.info("Early stopping (joint).")
+            #     break
             if patience >= args.early_stopping_patience:
-                logger.info("Early stopping (joint).")
-                break
+                min_ep = int(getattr(args, "early_stopping_min_epochs", 0))
+                if (epoch + 1) >= min_ep:
+                    logger.info("Early stopping triggered.")
+                    break
+                else:
+                    logger.info(f"Patience reached, but epoch<{min_ep}. Continuing (min epochs guard).")
 
     if os.path.exists(best_path):
         best_theta = torch.load(best_path, map_location="cpu").to(device=device)

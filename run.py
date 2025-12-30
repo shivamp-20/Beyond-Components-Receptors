@@ -62,6 +62,12 @@ def build_parser() -> argparse.ArgumentParser:
         sp.add_argument("--log_every_steps", type=int, default=200)  # not too spammy
         sp.add_argument("--notes", type=str, default="")
 
+        # mask init: negative => sparse start
+        sp.add_argument("--init_theta", type=float, default=-4.0)
+
+        # optional: don't early-stop before this many epochs
+        sp.add_argument("--early_stopping_min_epochs", type=int, default=10)
+
     # ---- train (single task) ----
     sp_train = sub.add_parser("train")
     add_common_train_args(sp_train)

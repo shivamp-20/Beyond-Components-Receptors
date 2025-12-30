@@ -96,8 +96,13 @@ def run_all_ones_kl(run_dir: str, task: str, csv_triplet: Tuple[str, str, str], 
     t_clean = TeacherShardReader(teacher_cache_dir, task, "val", "clean")
     t_corr = TeacherShardReader(teacher_cache_dir, task, "val", "corr")
 
-    logp_clean = forward_logp_next(student, prompts_clean, device=dev)
-    logp_corr = forward_logp_next(student, prompts_corr, device=dev)
+    # logp_clean = forward_logp_next(student, prompts_clean, device=dev)
+    # logp_corr = forward_logp_next(student, prompts_corr, device=dev)
+    prompts_all = prompts_clean + prompts_corr
+    logp_all = forward_logp_next(student, prompts_all, device=dev)
+    logp_clean = logp_all[: len(prompts_clean)]
+    logp_corr  = logp_all[len(prompts_clean) :]
+
     tp_clean = t_clean.get(idx, device=dev)
     tp_corr = t_corr.get(idx, device=dev)
 
