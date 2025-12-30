@@ -80,47 +80,81 @@ class OVMaskedRunner:
             return hook_z
 
         def make_hook_result(layer: int):
-            def hook_result(result, hook):
-                # result: [B, P, H, d_model]
-                if layer not in self._z_store:
-                    raise RuntimeError(
-                        f"Missing stored z for layer {layer}. Did hook_z run?"
-                    )
+            # def hook_result(result, hook):
+            #     # result: [B, P, H, d_model]
+            #     if layer not in self._z_store:
+            #         raise RuntimeError(
+            #             f"Missing stored z for layer {layer}. Did hook_z run?"
+            #         )
 
-                out_dtype = result.dtype
+            #     out_dtype = result.dtype
+            #     device = result.device
+
+            #     # Fetch and clear stored z for this layer
+            #     z = self._z_store.pop(layer)  # [B,P,H,d_head]
+
+            #     # Do math in float32 for stability, cast back at end
+            #     z = z.to(device=device, dtype=torch.float32)
+            #     B, P, H, d_head = z.shape
+            #     if H != self.n_heads:
+            #         raise RuntimeError(f"Head mismatch: got H={H}, expected {self.n_heads}")
+
+            #     ones = torch.ones((B, P, H, 1), device=device, dtype=torch.float32)
+            #     z_aug = torch.cat([z, ones], dim=-1)  # [B,P,H,r] where r=d_head+1
+
+            #     # Per-layer SVD tensors
+            #     U = self.U[layer].to(device=device, dtype=torch.float32)    # [H,r,r]
+            #     S = self.S[layer].to(device=device, dtype=torch.float32)    # [H,r]
+            #     Vh = self.Vh[layer].to(device=device, dtype=torch.float32)  # [H,r,d_model]
+
+            #     # Mask values m in (0,1): [L,H,r]
+            #     m = self.mask_params.mask_values().to(device=device, dtype=torch.float32)
+            #     m_l = m[layer]               # [H,r]
+            #     S_mask = S * m_l             # [H,r]
+
+            #     # Compute: z_aug @ (U @ diag(S_mask) @ Vh)
+            #     # Step 1: t = z_aug @ U  -> [B,P,H,r]
+            #     t = torch.einsum("bphr,hru->bphu", z_aug, U)
+            #     # Step 2: t *= S_mask
+            #     t = t * S_mask.unsqueeze(0).unsqueeze(0)
+            #     # Step 3: out = t @ Vh -> [B,P,H,d_model]
+            #     out = torch.einsum("bphu,hum->bphm", t, Vh)
+
+            #     return out.to(dtype=out_dtype)
+            
+            def hook_result(result: torch.Tensor, hook) -> torch.Tensor:
+                # result: [B, P, H, d_model] (per-head)
+                target_dtype = result.dtype
                 device = result.device
 
-                # Fetch and clear stored z for this layer
-                z = self._z_store.pop(layer)  # [B,P,H,d_head]
+                z = z_store.pop(layer)  # [B, P, H, d_head]
 
-                # Do math in float32 for stability, cast back at end
-                z = z.to(device=device, dtype=torch.float32)
-                B, P, H, d_head = z.shape
-                if H != self.n_heads:
-                    raise RuntimeError(f"Head mismatch: got H={H}, expected {self.n_heads}")
+                # --- compute everything in float32 to avoid fp16 SVD reconstruction error ---
+                compute_dtype = torch.float32
 
-                ones = torch.ones((B, P, H, 1), device=device, dtype=torch.float32)
-                z_aug = torch.cat([z, ones], dim=-1)  # [B,P,H,r] where r=d_head+1
+                z = z.to(device=device, dtype=compute_dtype)
+                B, P, H, Dh = z.shape
 
-                # Per-layer SVD tensors
-                U = self.U[layer].to(device=device, dtype=torch.float32)    # [H,r,r]
-                S = self.S[layer].to(device=device, dtype=torch.float32)    # [H,r]
-                Vh = self.Vh[layer].to(device=device, dtype=torch.float32)  # [H,r,d_model]
+                ones = torch.ones((B, P, H, 1), device=device, dtype=compute_dtype)
+                z_aug = torch.cat([z, ones], dim=-1)  # [B, P, H, Dh+1]
 
-                # Mask values m in (0,1): [L,H,r]
-                m = self.mask_params.mask_values().to(device=device, dtype=torch.float32)
-                m_l = m[layer]               # [H,r]
-                S_mask = S * m_l             # [H,r]
+                # SVD tensors for this layer: [H, Dh+1, R], [H, R], [H, R, d_model]
+                U = self.U[layer].to(device=device, dtype=compute_dtype)
+                S = self.S[layer].to(device=device, dtype=compute_dtype)
+                Vh = self.Vh[layer].to(device=device, dtype=compute_dtype)
 
-                # Compute: z_aug @ (U @ diag(S_mask) @ Vh)
-                # Step 1: t = z_aug @ U  -> [B,P,H,r]
-                t = torch.einsum("bphr,hru->bphu", z_aug, U)
-                # Step 2: t *= S_mask
-                t = t * S_mask.unsqueeze(0).unsqueeze(0)
-                # Step 3: out = t @ Vh -> [B,P,H,d_model]
-                out = torch.einsum("bphu,hum->bphm", t, Vh)
+                # mask: [H, R]
+                m = torch.sigmoid(self.mask_params.theta[layer]).to(device=device, dtype=compute_dtype)
+                S_mask = m * S  # [H, R]
 
-                return out.to(dtype=out_dtype)
+                # t = z_aug @ U  -> [B, P, H, R]
+                t = torch.einsum("bphd,hdr->bphr", z_aug, U)
+                t = t * S_mask.unsqueeze(0).unsqueeze(0)  # scale singular directions
+
+                # out = t @ Vh -> [B, P, H, d_model]
+                out = torch.einsum("bphr,hrm->bphm", t, Vh)
+
+                return out.to(dtype=target_dtype)
 
             return hook_result
 
