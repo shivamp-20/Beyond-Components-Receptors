@@ -302,10 +302,10 @@ def eval_split(
             wrong_lp_clean, wrong_lp_corr = paired_completion_logprob_sum(
                 student_model, batch["prompt_clean"], batch["label_clean_str"], device
             )
-            label_lp_corr = paired_completion_logprob_sum(student_model, batch["prompt_corr"], batch["label_corr_str"], device)
-            wrong_lp_corr = paired_completion_logprob_sum(student_model, batch["prompt_corr"], batch["wrong_corr_str"], device)
-            acc_clean, diff_clean = pairwise_acc_and_diff(label_lp_clean, wrong_lp_clean)
-            acc_corr, diff_corr = pairwise_acc_and_diff(label_lp_corr, wrong_lp_corr)
+            # label_lp_corr = paired_completion_logprob_sum(student_model, batch["prompt_corr"], batch["label_corr_str"], device)
+            # wrong_lp_corr = paired_completion_logprob_sum(student_model, batch["prompt_corr"], batch["wrong_corr_str"], device)
+            # acc_clean, diff_clean = pairwise_acc_and_diff(label_lp_clean, wrong_lp_clean)
+            # acc_corr, diff_corr = pairwise_acc_and_diff(label_lp_corr, wrong_lp_corr)
         else:
             # Fallback: single-token accuracy/logit-diff (only valid when labels are truly 1 token).
             acc_clean = batch_accuracy_from_logits(logp_clean, label_clean)
