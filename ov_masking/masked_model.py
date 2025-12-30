@@ -68,6 +68,7 @@ class OVMaskedRunner:
             def hook_z(z, hook):
                 # z: [B, P, H, d_head]
                 z_store[layer] = z
+                self._z_store = z.to(dtype=torch.float32)
                 return z
             return hook_z
 
@@ -99,35 +100,63 @@ class OVMaskedRunner:
         #     return hook_result
 
         def make_hook_result(layer: int):
-            def hook_result(result, hook):
-                # result: [B, P, H, d_model]
+            # def hook_result(result, hook):
+            #     # result: [B, P, H, d_model]
+            #     target_dtype = result.dtype
+            #     device = result.device
+
+            #     z = z_store.pop(layer)  # [B,P,H,d_head]
+            #     z = z.to(device=device, dtype=target_dtype)
+
+            #     B, P, H, d_head = z.shape
+
+            #     ones = torch.ones((B, P, H, 1), device=device, dtype=target_dtype)
+            #     z_aug = torch.cat([z, ones], dim=-1)  # [B,P,H,d_aug]
+
+            #     # Per-layer tensors (cast to match result dtype)
+            #     U = self.U[layer].to(dtype=target_dtype)
+            #     S = self.S[layer].to(dtype=target_dtype)
+            #     Vh = self.Vh[layer].to(dtype=target_dtype)
+
+            #     # Mask values in same dtype
+            #     m = torch.sigmoid(self.mask_params.theta[layer]).to(dtype=target_dtype)  # [H,R]
+            #     S_mask = m * S  # [H,R]
+
+            #     # (z_aug @ U) * S_mask @ Vh
+            #     t = torch.einsum("bphd,hdr->bphr", z_aug, U)
+            #     t = t * S_mask.unsqueeze(0).unsqueeze(0)
+            #     out = torch.einsum("bphr,hrm->bphm", t, Vh)
+
+            #     # Return same dtype as original result to avoid downstream dtype issues
+            #     return out.to(dtype=target_dtype)
+            
+            def hook_result(result: torch.Tensor, hook) -> torch.Tensor:
+                if self._z_store is None:
+                    return result
+
+                # Target dtype must match what TransformerLens expects at this hook point
                 target_dtype = result.dtype
                 device = result.device
 
-                z = z_store.pop(layer)  # [B,P,H,d_head]
-                z = z.to(device=device, dtype=target_dtype)
+                # Always compute in FP32 for numerical identity
+                z = self._z_store.to(device=device, dtype=torch.float32)     # [b,p,h,d_head]
+                ones = torch.ones((*z.shape[:-1], 1), device=device, dtype=torch.float32)
+                z_aug = torch.cat([z, ones], dim=-1)                         # [b,p,h,r]
 
-                B, P, H, d_head = z.shape
+                U = self.svd_tensors["U"][layer, head].to(device=device, dtype=torch.float32)   # [r,r]
+                S = self.svd_tensors["S"][layer, head].to(device=device, dtype=torch.float32)   # [r]
+                Vh = self.svd_tensors["Vh"][layer, head].to(device=device, dtype=torch.float32) # [r,d_model]
 
-                ones = torch.ones((B, P, H, 1), device=device, dtype=target_dtype)
-                z_aug = torch.cat([z, ones], dim=-1)  # [B,P,H,d_aug]
+                m = self.mask_params.mask_values()[layer, head].to(device=device, dtype=torch.float32) # [r]
+                S_mask = m * S
 
-                # Per-layer tensors (cast to match result dtype)
-                U = self.U[layer].to(dtype=target_dtype)
-                S = self.S[layer].to(dtype=target_dtype)
-                Vh = self.Vh[layer].to(dtype=target_dtype)
+                # z_aug @ (U diag(S_mask) Vh) but done as two einsums
+                t = torch.einsum("bphr,rr->bphr", z_aug, U.transpose(0, 1))      # [b,p,h,r]
+                t = t * S_mask.view(1, 1, 1, -1)                                 # [b,p,h,r]
+                out = torch.einsum("bphr,rm->bphm", t, Vh)                        # [b,p,h,d_model]
 
-                # Mask values in same dtype
-                m = torch.sigmoid(self.mask_params.theta[layer]).to(dtype=target_dtype)  # [H,R]
-                S_mask = m * S  # [H,R]
-
-                # (z_aug @ U) * S_mask @ Vh
-                t = torch.einsum("bphd,hdr->bphr", z_aug, U)
-                t = t * S_mask.unsqueeze(0).unsqueeze(0)
-                out = torch.einsum("bphr,hrm->bphm", t, Vh)
-
-                # Return same dtype as original result to avoid downstream dtype issues
                 return out.to(dtype=target_dtype)
+
             return hook_result
 
         hooks = []

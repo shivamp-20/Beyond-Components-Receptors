@@ -250,7 +250,8 @@ def run_separate(args) -> None:
         n_layers=teacher.cfg.n_layers,
         n_heads=teacher.cfg.n_heads,
         device=device,
-        dtype=dtype,
+        # dtype=dtype,
+        dtype=torch.float32,
     )
 
     # Mask params
@@ -705,7 +706,8 @@ def run_joint(args) -> None:
         n_layers=teacher.cfg.n_layers,
         n_heads=teacher.cfg.n_heads,
         device=device,
-        dtype=dtype,
+        # dtype=dtype,
+        dtype=torch.float32,
     )
 
     # Mask + runner
