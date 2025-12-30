@@ -8,6 +8,8 @@ import torch
 from torch.utils.data import DataLoader
 
 from transformer_lens import HookedTransformer  # type: ignore
+from .diagnostics import run_identity_check
+
 
 from .data import PromptDataset, load_task_examples
 from .masked_model import OVMaskParams, OVMaskedRunner
@@ -89,6 +91,18 @@ def build_arg_parser() -> argparse.ArgumentParser:
     p.add_argument("--num_workers", type=int, default=0)
     p.add_argument("--force_recompute_svd", action="store_true")
     p.add_argument("--force_recompute_teacher", action="store_true")
+
+    # Sanity check: mask≈1 should reproduce base logits
+    p.add_argument("--identity_check", action="store_true",
+                help="Run identity check (mask≈1 reproduces teacher logits) and exit.")
+    p.add_argument("--identity_check_n", type=int, default=32,
+                help="How many examples to use for identity check (per task in joint mode).")
+    p.add_argument("--identity_mask_logit", type=float, default=20.0,
+                help="Mask logit for identity check; sigmoid≈1.")
+    p.add_argument("--identity_max_abs_tol", type=float, default=1e-2,
+                help="Fail if max|Δlogit| exceeds this.")
+    p.add_argument("--identity_kl_tol", type=float, default=1e-5,
+                help="Fail if KL exceeds this.")
     
     return p
 
@@ -264,6 +278,36 @@ def run_separate(args) -> None:
 
     # Warn if labels often multi-token
     logger.info(f"Multi-token label stats (counts): {train_ds.multi_token_warnings}")
+    # ---- Identity check (optional, exits early) ----
+    if args.identity_check:
+        prompts = []
+        for ex in train_ds.examples[: args.identity_check_n]:
+            prompts.append(ex.prompt_clean)
+            prompts.append(ex.prompt_corr)
+
+        report = run_identity_check(
+            teacher=teacher,
+            runner=runner,
+            mask_params=mask_params,
+            tokenizer=tokenizer,
+            prompts=prompts,
+            device=device,
+            mask_logit=args.identity_mask_logit,
+            max_abs_tol=args.identity_max_abs_tol,
+            kl_tol=args.identity_kl_tol,
+        )
+        json_dump(report, run_dir / "identity_check.json")
+        logger.info(f"[identity_check] {report}")
+
+        if not report["passed"]:
+            raise RuntimeError(
+                "Identity check FAILED. See runs/.../identity_check.json. "
+                "Most likely causes: bias double-counting/missing, or hooking the wrong point."
+            )
+
+        logger.info("Identity check PASSED; exiting because --identity_check was set.")
+        return
+
 
     # Teacher cache
     vocab_size = teacher.cfg.d_vocab
@@ -684,6 +728,7 @@ def run_joint(args) -> None:
     teacher_test = {}
 
     vocab_size = teacher.cfg.d_vocab
+    identity_reports = {}
 
     for task, (tr, va, te) in task_to_csv.items():
         train_path = data_dir / tr
@@ -706,6 +751,27 @@ def run_joint(args) -> None:
         train_loaders[task] = train_loader
         val_loaders[task] = val_loader
         test_loaders[task] = test_loader
+
+        # ---- Identity check (optional) ----
+        if args.identity_check:
+            prompts = []
+            for ex in train_ds.examples[: args.identity_check_n]:
+                prompts.append(ex.prompt_clean)
+                prompts.append(ex.prompt_corr)
+
+            identity_reports[task] = run_identity_check(
+                teacher=teacher,
+                runner=runner,
+                mask_params=mask_params,
+                tokenizer=tokenizer,
+                prompts=prompts,
+                device=device,
+                mask_logit=args.identity_mask_logit,
+                max_abs_tol=args.identity_max_abs_tol,
+                kl_tol=args.identity_kl_tol,
+            )
+            continue
+
 
         # Teacher caches (saved under run_dir/teacher)
         tpaths_train = teacher_cache_paths(run_dir / "teacher", task, "train")
@@ -749,6 +815,19 @@ def run_joint(args) -> None:
         teacher_train[task] = load_teacher_cache(tpaths_train)
         teacher_val[task] = load_teacher_cache(tpaths_val)
         teacher_test[task] = load_teacher_cache(tpaths_test)
+
+    if args.identity_check:
+        json_dump(identity_reports, run_dir / "identity_check.json")
+        logger.info(f"[identity_check joint] {identity_reports}")
+
+        if not all(rep["passed"] for rep in identity_reports.values()):
+            raise RuntimeError(
+                "Joint identity check FAILED for at least one task. "
+                "See runs/joint/.../identity_check.json."
+            )
+
+        logger.info("Identity check PASSED for all tasks; exiting because --identity_check was set.")
+        return
 
     # ---- JOINT TRAIN ----
     train_result = train_loop_joint(
