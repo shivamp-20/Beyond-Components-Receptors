@@ -116,30 +116,53 @@ def mask_value_stats(
     return stats
 
 @torch.no_grad()
-def paper_relative_sparsity(
+def paper_full_sparsity(
     m: torch.Tensor,
     valid: torch.Tensor,
+    *,
+    total_directions: int,
     threshold: float = 1e-2,
 ) -> Dict[str, float]:
     """
-    Paper App. B.6 'Relative Sparsity':
-      n_active = count(m > 1e-2) over learnable directions
-      S_rel = 1 - n_active / N_learnable
+    Simple 'full sparsity' version:
+      S_full = 1 - n_active / N_total
     """
-    valid = valid.bool()
-    flat = m[valid].float().flatten()
-    if flat.numel() == 0:
-        return {"N_learnable": 0.0, "n_active": 0.0, "active_frac": 0.0, "S_rel": 0.0, "thr": float(threshold)}
-
-    n_learnable = float(flat.numel())
-    n_active = float((flat > threshold).sum().item())
-    active_frac = n_active / n_learnable
-    s_rel = 1.0 - active_frac
+    rel = paper_relative_sparsity(m, valid, threshold=threshold)
+    N_total = float(max(int(total_directions), 1))
+    n_active = float(rel["n_active"])
     return {
         "thr": float(threshold),
-        "N_learnable": n_learnable,
+        "N_total": float(total_directions),
         "n_active": n_active,
-        "active_frac": float(active_frac),
-        "S_rel": float(s_rel),
+        "active_frac_full": float(n_active / N_total),
+        "S_full": float(1.0 - (n_active / N_total)),
     }
 
+
+@torch.no_grad()
+def sparsity_measures_multi_threshold(
+    m: torch.Tensor,
+    valid: torch.Tensor,
+    *,
+    thresholds=(1e-2, 1e-1, 0.5, 0.9),
+    total_directions: int | None = None,
+) -> Dict[str, float]:
+    """
+    Convenience: compute S_rel (+ optionally S_full) at multiple thresholds.
+    Keys use the string form of the threshold, e.g. '0.01', '0.1', '0.5', '0.9'.
+    """
+    out: Dict[str, float] = {}
+    for thr in thresholds:
+        rel = paper_relative_sparsity(m, valid, threshold=float(thr))
+        k = str(float(thr))
+        out[f"active_frac@{k}"] = float(rel["active_frac"])
+        out[f"S_rel@{k}"] = float(rel["S_rel"])
+        out[f"n_active@{k}"] = float(rel["n_active"])
+        out["N_learnable"] = float(rel["N_learnable"])  # same across thresholds
+
+        if total_directions is not None:
+            full = paper_full_sparsity(m, valid, total_directions=total_directions, threshold=float(thr))
+            out[f"active_frac_full@{k}"] = float(full["active_frac_full"])
+            out[f"S_full@{k}"] = float(full["S_full"])
+            out["N_total"] = float(full["N_total"])
+    return out
