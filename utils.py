@@ -63,3 +63,54 @@ def save_json(path: Path, obj) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as f:
         json.dump(obj, f, indent=2, ensure_ascii=False)
+
+def _fmt_thresh(t: float) -> str:
+    # 0.1 -> "0p1" (safe for JSON keys)
+    s = f"{t}".replace(".", "p")
+    return s
+
+
+@torch.no_grad()
+def mask_value_stats(
+    m: torch.Tensor,
+    valid: torch.Tensor,
+    *,
+    thresholds=(0.01, 0.1, 0.5, 0.9),
+    quantiles=(0.01, 0.1, 0.5, 0.9, 0.99),
+) -> Dict[str, float]:
+    """
+    Summarize the *distribution* of masks over valid singular directions.
+
+    - frac_gt_0p9 ~ "kept directions" (almost fully clean)
+    - frac_lt_0p1 ~ "mostly replaced by corrupt" (almost off)
+    - quantiles show bimodality / collapse
+    """
+    m = m.detach()
+    valid = valid.detach().bool()
+
+    flat = m[valid].float().flatten()
+    if flat.numel() == 0:
+        return {"mask_n_valid": 0}
+
+    stats: Dict[str, float] = {
+        "mask_n_valid": float(flat.numel()),
+        "mask_mean": float(flat.mean().item()),
+        "mask_std": float(flat.std(unbiased=False).item()),
+        "mask_min": float(flat.min().item()),
+        "mask_max": float(flat.max().item()),
+    }
+
+    for t in thresholds:
+        k = _fmt_thresh(t)
+        stats[f"mask_frac_gt_{k}"] = float((flat > t).float().mean().item())
+        stats[f"mask_frac_lt_{k}"] = float((flat < t).float().mean().item())
+
+        # also store counts for the most important thresholds
+        if t in (0.5, 0.9):
+            stats[f"mask_count_gt_{k}"] = float((flat > t).sum().item())
+
+    for q in quantiles:
+        qq = int(round(q * 100))
+        stats[f"mask_q{qq:02d}"] = float(torch.quantile(flat, q).item())
+
+    return stats

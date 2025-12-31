@@ -32,7 +32,7 @@ from logging_utils import setup_logger
 from ov_masks import MaskParams, make_masked_forward_hooks
 from ov_svd import compute_or_load_svd_bank
 from receptors import save_receptors
-from utils import accuracy_from_logits, gather_logits_at_positions, kl_divergence, left_pad, save_json, set_seed
+from utils import accuracy_from_logits, gather_logits_at_positions, kl_divergence, left_pad, save_json, set_seed, mask_value_stats
 
 
 def _load_config(path: Path) -> dict:
@@ -176,8 +176,22 @@ def evaluate_split(model, svd_bank, mask_params, examples, batch_size, pad_id, d
 
     mean_kl = total_kl / max(n, 1)
     mean_acc = total_acc / max(n, 1)
-    logger.info(f"[{split_name}] KL={mean_kl:.6f}  acc={mean_acc:.4f}  sparsity(mean m)={float(mask_params.sparsity().item()):.4f}")
-    return {"kl": mean_kl, "acc": mean_acc, "sparsity": float(mask_params.sparsity().item())}
+    stats = mask_value_stats(mask_params.m(), mask_params.valid)
+    # logger.info(f"[{split_name}] KL={mean_kl:.6f}  acc={mean_acc:.4f}  sparsity(mean m)={float(mask_params.sparsity().item()):.4f}")
+    logger.info(
+        f"[{split_name}] KL={mean_kl:.6f}  acc={mean_acc:.4f}  "
+        f"mean_m={stats.get('mask_mean', float('nan')):.4f}  "
+        f"kept@0.9={stats.get('mask_frac_gt_0p9', float('nan')):.3f}  "
+        f"off@0.1={stats.get('mask_frac_lt_0p1', float('nan')):.3f}  "
+        f"q10={stats.get('mask_q10', float('nan')):.3f}  "
+        f"q50={stats.get('mask_q50', float('nan')):.3f}  "
+        f"q90={stats.get('mask_q90', float('nan')):.3f}"
+    )
+    # return {"kl": mean_kl, "acc": mean_acc, "sparsity": float(mask_params.sparsity().item())}
+    out = {"kl": mean_kl, "acc": mean_acc, "sparsity": float(mask_params.sparsity().item())}
+    out.update(stats)
+    return out
+
 
 
 def main():
@@ -372,7 +386,17 @@ def main():
             "train_acc": total_acc / max(n, 1),
             "sparsity": float(mask_params.sparsity().item()),
         }
-        logger.info(f"[Train] epoch={epoch} loss={train_metrics['train_loss']:.6f} kl={train_metrics['train_kl']:.6f} acc={train_metrics['train_acc']:.4f} sparsity={train_metrics['sparsity']:.4f}")
+        stats = mask_value_stats(mask_params.m(), mask_params.valid)
+        train_metrics.update(stats)
+        logger.info(
+            f"[Train] epoch={epoch} loss={train_metrics['train_loss']:.6f} "
+            f"kl={train_metrics['train_kl']:.6f} acc={train_metrics['train_acc']:.4f} "
+            f"mean_m={train_metrics.get('mask_mean', float('nan')):.4f} "
+            f"kept@0.9={train_metrics.get('mask_frac_gt_0p9', float('nan')):.3f} "
+            f"off@0.1={train_metrics.get('mask_frac_lt_0p1', float('nan')):.3f}"
+        )
+
+        # logger.info(f"[Train] epoch={epoch} loss={train_metrics['train_loss']:.6f} kl={train_metrics['train_kl']:.6f} acc={train_metrics['train_acc']:.4f} sparsity={train_metrics['sparsity']:.4f}")
 
         val_metrics = evaluate_split(
             model=model,
