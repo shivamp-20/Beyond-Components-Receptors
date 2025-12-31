@@ -26,7 +26,8 @@ train:
   batch_size: 64
   epochs: 15
   lr: 1.0e-2
-  lambda_sparse: 1.0e-3
+  # lambda_sparse: 1.0e-3
+  lambda_sparse: 1
   temperature: 1.0
   init_m: 0.90
   early_stop_patience: 3
