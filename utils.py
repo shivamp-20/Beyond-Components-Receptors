@@ -116,6 +116,35 @@ def mask_value_stats(
     return stats
 
 @torch.no_grad()
+def paper_relative_sparsity(
+    m: torch.Tensor,
+    valid: torch.Tensor,
+    threshold: float = 1e-2,
+) -> Dict[str, float]:
+    """
+    Paper App. B.6 'Relative Sparsity':
+      n_active = count(m > 1e-2) over learnable directions
+      S_rel = 1 - n_active / N_learnable
+    """
+    valid = valid.bool()
+    flat = m[valid].float().flatten()
+    if flat.numel() == 0:
+        return {"N_learnable": 0.0, "n_active": 0.0, "active_frac": 0.0, "S_rel": 0.0, "thr": float(threshold)}
+
+    n_learnable = float(flat.numel())
+    n_active = float((flat > threshold).sum().item())
+    active_frac = n_active / n_learnable
+    s_rel = 1.0 - active_frac
+    return {
+        "thr": float(threshold),
+        "N_learnable": n_learnable,
+        "n_active": n_active,
+        "active_frac": float(active_frac),
+        "S_rel": float(s_rel),
+    }
+
+
+@torch.no_grad()
 def paper_full_sparsity(
     m: torch.Tensor,
     valid: torch.Tensor,
