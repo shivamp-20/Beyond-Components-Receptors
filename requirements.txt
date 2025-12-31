@@ -1,0 +1,5 @@
+torch>=2.1.0
+transformer-lens==2.16.1
+pandas>=2.0.0
+pyyaml>=6.0.0
+tqdm>=4.66.0

@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.dist-info/
+
+# Envs
+.venv/
+venv/
+
+# Artifacts / outputs
+artifacts/
+wandb/
+runs/
+*.pt
+*.pth
+*.ckpt
+
+# Data (keep your CSVs local or as a Kaggle dataset)
+# data_main/
+
+# Notebooks
+.ipynb_checkpoints/

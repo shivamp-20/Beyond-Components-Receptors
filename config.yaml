@@ -1,0 +1,64 @@
+# Copy this to config.yaml and edit the CSV filenames.
+# All 9 CSVs live inside: data_main/
+#
+# Each task has: train / val / test files.
+# For each task, the 3 files must share the same columns.
+
+project:
+  seed: 42
+
+paths:
+  data_dir: "data_main"
+  artifacts_dir: "artifacts"
+
+model:
+  name: "gpt2-small"
+  device: "cuda"         # "cuda" on Colab/Kaggle GPU, "cpu" otherwise
+  dtype: "float32"       # keep simple/stable; try "float16" only if you know what you're doing
+  prepend_bos: true      # matches common TransformerLens defaults
+
+svd:
+  svd_eps: 1.0e-6
+  bias_handling: "auto"  # "auto" (recommended), "none", "force_per_head"
+
+train:
+  # Mask-only training hyperparams
+  batch_size: 64
+  epochs: 15
+  lr: 1.0e-2
+  lambda_sparse: 1.0e-3
+  temperature: 1.0
+  init_m: 0.90
+  early_stop_patience: 3
+
+  # Useful for quick debug
+  max_train_examples: null
+  max_val_examples: null
+  num_workers: 0
+
+logging:
+  log_level: "INFO"
+  save_every_epoch: false   # if true, saves masks every epoch; else only best + last
+  save_receptors: true
+  receptors_topk: 20
+  receptors_save_mask_threshold: 0.5
+
+tasks:
+  # Fill in the filenames you actually have inside data_main/
+  gp:
+    kind: "gp"
+    train_file: "train_1k_gp.csv"
+    val_file: "val_gp.csv"
+    test_file: "test_gp.csv"
+
+  ioi:
+    kind: "ioi"
+    train_file: "train_1k_ioi.csv"
+    val_file: "val_ioi.csv"
+    test_file: "test_1k_ioi.csv"
+
+  gt:
+    kind: "gt"
+    train_file: "train_gt_1k.csv"
+    val_file: "val_gt.csv"
+    test_file: "test_gt_1k.csv"
