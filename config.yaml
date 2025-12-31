@@ -24,8 +24,8 @@ svd:
 train:
   # Mask-only training hyperparams
   batch_size: 64
-  epochs: 30
-  lr: 1.0e-2
+  epochs: 40
+  lr: 3.0e-4
   # lambda_sparse: 1.0e-3
   lambda_sparse: 1e-2
   temperature: 1.0

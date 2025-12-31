@@ -33,7 +33,7 @@ from ov_masks import MaskParams, make_masked_forward_hooks
 from ov_svd import compute_or_load_svd_bank
 from receptors import save_receptors
 from utils import accuracy_from_logits, gather_logits_at_positions, kl_divergence, left_pad, save_json, set_seed, mask_value_stats, paper_relative_sparsity, sparsity_measures_multi_threshold
-
+import json
 
 def _load_config(path: Path) -> dict:
     with path.open("r", encoding="utf-8") as f:
@@ -316,6 +316,23 @@ def main():
 
     # Save run config for reproducibility
     save_json(artifacts_root / "run_config.json", cfg)
+
+    # Print config once (useful on Colab/Kaggle logs)
+    print("\n========== CONFIG (resolved) ==========")
+    print(json.dumps(cfg, indent=2, sort_keys=True))
+    print(f"========== saved to: {(artifacts_root / 'run_config.json').as_posix()} ==========\n")
+
+    # Also log a short summary (cleaner than multi-line config in the log file)
+    logger.info(
+        "Config summary: "
+        f"model={cfg['model']['name']} device={cfg['model']['device']} "
+        f"task={args.task} kind={task_cfg['kind']} "
+        f"bs={cfg['train']['batch_size']} epochs={cfg['train']['epochs']} "
+        f"lr={cfg['train']['lr']} wd={cfg['train'].get('weight_decay', 0.0)} "
+        f"lambda_sparse={cfg['train']['lambda_sparse']} init_m={cfg['train']['init_m']} "
+        f"T={cfg['train']['temperature']} patience={cfg['train']['early_stop_patience']}"
+    )
+
 
     # Dry run: 1 train batch + 1 val batch to check everything works end-to-end
     if args.dry_run:
