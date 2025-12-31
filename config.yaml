@@ -27,7 +27,7 @@ train:
   epochs: 20
   lr: 1.0e-2
   # lambda_sparse: 1.0e-3
-  lambda_sparse: 5e-1
+  lambda_sparse: 10
   temperature: 1.0
   init_m: 0.90
   early_stop_patience: 3
