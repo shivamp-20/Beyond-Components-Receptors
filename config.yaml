@@ -25,9 +25,9 @@ train:
   # Mask-only training hyperparams
   batch_size: 64
   epochs: 40
-  lr: 3.0e-4
+  lr: 1.0e-2
   # lambda_sparse: 1.0e-3
-  lambda_sparse: 1e-2
+  lambda_sparse: 5e-4
   temperature: 1.0
   init_m: 0.90
   early_stop_patience: 7
