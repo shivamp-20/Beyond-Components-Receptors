@@ -176,57 +176,30 @@ def evaluate_split(model, svd_bank, mask_params, examples, batch_size, pad_id, d
 
     mean_kl = total_kl / max(n, 1)
     mean_acc = total_acc / max(n, 1)
-    # stats = mask_value_stats(mask_params.m(), mask_params.valid)
-    # logger.info(f"[{split_name}] KL={mean_kl:.6f}  acc={mean_acc:.4f}  sparsity(mean m)={float(mask_params.sparsity().item()):.4f}")
-    # logger.info(
-    #     f"[{split_name}] KL={mean_kl:.6f}  acc={mean_acc:.4f}  "
-    #     f"mean_m={stats.get('mask_mean', float('nan')):.4f}  "
-    #     f"kept@0.9={stats.get('mask_frac_gt_0p9', float('nan')):.3f}  "
-    #     f"off@0.1={stats.get('mask_frac_lt_0p1', float('nan')):.3f}  "
-    #     f"q10={stats.get('mask_q10', float('nan')):.3f}  "
-    #     f"q50={stats.get('mask_q50', float('nan')):.3f}  "
-    #     f"q90={stats.get('mask_q90', float('nan')):.3f}"
-    # )
-    # return {"kl": mean_kl, "acc": mean_acc, "sparsity": float(mask_params.sparsity().item())}
-    # out = {"kl": mean_kl, "acc": mean_acc, "sparsity": float(mask_params.sparsity().item())}
-    # out.update(stats)
+    stats = mask_value_stats(mask_params.m(), mask_params.valid)
 
-    # rel = paper_relative_sparsity(mask_params.m(), mask_params.valid, threshold=1e-2)
-    m = mask_params.m()
-    stats = mask_value_stats(m, mask_params.valid)
+    # Paper App. B.6 relative sparsity (thr=1e-2)
+    rel = paper_relative_sparsity(mask_params.m(), mask_params.valid, threshold=1e-2)
 
-    rel = paper_relative_sparsity(m, mask_params.valid, threshold=1e-2)
-    multi = sparsity_measures_multi_threshold(
-        m,
-        mask_params.valid,
-        thresholds=(1e-2, 1e-1, 0.5, 0.9),
-        total_directions=int(mask_params.mask_logits.numel()),
-    )
+    # L1 over learnable directions (diag(M) in the paper objective)
+    l1_sum = float(mask_params.m()[mask_params.valid].sum().item())
 
     logger.info(
         f"[{split_name}] KL={mean_kl:.6f}  acc={mean_acc:.4f}  "
         f"mean_m={stats.get('mask_mean', float('nan')):.4f}  "
-        f"S_rel@1e-2={rel['S_rel']:.4f} active_frac@1e-2={rel['active_frac']:.4f}  "
-        f"off@0.01={stats.get('mask_frac_lt_0p01', float('nan')):.3f}  "
-        f"off@0.1={stats.get('mask_frac_lt_0p1', float('nan')):.3f}  "
         f"kept@0.9={stats.get('mask_frac_gt_0p9', float('nan')):.3f}  "
-        f"q10={stats.get('mask_q10', float('nan')):.3f} "
-        f"q50={stats.get('mask_q50', float('nan')):.3f} "
-        f"q90={stats.get('mask_q90', float('nan')):.3f}"
+        f"off@0.1={stats.get('mask_frac_lt_0p1', float('nan')):.3f}  "
+        f"q10={stats.get('mask_q10', float('nan')):.3f}  "
+        f"q50={stats.get('mask_q50', float('nan')):.3f}  "
+        f"q90={stats.get('mask_q90', float('nan')):.3f}  "
+        f"S_rel={rel.get('S_rel', float('nan')):.4f} active_frac={rel.get('active_frac', float('nan')):.4f} (thr={rel.get('thr')})"
     )
 
-    out = {
-        "kl": mean_kl,
-        "acc": mean_acc,
-        "mean_m": float(mask_params.sparsity().item()),
-        "sum_m": float(m.sum().item()),
-    }
+    out = {"kl": mean_kl, "acc": mean_acc, "l1_sum": l1_sum}
     out.update(stats)
-    out.update(multi)
+    out.update(rel)
     return out
 
-
-    # return out
 
 
 
@@ -355,8 +328,11 @@ def main():
 
         masked = _masked_logits_at_pos(model, clean_tokens, clean_pos, svd_bank, mask_params, corrupt_cache)
         kl = kl_divergence(teacher, masked, temperature=temperature)
-        sparse = mask_params.sparsity()
-        loss = kl + lambda_sparse * sparse
+        # sparse = mask_params.sparsity()
+        # loss = kl + lambda_sparse * sparse
+        sparse_mean = mask_params.sparsity()  # mean(m) for human readability
+        l1_sum = mask_params.m()[mask_params.valid].sum()  # SUM(m) for paper-faithful L1
+        loss = kl + lambda_sparse * l1_sum
         logger.info(f"[DRY RUN] KL={kl.item():.6f} sparse={sparse.item():.6f} loss={loss.item():.6f}")
 
         logger.info("[DRY RUN] Running 1 val batch...")
@@ -403,8 +379,12 @@ def main():
             masked = _masked_logits_at_pos(model, clean_tokens, clean_pos, svd_bank, mask_params, corrupt_cache)
 
             kl = kl_divergence(teacher, masked, temperature=temperature)
-            sparse = mask_params.sparsity()
-            loss = kl + lambda_sparse * sparse
+            # sparse = mask_params.sparsity()
+            # loss = kl + lambda_sparse * sparse
+            sparse_mean = mask_params.sparsity()  # mean(m) for human readability
+            l1_sum = mask_params.m()[mask_params.valid].sum()  # SUM(m) for paper-faithful L1
+            loss = kl + lambda_sparse * l1_sum
+
 
             opt.zero_grad(set_to_none=True)
             loss.backward()
@@ -484,6 +464,12 @@ def main():
             logger=logger,
             split_name="Val",
         )
+        val_kl = float(val_metrics["kl"])
+        val_l1_sum = float(val_metrics["l1_sum"])
+        val_obj = val_kl + lambda_sparse * val_l1_sum
+
+        logger.info(f"[ValSummary] epoch={epoch} val_kl={val_kl:.6f} val_l1_sum={val_l1_sum:.2f} val_obj={val_obj:.6f}")
+
         train_metrics.update({f"val_{k}": v for k, v in val_metrics.items()})
         history.append(train_metrics)
 
