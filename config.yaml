@@ -31,6 +31,8 @@ train:
   temperature: 1.0
   init_m: 0.90
   early_stop_patience: 3
+  weight_decay: 1.0e-9
+
 
   # Useful for quick debug
   max_train_examples: null
