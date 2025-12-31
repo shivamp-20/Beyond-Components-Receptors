@@ -44,7 +44,7 @@ class Cfg:
     batch_size: int = 64
     lr: float = 1e-2
     weight_decay: float = 1e-9
-    l1_weight: float = 1.5e-3
+    l1_weight: float = 1.5e-4
     max_epochs: int = 40
     early_stop_patience: int = 12
     # active_threshold: float = 1e-2
@@ -466,7 +466,8 @@ def train(cfg: Cfg, model: GPT2LMHeadModel, device: torch.device,
                 lt = logits[torch.arange(x.size(0), device=device), t]
                 loss_kl = kl(probs(lb), probs(lt)).mean()
                 m_all = torch.cat([torch.sigmoid(p).reshape(-1) for p in mask_logits.values()])
-                loss = loss_kl + cfg.l1_weight * m_all.mean()
+                # loss = loss_kl + cfg.l1_weight * m_all.mean()
+                loss = loss_kl + cfg.l1_weight * m_all.sum()
 
                 opt.zero_grad(set_to_none=True)
                 loss.backward()
