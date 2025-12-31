@@ -32,7 +32,7 @@ from logging_utils import setup_logger
 from ov_masks import MaskParams, make_masked_forward_hooks
 from ov_svd import compute_or_load_svd_bank
 from receptors import save_receptors
-from utils import accuracy_from_logits, gather_logits_at_positions, kl_divergence, left_pad, save_json, set_seed, mask_value_stats, paper_relative_sparsity, sparsity_measures_multi_threshold
+from utils import accuracy_from_logits, gather_logits_at_positions, kl_divergence, left_pad, save_json, set_seed, mask_value_stats, paper_full_sparsity, sparsity_measures_multi_threshold
 
 
 def _load_config(path: Path) -> dict:
@@ -195,7 +195,7 @@ def evaluate_split(model, svd_bank, mask_params, examples, batch_size, pad_id, d
     m = mask_params.m()
     stats = mask_value_stats(m, mask_params.valid)
 
-    rel = paper_relative_sparsity(m, mask_params.valid, threshold=1e-2)
+    rel = paper_full_sparsity(m, mask_params.valid, threshold=1e-2)
     multi = sparsity_measures_multi_threshold(
         m,
         mask_params.valid,
@@ -432,7 +432,7 @@ def main():
         # rel = paper_relative_sparsity(mask_params.m(), mask_params.valid, threshold=1e-2)
         m = mask_params.m()
         stats = mask_value_stats(m, mask_params.valid)
-        rel = paper_relative_sparsity(m, mask_params.valid, threshold=1e-2)
+        rel = paper_full_sparsity(m, mask_params.valid, threshold=1e-2)
         multi = sparsity_measures_multi_threshold(
             m,
             mask_params.valid,
