@@ -44,7 +44,7 @@ class Cfg:
     batch_size: int = 64
     lr: float = 1e-2
     weight_decay: float = 1e-9
-    l1_weight: float = 4e-3
+    l1_weight: float = 5e-3
     max_epochs: int = 50
     early_stop_patience: int = 12
     active_threshold: float = 5e-2
