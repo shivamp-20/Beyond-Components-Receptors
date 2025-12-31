@@ -333,7 +333,14 @@ def main():
         sparse_mean = mask_params.sparsity()  # mean(m) for human readability
         l1_sum = mask_params.m()[mask_params.valid].sum()  # SUM(m) for paper-faithful L1
         loss = kl + lambda_sparse * l1_sum
-        logger.info(f"[DRY RUN] KL={kl.item():.6f} sparse={sparse.item():.6f} loss={loss.item():.6f}")
+        # logger.info(f"[DRY RUN] KL={kl.item():.6f} sparse={sparse.item():.6f} loss={loss.item():.6f}")
+        logger.info(
+            f"[DRY RUN] KL={kl.item():.6f} "
+            f"mean_m={float(sparse_mean.item()):.6f} "
+            f"l1_sum={float(l1_sum.item()):.2f} "
+            f"loss={loss.item():.6f}"
+        )
+
 
         logger.info("[DRY RUN] Running 1 val batch...")
         batch = next(_make_dataloader(val_ex, batch_size=int(cfg["train"]["batch_size"]), shuffle=False, num_workers=0))
@@ -354,6 +361,9 @@ def main():
     patience_left = patience
     epochs = int(cfg["train"]["epochs"])
     batch_size = int(cfg["train"]["batch_size"])
+    best_val_obj = float("inf")
+    best_val_kl = float("inf")  # just for reporting
+
 
     history = []
 
@@ -398,7 +408,11 @@ def main():
             total_kl += float(kl.item()) * bsz
             total_acc += float(acc.item()) * bsz
             n += bsz
-            pbar.set_postfix({"kl": total_kl / max(n, 1), "sparse": float(sparse.item())})
+            # pbar.set_postfix({"kl": total_kl / max(n, 1), "sparse": float(sparse.item())})
+            pbar.set_postfix(
+                {"kl": total_kl / max(n, 1), "mean_m": float(sparse_mean.item()), "l1_sum": float(l1_sum.item())}
+            )
+
 
         train_metrics = {
             "epoch": epoch,
@@ -478,10 +492,15 @@ def main():
             torch.save({"mask_logits": mask_params.mask_logits.detach().cpu(), "valid": svd_bank.valid.cpu()}, artifacts_root / "masks" / f"epoch_{epoch:02d}.pt")
 
         # Check best
-        if val_metrics["kl"] < best_val_kl - 1e-6:
-            best_val_kl = val_metrics["kl"]
+        # if val_metrics["kl"] < best_val_kl - 1e-6:
+        if val_obj < best_val_obj - 1e-6:
+            best_val_obj = val_obj
+            best_val_kl = val_kl
             best_epoch = epoch
             patience_left = patience
+            best_val_kl = val_metrics["kl"]
+            # best_epoch = epoch
+            # patience_left = patience
 
             (artifacts_root / "masks").mkdir(parents=True, exist_ok=True)
             torch.save(
