@@ -32,15 +32,6 @@ from transformers import GPT2LMHeadModel, GPT2TokenizerFast
 
 # ------------------------- Config -------------------------
 
-# Paper targets from "Beyond Components: Singular Vector-Based Interpretability for the OV Circuit"
-# Table: (Rel. sparsity / Full sparsity, KLD). Use as caps/targets.
-PAPER_TARGETS = {
-    "ioi": {"srel": 0.9132, "kld": 0.21},
-    "gt":  {"srel": 0.9521, "kld": 0.23},
-    "gp":  {"srel": 0.9681, "kld": 0.13},
-}
-
-
 @dataclass
 class Cfg:
     model_name: str = "gpt2"
@@ -50,7 +41,7 @@ class Cfg:
     d_head: int = 64
     d_aug: int = 65
 
-    batch_size: int = 64
+    batch_size: int = 84
     lr: float = 1e-2
     weight_decay: float = 1e-9
     l1_weight: float = 5e-4
@@ -59,24 +50,13 @@ class Cfg:
     active_threshold: float = 1e-2
     # active_threshold: float = 0.5
 
-    trunc_kl_eps: float = 1e-5
+    trunc_kl_eps: float = 1e-4
     calib_take: int = 64          # how many train examples to use for truncation
     calib_batch: int = 32         # batch size for truncation eval
 
     seed: int = 0
     cache_dtype: torch.dtype = torch.float16
     compute_dtype: torch.dtype = torch.float32
-
-    early_stop_min_delta: float = 1e-5  # ignore tiny improvements
-    early_stop_metric: str = "val_kl"   # "val_kl" or "val_loss"
-
-    # Paper-stopping (set per-task in main, used in train)
-    paper_tau: float = 1e-2
-    paper_srel_target: Optional[float] = None
-    paper_kl_cap: Optional[float] = None
-    stop_when_hit_paper: bool = True
-    kl_overshoot_margin: float = 0.02
-    kl_overshoot_patience: int = 3
 
 
 def set_seed(seed: int) -> None:
@@ -424,26 +404,13 @@ def init_masks(cfg: Cfg, basis: Dict[Tuple[int,int], Dict[str, torch.Tensor]], d
             pdict[f"l{l}_h{h}"] = nn.Parameter(torch.zeros((r,), device=device))
     return pdict
 
-def sparsity_at_tau(cfg: Cfg, mask_logits: nn.ParameterDict, tau: float) -> Dict[str, float]:
-    """Compute sparsity metrics for a given threshold tau."""
+def sparsity(cfg: Cfg, mask_logits: nn.ParameterDict) -> Dict[str, float]:
     m_all = torch.cat([torch.sigmoid(p).detach().flatten().cpu() for p in mask_logits.values()])
-    n_active = int((m_all > tau).sum())
+    n_active = int((m_all > cfg.active_threshold).sum())
     n_learnable = int(m_all.numel())
     S_rel = 1.0 - n_active / max(1, n_learnable)
     S_full = 1.0 - n_active / float(cfg.n_layers * cfg.n_heads * cfg.d_aug)
     return {"n_active": n_active, "n_learnable": n_learnable, "S_rel": float(S_rel), "S_full": float(S_full)}
-
-def sparsity(cfg: Cfg, mask_logits: nn.ParameterDict) -> Dict[str, float]:
-    return sparsity_at_tau(cfg, mask_logits, cfg.active_threshold)
-
-
-# def sparsity(cfg: Cfg, mask_logits: nn.ParameterDict) -> Dict[str, float]:
-#     m_all = torch.cat([torch.sigmoid(p).detach().flatten().cpu() for p in mask_logits.values()])
-#     n_active = int((m_all > cfg.active_threshold).sum())
-#     n_learnable = int(m_all.numel())
-#     S_rel = 1.0 - n_active / max(1, n_learnable)
-#     S_full = 1.0 - n_active / float(cfg.n_layers * cfg.n_heads * cfg.d_aug)
-#     return {"n_active": n_active, "n_learnable": n_learnable, "S_rel": float(S_rel), "S_full": float(S_full)}
 
 def train(cfg: Cfg, model: GPT2LMHeadModel, device: torch.device,
           basis: Dict[Tuple[int,int], Dict[str, torch.Tensor]],
@@ -477,16 +444,8 @@ def train(cfg: Cfg, model: GPT2LMHeadModel, device: torch.device,
     model.eval()
 
     # best_val, bad = float("inf"), 0
-    # best_val_loss, bad = float("inf"), 0
-    # best_state: Optional[Dict[str, torch.Tensor]] = None
-
-    best_metric, bad = float("inf"), 0
-    best_state = None  # best by early_stop_metric
-
-    best_feasible_srel = -1.0
-    best_feasible_state = None  # best S_rel@paper_tau under paper_kl_cap
-    kl_bad = 0
-
+    best_val_loss, bad = float("inf"), 0
+    best_state: Optional[Dict[str, torch.Tensor]] = None
     tr_curve, va_curve, act_curve = [], [], []
 
     with OVIntervention(model, cfg, basis, W_blocks, mask_logits) as interv:
@@ -535,117 +494,40 @@ def train(cfg: Cfg, model: GPT2LMHeadModel, device: torch.device,
                     kls.append(float(kl(probs(lb), probs(lt)).mean().cpu()))
                 va = float(np.mean(kls))
 
+            # L1 term (paper objective uses ||diag(M)||_1, i.e. sum of mask values)
+            with torch.no_grad():
+                m_all = torch.cat([torch.sigmoid(p).reshape(-1) for p in mask_logits.values()])
+                l1_term = float((cfg.l1_weight * m_all.sum()).detach().cpu())
+
+            val_loss = va + l1_term
+            # sp = sparsity(cfg, mask_logits)
+
             sp = sparsity(cfg, mask_logits)
-            sp_paper = sparsity_at_tau(cfg, mask_logits, cfg.paper_tau)
+            tr_curve.append(tr); va_curve.append(va); act_curve.append(sp["n_active"])
 
-            val_metric = va if cfg.early_stop_metric == "val_kl" else val_loss
-
+            # rec = {"time": now(), "epoch": epoch, "train_kl": tr, "val_kl": va, **sp}
             rec = {"time": now(), "epoch": epoch,
-                "train_kl": tr, "val_kl": va,
-                "l1_term": l1_term, "val_loss": val_loss,
-                "val_metric": val_metric,
-                **sp,
-                "paper_tau": cfg.paper_tau,
-                "paper_n_active": sp_paper["n_active"],
-                "paper_S_rel": sp_paper["S_rel"],
-                "paper_S_full": sp_paper["S_full"],
-                "paper_kl_cap": cfg.paper_kl_cap,
-                "paper_srel_target": cfg.paper_srel_target}
-            with open(metrics_path, "a", encoding="utf-8") as f:
-                f.write(json.dumps(rec) + "\n")
-
-            print(
-                f"[{epoch:03d}] train_KL={tr:.4e} val_KL={va:.4e} "
+                    "train_kl": tr, "val_kl": va,
+                    "l1_term": l1_term, "val_loss": val_loss,
+                    **sp}
+            with open(metrics_path, "a", encoding="utf-8") as f: f.write(json.dumps(rec) + "\n")
+            # print(f"[{epoch:03d}] train_KL={tr:.4e} val_KL={va:.4e} n_active={sp['n_active']} S_rel={sp['S_rel']:.3f}")
+            print(f"[{epoch:03d}] train_KL={tr:.4e} val_KL={va:.4e} "
                 f"val_loss={val_loss:.4e} l1={l1_term:.4e} "
-                f"S_rel@{cfg.active_threshold:g}={sp['S_rel']:.3f} "
-                f"S_rel@{cfg.paper_tau:g}={sp_paper['S_rel']:.3f} "
-                f"n_active@{cfg.paper_tau:g}={sp_paper['n_active']}"
-            )
+                f"n_active={sp['n_active']} S_rel={sp['S_rel']:.3f}")
 
-            # 1) Best-by-early-stop metric checkpoint
-            if val_metric < best_metric - cfg.early_stop_min_delta:
-                best_metric, bad = val_metric, 0
+            # if va < best_val - 1e-12:
+            #     best_val, bad = va, 0
+            if val_loss < best_val_loss - 1e-12:
+                best_val_loss, bad = val_loss, 0
                 best_state = {k: v.detach().clone().cpu() for k, v in mask_logits.items()}
             else:
                 bad += 1
+                if bad >= cfg.early_stop_patience:
+                    print("Early stopping."); break
 
-            # 2) Best-feasible checkpoint (maximize S_rel@paper_tau while staying under KL cap)
-            if cfg.paper_kl_cap is not None and va <= cfg.paper_kl_cap:
-                if sp_paper["S_rel"] > best_feasible_srel + 1e-6:
-                    best_feasible_srel = sp_paper["S_rel"]
-                    best_feasible_state = {k: v.detach().clone().cpu() for k, v in mask_logits.items()}
-
-            # 3) Stop as soon as we hit the paper target (if enabled)
-            if (
-                cfg.stop_when_hit_paper
-                and (cfg.paper_srel_target is not None)
-                and (cfg.paper_kl_cap is not None)
-                and va <= cfg.paper_kl_cap
-                and sp_paper["S_rel"] >= cfg.paper_srel_target
-            ):
-                print(
-                    f"Reached paper targets: S_rel@{cfg.paper_tau:g}={sp_paper['S_rel']:.4f} "
-                    f"with val_KL={va:.4f} <= {cfg.paper_kl_cap:.4f}. Stopping."
-                )
-                break
-
-            # 4) KL guardrail: if we overshoot paper KL cap for a few epochs, stop & restore best-feasible
-            if cfg.paper_kl_cap is not None and va > (cfg.paper_kl_cap + cfg.kl_overshoot_margin):
-                kl_bad += 1
-            else:
-                kl_bad = 0
-            if kl_bad >= cfg.kl_overshoot_patience and best_feasible_state is not None:
-                print(
-                    f"val_KL has been > (cap+margin) for {cfg.kl_overshoot_patience} epochs "
-                    f"(cap={cfg.paper_kl_cap:.4f}, margin={cfg.kl_overshoot_margin:.4f}). "
-                    f"Stopping and restoring best-feasible checkpoint."
-                )
-                break
-
-            # 5) Standard patience stop
-            if bad >= cfg.early_stop_patience:
-                print("Early stopping (patience).")
-                break
-
-            # L1 term (paper objective uses ||diag(M)||_1, i.e. sum of mask values)
-            # with torch.no_grad():
-            #     m_all = torch.cat([torch.sigmoid(p).reshape(-1) for p in mask_logits.values()])
-            #     l1_term = float((cfg.l1_weight * m_all.sum()).detach().cpu())
-
-            # val_loss = va + l1_term
-            # # sp = sparsity(cfg, mask_logits)
-
-            # sp = sparsity(cfg, mask_logits)
-            # tr_curve.append(tr); va_curve.append(va); act_curve.append(sp["n_active"])
-
-            # # rec = {"time": now(), "epoch": epoch, "train_kl": tr, "val_kl": va, **sp}
-            # rec = {"time": now(), "epoch": epoch,
-            #         "train_kl": tr, "val_kl": va,
-            #         "l1_term": l1_term, "val_loss": val_loss,
-            #         **sp}
-            # with open(metrics_path, "a", encoding="utf-8") as f: f.write(json.dumps(rec) + "\n")
-            # # print(f"[{epoch:03d}] train_KL={tr:.4e} val_KL={va:.4e} n_active={sp['n_active']} S_rel={sp['S_rel']:.3f}")
-            # print(f"[{epoch:03d}] train_KL={tr:.4e} val_KL={va:.4e} "
-            #     f"val_loss={val_loss:.4e} l1={l1_term:.4e} "
-            #     f"n_active={sp['n_active']} S_rel={sp['S_rel']:.3f}")
-
-            # # if va < best_val - 1e-12:
-            # #     best_val, bad = va, 0
-            # if val_loss < best_val_loss - 1e-12:
-            #     best_val_loss, bad = val_loss, 0
-            #     best_state = {k: v.detach().clone().cpu() for k, v in mask_logits.items()}
-            # else:
-            #     bad += 1
-            #     if bad >= cfg.early_stop_patience:
-            #         print("Early stopping."); break
-
-    # if best_state is not None:
-    #     for k in mask_logits.keys(): mask_logits[k].data.copy_(best_state[k].to(device))
-    restore = best_feasible_state if best_feasible_state is not None else best_state
-    if restore is not None:
-        for k in mask_logits.keys():
-            mask_logits[k].data.copy_(restore[k].to(device))
-
+    if best_state is not None:
+        for k in mask_logits.keys(): mask_logits[k].data.copy_(best_state[k].to(device))
 
     # save masks
     with torch.no_grad():
@@ -715,11 +597,6 @@ def main():
     args = ap.parse_args()
 
     cfg = Cfg(seed=args.seed)
-
-    if args.task in PAPER_TARGETS:
-        cfg.paper_srel_target = PAPER_TARGETS[args.task]["srel"]
-        cfg.paper_kl_cap = PAPER_TARGETS[args.task]["kld"]
-        
     if args.max_epochs is not None: cfg.max_epochs = args.max_epochs
     if args.batch_size is not None: cfg.batch_size = args.batch_size
     set_seed(cfg.seed)
