@@ -41,16 +41,16 @@ class Cfg:
     d_head: int = 64
     d_aug: int = 65
 
-    batch_size: int = 84
+    batch_size: int = 100
     lr: float = 1e-2
     weight_decay: float = 1e-9
-    l1_weight: float = 5e-4
-    max_epochs: int = 90
+    l1_weight: float = 3e-4
+    max_epochs: int = 110
     early_stop_patience: int = 12
     active_threshold: float = 1e-2
     # active_threshold: float = 0.5
 
-    trunc_kl_eps: float = 1e-4
+    trunc_kl_eps: float = 1e-5
     calib_take: int = 64          # how many train examples to use for truncation
     calib_batch: int = 32         # batch size for truncation eval
 
