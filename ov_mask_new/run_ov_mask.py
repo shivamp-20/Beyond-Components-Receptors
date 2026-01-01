@@ -404,22 +404,64 @@ def init_masks(cfg: Cfg, basis: Dict[Tuple[int,int], Dict[str, torch.Tensor]], d
             pdict[f"l{l}_h{h}"] = nn.Parameter(torch.zeros((r,), device=device))
     return pdict
 
-def sparsity(cfg: Cfg, mask_logits: nn.ParameterDict) -> Dict[str, float]:
+# def sparsity(cfg: Cfg, mask_logits: nn.ParameterDict) -> Dict[str, float]:
+#     m_all = torch.cat([torch.sigmoid(p).detach().flatten().cpu() for p in mask_logits.values()])
+#     n_active = int((m_all > cfg.active_threshold).sum())
+#     n_learnable = int(m_all.numel())
+#     S_rel = 1.0 - n_active / max(1, n_learnable)
+#     S_full = 1.0 - n_active / float(cfg.n_layers * cfg.n_heads * cfg.d_aug)
+#     return {"n_active": n_active, "n_learnable": n_learnable, "S_rel": float(S_rel), "S_full": float(S_full)}
+
+# Paper targets (Table 1 in Beyond Components). Used only for stopping/benchmarking.
+# We compute S_rel at PAPER_TAU regardless of cfg.active_threshold so the numbers are comparable.
+PAPER_TAU = 1e-2
+PAPER_TARGETS = {
+    "ioi": {"S_rel": 0.9132, "val_kl": 0.21},
+    "gt":  {"S_rel": 0.9521, "val_kl": 0.23},
+    "gp":  {"S_rel": 0.9681, "val_kl": 0.13},
+}
+
+def sparsity(cfg: Cfg, mask_logits: nn.ParameterDict, threshold: Optional[float] = None) -> Dict[str, float]:
     m_all = torch.cat([torch.sigmoid(p).detach().flatten().cpu() for p in mask_logits.values()])
-    n_active = int((m_all > cfg.active_threshold).sum())
+    thr = cfg.active_threshold if threshold is None else float(threshold)
+    n_active = int((m_all > thr).sum())
     n_learnable = int(m_all.numel())
     S_rel = 1.0 - n_active / max(1, n_learnable)
     S_full = 1.0 - n_active / float(cfg.n_layers * cfg.n_heads * cfg.d_aug)
     return {"n_active": n_active, "n_learnable": n_learnable, "S_rel": float(S_rel), "S_full": float(S_full)}
 
+
+# def train(cfg: Cfg, model: GPT2LMHeadModel, device: torch.device,
+#           basis: Dict[Tuple[int,int], Dict[str, torch.Tensor]],
+#           W_blocks: Dict[Tuple[int,int], Dict[str, torch.Tensor]],
+#           train_cache: dict, val_cache: dict, out_dir: Path) -> nn.ParameterDict:
+
+#     ensure_dir(out_dir / "plots"); ensure_dir(out_dir / "masks")
+#     metrics_path = out_dir / "metrics.jsonl"
+#     if metrics_path.exists(): metrics_path.unlink()
+
+#     mask_logits = init_masks(cfg, basis, device)
+#     opt = torch.optim.AdamW(mask_logits.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
 def train(cfg: Cfg, model: GPT2LMHeadModel, device: torch.device,
           basis: Dict[Tuple[int,int], Dict[str, torch.Tensor]],
           W_blocks: Dict[Tuple[int,int], Dict[str, torch.Tensor]],
-          train_cache: dict, val_cache: dict, out_dir: Path) -> nn.ParameterDict:
+          train_cache: dict, val_cache: dict, out_dir: Path, task: str) -> nn.ParameterDict:
 
     ensure_dir(out_dir / "plots"); ensure_dir(out_dir / "masks")
+    ckpt_dir = out_dir / "checkpoints"
+    ensure_dir(ckpt_dir)
+
     metrics_path = out_dir / "metrics.jsonl"
     if metrics_path.exists(): metrics_path.unlink()
+
+    task = str(task).lower()
+    paper_target = PAPER_TARGETS.get(task, None)
+    target_srel = paper_target["S_rel"] if paper_target is not None else None
+    target_kl = paper_target["val_kl"] if paper_target is not None else None
+
+    ckpt_best_path = ckpt_dir / "best.pt"
+    ckpt_feasible_path = ckpt_dir / "best_feasible.pt"
+    ckpt_target_path = ckpt_dir / "target.pt"
 
     mask_logits = init_masks(cfg, basis, device)
     opt = torch.optim.AdamW(mask_logits.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
@@ -444,9 +486,25 @@ def train(cfg: Cfg, model: GPT2LMHeadModel, device: torch.device,
     model.eval()
 
     # best_val, bad = float("inf"), 0
+    # best_val_loss, bad = float("inf"), 0
+    # best_state: Optional[Dict[str, torch.Tensor]] = None
+    # tr_curve, va_curve, act_curve = [], [], []
+
+        # best_val, bad = float("inf"), 0
     best_val_loss, bad = float("inf"), 0
     best_state: Optional[Dict[str, torch.Tensor]] = None
+
+    # Best state that is under the paper KLD cap (if paper targets exist), maximizing S_rel@PAPER_TAU.
+    best_feasible_state: Optional[Dict[str, torch.Tensor]] = None
+    best_feasible_srel: float = -1.0
+
+    # Exact state when both (S_rel@PAPER_TAU >= target) AND (val_KL <= cap) are met.
+    target_state: Optional[Dict[str, torch.Tensor]] = None
+
+    kl_overshoot_bad = 0  # consecutive epochs with va > target_kl once we already have a feasible state
+
     tr_curve, va_curve, act_curve = [], [], []
+
 
     with OVIntervention(model, cfg, basis, W_blocks, mask_logits) as interv:
         for epoch in range(1, cfg.max_epochs + 1):
@@ -499,25 +557,87 @@ def train(cfg: Cfg, model: GPT2LMHeadModel, device: torch.device,
                 m_all = torch.cat([torch.sigmoid(p).reshape(-1) for p in mask_logits.values()])
                 l1_term = float((cfg.l1_weight * m_all.sum()).detach().cpu())
 
-            val_loss = va + l1_term
-            # sp = sparsity(cfg, mask_logits)
+            # val_loss = va + l1_term
+            # # sp = sparsity(cfg, mask_logits)
 
-            sp = sparsity(cfg, mask_logits)
+            # sp = sparsity(cfg, mask_logits)
+            # tr_curve.append(tr); va_curve.append(va); act_curve.append(sp["n_active"])
+
+            # # rec = {"time": now(), "epoch": epoch, "train_kl": tr, "val_kl": va, **sp}
+            # rec = {"time": now(), "epoch": epoch,
+            #         "train_kl": tr, "val_kl": va,
+            #         "l1_term": l1_term, "val_loss": val_loss,
+            #         **sp}
+            # with open(metrics_path, "a", encoding="utf-8") as f: f.write(json.dumps(rec) + "\n")
+            # # print(f"[{epoch:03d}] train_KL={tr:.4e} val_KL={va:.4e} n_active={sp['n_active']} S_rel={sp['S_rel']:.3f}")
+            # print(f"[{epoch:03d}] train_KL={tr:.4e} val_KL={va:.4e} "
+            #     f"val_loss={val_loss:.4e} l1={l1_term:.4e} "
+            #     f"n_active={sp['n_active']} S_rel={sp['S_rel']:.3f}")
+
+            # # if va < best_val - 1e-12:
+            # #     best_val, bad = va, 0
+
+            val_loss = va + l1_term
+
+            sp = sparsity(cfg, mask_logits)  # uses cfg.active_threshold (your logging threshold)
+            sp_tau = sparsity(cfg, mask_logits, threshold=PAPER_TAU)  # paper-style S_rel@0.01
+
             tr_curve.append(tr); va_curve.append(va); act_curve.append(sp["n_active"])
 
-            # rec = {"time": now(), "epoch": epoch, "train_kl": tr, "val_kl": va, **sp}
             rec = {"time": now(), "epoch": epoch,
                     "train_kl": tr, "val_kl": va,
                     "l1_term": l1_term, "val_loss": val_loss,
-                    **sp}
+                    **sp,
+                    "paper_tau": PAPER_TAU,
+                    "n_active_tau": sp_tau["n_active"],
+                    "S_rel_tau": sp_tau["S_rel"],
+                    "S_full_tau": sp_tau["S_full"],
+            }
             with open(metrics_path, "a", encoding="utf-8") as f: f.write(json.dumps(rec) + "\n")
-            # print(f"[{epoch:03d}] train_KL={tr:.4e} val_KL={va:.4e} n_active={sp['n_active']} S_rel={sp['S_rel']:.3f}")
+
             print(f"[{epoch:03d}] train_KL={tr:.4e} val_KL={va:.4e} "
                 f"val_loss={val_loss:.4e} l1={l1_term:.4e} "
-                f"n_active={sp['n_active']} S_rel={sp['S_rel']:.3f}")
+                f"n_active={sp['n_active']} S_rel={sp['S_rel']:.3f} "
+                f"S_rel@{PAPER_TAU:g}={sp_tau['S_rel']:.3f}")
 
-            # if va < best_val - 1e-12:
-            #     best_val, bad = va, 0
+            # Track best feasible (under paper KL cap), and stop when paper targets are reached.
+            if (target_srel is not None) and (target_kl is not None):
+                # Update best feasible (va under cap, maximize S_rel@PAPER_TAU)
+                if (va <= target_kl) and (sp_tau["S_rel"] > best_feasible_srel):
+                    best_feasible_srel = sp_tau["S_rel"]
+                    best_feasible_state = {k: v.detach().clone().cpu() for k, v in mask_logits.items()}
+                    torch.save(
+                        {"epoch": epoch, "val_kl": va, "sp_tau": sp_tau, "target": paper_target,
+                         "mask_logits": best_feasible_state},
+                        ckpt_feasible_path,
+                    )
+
+                # Stop as soon as BOTH targets are satisfied
+                if (sp_tau["S_rel"] >= target_srel) and (va <= target_kl):
+                    target_state = {k: v.detach().clone().cpu() for k, v in mask_logits.items()}
+                    torch.save(
+                        {"epoch": epoch, "val_kl": va, "sp_tau": sp_tau, "target": paper_target,
+                         "mask_logits": target_state},
+                        ckpt_target_path,
+                    )
+                    print(
+                        f"Reached paper targets for task={task}: "
+                        f"S_rel@{PAPER_TAU:g}>={target_srel:.4f} and val_KL<={target_kl:.4f}. Stopping."
+                    )
+                    break
+
+                # Optional guard: if KL stays above the paper cap for a few epochs after we already
+                # found some feasible solution, stop and we will restore best_feasible_state.
+                if (best_feasible_state is not None) and (va > target_kl):
+                    kl_overshoot_bad += 1
+                    if kl_overshoot_bad >= 3:
+                        print(
+                            f"val_KL has been > paper cap ({target_kl:.4f}) for 3 epochs after finding a feasible state. Stopping."
+                        )
+                        break
+                else:
+                    kl_overshoot_bad = 0
+
             if val_loss < best_val_loss - 1e-12:
                 best_val_loss, bad = val_loss, 0
                 best_state = {k: v.detach().clone().cpu() for k, v in mask_logits.items()}
@@ -526,8 +646,13 @@ def train(cfg: Cfg, model: GPT2LMHeadModel, device: torch.device,
                 if bad >= cfg.early_stop_patience:
                     print("Early stopping."); break
 
-    if best_state is not None:
-        for k in mask_logits.keys(): mask_logits[k].data.copy_(best_state[k].to(device))
+    # if best_state is not None:
+    #     for k in mask_logits.keys(): mask_logits[k].data.copy_(best_state[k].to(device))
+    restore_state = target_state if target_state is not None else (best_feasible_state if best_feasible_state is not None else best_state)
+    if restore_state is not None:
+        for k in mask_logits.keys():
+            mask_logits[k].data.copy_(restore_state[k].to(device))
+
 
     # save masks
     with torch.no_grad():
@@ -644,7 +769,8 @@ def main():
         basis = load_basis_from_dir(cfg, svd_dir)
 
     if args.stage in ("all","c"):
-        _ = train(cfg, model, device, basis, W_blocks, train_cache, val_cache, out_dir)
+        _ = train(cfg, model, device, basis, W_blocks, train_cache, val_cache, out_dir, args.task)
+        # _ = train(cfg, model, device, basis, W_blocks, train_cache, val_cache, out_dir)
 
     if args.stage in ("all","receptors"):
         receptors(cfg, model, tok, basis, out_dir)
