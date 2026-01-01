@@ -443,7 +443,8 @@ def train(cfg: Cfg, model: GPT2LMHeadModel, device: torch.device,
     for p in model.parameters(): p.requires_grad_(False)
     model.eval()
 
-    best_val, bad = float("inf"), 0
+    # best_val, bad = float("inf"), 0
+    best_val_loss, bad = float("inf"), 0
     best_state: Optional[Dict[str, torch.Tensor]] = None
     tr_curve, va_curve, act_curve = [], [], []
 
@@ -493,15 +494,32 @@ def train(cfg: Cfg, model: GPT2LMHeadModel, device: torch.device,
                     kls.append(float(kl(probs(lb), probs(lt)).mean().cpu()))
                 va = float(np.mean(kls))
 
+            # L1 term (paper objective uses ||diag(M)||_1, i.e. sum of mask values)
+            with torch.no_grad():
+                m_all = torch.cat([torch.sigmoid(p).reshape(-1) for p in mask_logits.values()])
+                l1_term = float((cfg.l1_weight * m_all.sum()).detach().cpu())
+
+            val_loss = va + l1_term
+            # sp = sparsity(cfg, mask_logits)
+
             sp = sparsity(cfg, mask_logits)
             tr_curve.append(tr); va_curve.append(va); act_curve.append(sp["n_active"])
 
-            rec = {"time": now(), "epoch": epoch, "train_kl": tr, "val_kl": va, **sp}
+            # rec = {"time": now(), "epoch": epoch, "train_kl": tr, "val_kl": va, **sp}
+            rec = {"time": now(), "epoch": epoch,
+                    "train_kl": tr, "val_kl": va,
+                    "l1_term": l1_term, "val_loss": val_loss,
+                    **sp}
             with open(metrics_path, "a", encoding="utf-8") as f: f.write(json.dumps(rec) + "\n")
-            print(f"[{epoch:03d}] train_KL={tr:.4e} val_KL={va:.4e} n_active={sp['n_active']} S_rel={sp['S_rel']:.3f}")
+            # print(f"[{epoch:03d}] train_KL={tr:.4e} val_KL={va:.4e} n_active={sp['n_active']} S_rel={sp['S_rel']:.3f}")
+            print(f"[{epoch:03d}] train_KL={tr:.4e} val_KL={va:.4e} "
+                f"val_loss={val_loss:.4e} l1={l1_term:.4e} "
+                f"n_active={sp['n_active']} S_rel={sp['S_rel']:.3f}")
 
-            if va < best_val - 1e-12:
-                best_val, bad = va, 0
+            # if va < best_val - 1e-12:
+            #     best_val, bad = va, 0
+            if val_loss < best_val_loss - 1e-12:
+                best_val_loss, bad = val_loss, 0
                 best_state = {k: v.detach().clone().cpu() for k, v in mask_logits.items()}
             else:
                 bad += 1
