@@ -431,7 +431,8 @@ def stage1_cluster(cfg: E1Config, X: torch.Tensor) -> List[int]:
     with torch.no_grad():
         for i in tqdm(range(0, N, chunk), desc="Stage1 clustering", leave=False):
             Xi = Xd[i:i+chunk]                          # [c,768]
-            sim = Xi @ Xd.T                             # [c,N]
+            # sim = Xi @ Xd.T                             # [c,N]
+            sim = (Xi @ Xd.T).abs()
             # Get indices where sim >= threshold
             mask = sim >= cfg.cos_merge_stage1
             # Convert to pairs
@@ -523,9 +524,21 @@ def stage2_confirm(cfg: E1Config,
             r = (v @ WU.T).numpy()
             sub_abs = r[top_abs]
             sub_pos = r[top_pos]
-            cos_abs = float(np.dot(sub_abs, rep_sub_abs) / ((np.linalg.norm(sub_abs) + 1e-12) * rep_abs_norm))
-            cos_pos = float(np.dot(sub_pos, rep_sub_pos) / ((np.linalg.norm(sub_pos) + 1e-12) * rep_pos_norm))
-            cos = max(cos_abs, cos_pos)
+            # cos_abs = float(np.dot(sub_abs, rep_sub_abs) / ((np.linalg.norm(sub_abs) + 1e-12) * rep_abs_norm))
+            # cos_pos = float(np.dot(sub_pos, rep_sub_pos) / ((np.linalg.norm(sub_pos) + 1e-12) * rep_pos_norm))
+            # cos = max(cos_abs, cos_pos)
+            cos_abs = float(
+                np.dot(sub_abs, rep_sub_abs)
+                / ((np.linalg.norm(sub_abs) + 1e-12) * (rep_abs_norm + 1e-12))
+            )
+            cos_pos = float(
+                np.dot(sub_pos, rep_sub_pos)
+                / ((np.linalg.norm(sub_pos) + 1e-12) * (rep_pos_norm + 1e-12))
+            )
+
+            # sign-invariant: treat +v and -v as the "same" direction for clustering/confirmation
+            cos = max(abs(cos_abs), abs(cos_pos))
+
             if cos >= cfg.cos_confirm_stage2:
                 kept.append((d, cos))
             else:
