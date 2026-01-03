@@ -186,18 +186,26 @@ def load_direction_table(
       v_mat: [N_dir, 768] float32 unit vectors (same row order)
       dir_ids: list of dir_id strings aligned with v_mat / df
     """
-    svd_dir = out_dir / "svd_dir"
+    svd_dir = out_dir / "svd"
     if not svd_dir.exists():
-        alt = out_dir / "svd"
-        if alt.exists():
-            svd_dir = alt
-
+        svd_dir = out_dir / "svd_dir"
     if not svd_dir.exists():
         raise FileNotFoundError(
-            f"Missing SVD directory. Looked for {out_dir/'svd_dir'} and {out_dir/'svd'}. "
-            "Did you run run_ov_mask.py with the same --out_dir and --task?"
+            f"Missing SVD directory. Looked for {out_dir/'svd'} and {out_dir/'svd_dir'}."
         )
-    masks_dir = out_dir / "masks"
+
+    # svd_dir = out_dir / "svd_dir"
+    # if not svd_dir.exists():
+    #     alt = out_dir / "svd"
+    #     if alt.exists():
+    #         svd_dir = alt
+
+    # if not svd_dir.exists():
+    #     raise FileNotFoundError(
+    #         f"Missing SVD directory. Looked for {out_dir/'svd_dir'} and {out_dir/'svd'}. "
+    #         "Did you run run_ov_mask.py with the same --out_dir and --task?"
+    #     )
+    # masks_dir = out_dir / "masks"
     # if not svd_dir.exists():
     #     raise FileNotFoundError(f"Missing {svd_dir}. Did you run run_ov_mask.py?")
     if not masks_dir.exists():
@@ -207,17 +215,28 @@ def load_direction_table(
     cand_ids: Optional[set] = None
     cand_path = out_dir / "artifacts" / "e1" / "candidates.json"
     if use_candidates_json and cand_path.exists():
-        cand_json = _read_json(cand_path)
-        # We accept either list of strings like "l10_h09_k001" or dicts.
+        cand_obj = _read_json(cand_path)
+
+        # e1_postprocess.py writes {"task":..., "tau_report":..., "candidates":[(l,h,k), ...]}
+        if isinstance(cand_obj, dict) and "candidates" in cand_obj:
+            cand_obj = cand_obj["candidates"]
+
         cand_ids = set()
-        for x in cand_json:
-            if isinstance(x, str):
-                cand_ids.add(x)
-            elif isinstance(x, dict):
-                cand_ids.add(f"l{x['layer']}_h{x['head']}_k{x['k']}")
-        # If parsing failed, we'll fall back to None
+        if isinstance(cand_obj, list):
+            for x in cand_obj:
+                # allow either strings OR tuple/list OR dicts
+                if isinstance(x, str):
+                    cand_ids.add(x)
+                elif isinstance(x, (list, tuple)) and len(x) == 3:
+                    l, h, k = int(x[0]), int(x[1]), int(x[2])
+                    cand_ids.add(f"l{l}_h{h}_k{k}")
+                elif isinstance(x, dict) and all(k in x for k in ("layer", "head", "k")):
+                    cand_ids.add(f"l{int(x['layer'])}_h{int(x['head'])}_k{int(x['k'])}")
+
+        # If parsing failed, fall back to None (meaning: don't filter)
         if len(cand_ids) == 0:
             cand_ids = None
+
 
     rows: List[DirectionRow] = []
     v_list: List[np.ndarray] = []
@@ -555,11 +574,28 @@ def cluster_active_directions(
 # Rebuild bank + X states
 # -----------------------------
 
-def _load_cache(out_dir: Path, split: str) -> Dict[str, torch.Tensor]:
-    p = out_dir / "cache" / f"cache_{split}.pt"
-    if not p.exists():
-        raise FileNotFoundError(f"Missing cache file: {p}")
-    return torch.load(p, map_location="cpu")
+# def _load_cache(out_dir: Path, split: str) -> Dict[str, torch.Tensor]:
+#     p = out_dir / "cache" / f"cache_{split}.pt"
+#     if not p.exists():
+#         raise FileNotFoundError(f"Missing cache file: {p}")
+#     return torch.load(p, map_location="cpu")
+
+def _load_cache(out_dir: Path, split: str) -> Dict[str, Any]:
+    cache_dir = out_dir / "cache"
+    candidates = [
+        cache_dir / f"{split}.pt",           # correct (E1 / run_ov_mask convention)
+        cache_dir / f"cache_{split}.pt",     # legacy / your earlier assumption
+        cache_dir / f"cache_{split}.pt",     # harmless duplicate, keep simple
+        cache_dir / f"cache_{split}.pt",     # (you can delete extras later)
+    ]
+    for p in candidates:
+        if p.exists():
+            return torch.load(p, map_location="cpu")
+
+    raise FileNotFoundError(
+        "Missing cache file. Looked for:\n  " + "\n  ".join(str(p) for p in candidates)
+    )
+
 
 
 def rebuild_X_tensors(
@@ -590,17 +626,26 @@ def rebuild_X_tensors(
         global_to_flip[int(gi)] = bool(dir_flip_active[j])
 
     # svd_dir = out_dir / "svd_dir"
-    svd_dir = out_dir / "svd_dir"
-    if not svd_dir.exists():
-        alt = out_dir / "svd"
-        if alt.exists():
-            svd_dir = alt
 
+    svd_dir = out_dir / "svd"
+    if not svd_dir.exists():
+        svd_dir = out_dir / "svd_dir"
     if not svd_dir.exists():
         raise FileNotFoundError(
-            f"Missing SVD directory. Looked for {out_dir/'svd_dir'} and {out_dir/'svd'}. "
-            "Did you run run_ov_mask.py with the same --out_dir and --task?"
+            f"Missing SVD directory. Looked for {out_dir/'svd'} and {out_dir/'svd_dir'}."
         )
+
+    # svd_dir = out_dir / "svd_dir"
+    # if not svd_dir.exists():
+    #     alt = out_dir / "svd"
+    #     if alt.exists():
+    #         svd_dir = alt
+
+    # if not svd_dir.exists():
+    #     raise FileNotFoundError(
+    #         f"Missing SVD directory. Looked for {out_dir/'svd_dir'} and {out_dir/'svd'}. "
+    #         "Did you run run_ov_mask.py with the same --out_dir and --task?"
+    #     )
 
     outputs: Dict[str, Dict[str, Path]] = {}
 
