@@ -187,9 +187,19 @@ def load_direction_table(
       dir_ids: list of dir_id strings aligned with v_mat / df
     """
     svd_dir = out_dir / "svd_dir"
-    masks_dir = out_dir / "masks"
     if not svd_dir.exists():
-        raise FileNotFoundError(f"Missing {svd_dir}. Did you run run_ov_mask.py?")
+        alt = out_dir / "svd"
+        if alt.exists():
+            svd_dir = alt
+
+    if not svd_dir.exists():
+        raise FileNotFoundError(
+            f"Missing SVD directory. Looked for {out_dir/'svd_dir'} and {out_dir/'svd'}. "
+            "Did you run run_ov_mask.py with the same --out_dir and --task?"
+        )
+    masks_dir = out_dir / "masks"
+    # if not svd_dir.exists():
+    #     raise FileNotFoundError(f"Missing {svd_dir}. Did you run run_ov_mask.py?")
     if not masks_dir.exists():
         raise FileNotFoundError(f"Missing {masks_dir}. Did you run run_ov_mask.py?")
 
@@ -579,7 +589,18 @@ def rebuild_X_tensors(
         global_to_cluster[int(gi)] = int(dir_to_cluster_active[j])
         global_to_flip[int(gi)] = bool(dir_flip_active[j])
 
+    # svd_dir = out_dir / "svd_dir"
     svd_dir = out_dir / "svd_dir"
+    if not svd_dir.exists():
+        alt = out_dir / "svd"
+        if alt.exists():
+            svd_dir = alt
+
+    if not svd_dir.exists():
+        raise FileNotFoundError(
+            f"Missing SVD directory. Looked for {out_dir/'svd_dir'} and {out_dir/'svd'}. "
+            "Did you run run_ov_mask.py with the same --out_dir and --task?"
+        )
 
     outputs: Dict[str, Dict[str, Path]] = {}
 
