@@ -205,7 +205,7 @@ def load_direction_table(
     #         f"Missing SVD directory. Looked for {out_dir/'svd_dir'} and {out_dir/'svd'}. "
     #         "Did you run run_ov_mask.py with the same --out_dir and --task?"
     #     )
-    # masks_dir = out_dir / "masks"
+    masks_dir = out_dir / "masks"
     # if not svd_dir.exists():
     #     raise FileNotFoundError(f"Missing {svd_dir}. Did you run run_ov_mask.py?")
     if not masks_dir.exists():
