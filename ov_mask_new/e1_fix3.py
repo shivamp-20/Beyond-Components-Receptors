@@ -431,6 +431,49 @@ def compute_direction_corr_and_mass(
     return out
 
 
+# def compute_logit_footprints(
+#     model: GPT2LMHeadModel,
+#     dirs_meta: List[Tuple[int, int, int, float, float, bool, float, np.ndarray]],
+#     topL: int,
+#     fp16: bool = True,
+#     chunk: int = 256,
+# ) -> Tuple[List[np.ndarray], List[np.ndarray], List[np.ndarray], List[np.ndarray]]:
+#     """Given directions metadata, compute topL pos/neg ids and scores.
+
+#     dirs_meta rows: (l,h,k,sigma,mask,flip,corr,v[768]) where v already oriented.
+#     """
+#     # W_U: [V, 768]
+#     W = model.lm_head.weight.detach()
+#     dev = W.device
+
+#     # stack (sigma * v) into [N,768]
+#     vecs = np.stack([sigma * v for (_l, _h, _k, sigma, _m, _flip, _corr, v) in dirs_meta], axis=0).astype(np.float32)
+#     N = vecs.shape[0]
+#     pos_ids_list: List[np.ndarray] = []
+#     pos_scores_list: List[np.ndarray] = []
+#     neg_ids_list: List[np.ndarray] = []
+#     neg_scores_list: List[np.ndarray] = []
+
+#     dtype = torch.float16 if (fp16 and dev.type == "cuda") else torch.float32
+
+#     with torch.no_grad():
+#         for i0 in tqdm(range(0, N, chunk), desc="[Fix3] logit footprints"):
+#             i1 = min(N, i0 + chunk)
+#             Vb = torch.tensor(vecs[i0:i1], device=dev, dtype=dtype)  # [B,768]
+#             # R = Vb @ W.T -> [B, V]
+#             R = Vb @ W.T
+#             # top positive
+#             vals_pos, ids_pos = torch.topk(R, k=topL, dim=-1)
+#             # top negative
+#             vals_neg, ids_neg = torch.topk(-R, k=topL, dim=-1)
+#             # store
+#             pos_ids_list.extend([_to_numpy(x) for x in ids_pos])
+#             pos_scores_list.extend([_to_numpy(x) for x in vals_pos.float()])
+#             neg_ids_list.extend([_to_numpy(x) for x in ids_neg])
+#             neg_scores_list.extend([_to_numpy((-x).float()) for x in vals_neg])  # convert back to negative scores
+
+#     return pos_ids_list, pos_scores_list, neg_ids_list, neg_scores_list
+
 def compute_logit_footprints(
     model: GPT2LMHeadModel,
     dirs_meta: List[Tuple[int, int, int, float, float, bool, float, np.ndarray]],
@@ -447,30 +490,37 @@ def compute_logit_footprints(
     dev = W.device
 
     # stack (sigma * v) into [N,768]
-    vecs = np.stack([sigma * v for (_l, _h, _k, sigma, _m, _flip, _corr, v) in dirs_meta], axis=0).astype(np.float32)
+    vecs = np.stack(
+        [sigma * v for (_l, _h, _k, sigma, _m, _flip, _corr, v) in dirs_meta],
+        axis=0
+    ).astype(np.float32)
+
     N = vecs.shape[0]
     pos_ids_list: List[np.ndarray] = []
     pos_scores_list: List[np.ndarray] = []
     neg_ids_list: List[np.ndarray] = []
     neg_scores_list: List[np.ndarray] = []
 
-    dtype = torch.float16 if (fp16 and dev.type == "cuda") else torch.float32
+    # Pick compute dtype and FORCE W to that dtype (fixes Half != float)
+    dtype = torch.float16 if (fp16 and dev.type == "cuda") else W.dtype
+    W = W.to(dtype=dtype)
 
     with torch.no_grad():
-        for i0 in tqdm(range(0, N, chunk), desc="[Fix3] logit footprints"):
+        for i0 in range(0, N, chunk):
             i1 = min(N, i0 + chunk)
             Vb = torch.tensor(vecs[i0:i1], device=dev, dtype=dtype)  # [B,768]
-            # R = Vb @ W.T -> [B, V]
+
+            # [B,V] = [B,768] @ [768,V]
             R = Vb @ W.T
-            # top positive
-            vals_pos, ids_pos = torch.topk(R, k=topL, dim=-1)
-            # top negative
-            vals_neg, ids_neg = torch.topk(-R, k=topL, dim=-1)
-            # store
-            pos_ids_list.extend([_to_numpy(x) for x in ids_pos])
-            pos_scores_list.extend([_to_numpy(x) for x in vals_pos.float()])
-            neg_ids_list.extend([_to_numpy(x) for x in ids_neg])
-            neg_scores_list.extend([_to_numpy((-x).float()) for x in vals_neg])  # convert back to negative scores
+
+            # top pos and neg per row
+            vals_pos, idx_pos = torch.topk(R, k=topL, dim=-1)
+            vals_neg, idx_neg = torch.topk(-R, k=topL, dim=-1)
+
+            pos_ids_list.extend([idx_pos[j].detach().cpu().numpy() for j in range(idx_pos.shape[0])])
+            pos_scores_list.extend([vals_pos[j].detach().cpu().numpy().astype(np.float32) for j in range(vals_pos.shape[0])])
+            neg_ids_list.extend([idx_neg[j].detach().cpu().numpy() for j in range(idx_neg.shape[0])])
+            neg_scores_list.extend([(-vals_neg[j]).detach().cpu().numpy().astype(np.float32) for j in range(vals_neg.shape[0])])
 
     return pos_ids_list, pos_scores_list, neg_ids_list, neg_scores_list
 
