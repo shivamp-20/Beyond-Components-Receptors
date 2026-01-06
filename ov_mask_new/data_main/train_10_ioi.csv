@@ -1,0 +1,11 @@
+ioi_sentences_input,ioi_sentences_labels,corr_ioi_sentences_input,corr_ioi_sentences_labels,ioi_sentences_labels_wrong,corr_ioi_sentences_labels_wrong
+"When Anne and Jessica got a blueberry at the home, Jessica decided to give it to",Anne,"When Hillary and Jason got a blueberry at the home, Evan decided to give it to",Garrett,Jessica,Jason
+Friends Bernadette and Harriet found a strawberry at the zoo. Bernadette gave it to,Harriet,Friends Zoey and Payton found a strawberry at the zoo. Chaya gave it to,Arnold,Bernadette,Zoey
+The river Theresa and Megan went to had a grape. Megan gave it to,Theresa,The river Maryam and Rebecca went to had a grape. Jessica gave it to,Brittany,Megan,Rebecca
+"When Melissa and Mildred got a coconut at the home, Melissa decided to give it to",Mildred,"When Jenny and Marquise got a coconut at the home, Daniela decided to give it to",Easton,Melissa,Jenny
+"After the lunch, Marilyn and Brandy went to the theater. Marilyn gave a cantaloupe to",Brandy,"After the lunch, Brennon and Bryan went to the theater. Addison gave a cantaloupe to",Walker,Marilyn,Brennon
+"When Chelsea and Kristina got a pear at the gym, Kristina decided to give the pear to",Chelsea,"When Jackson and Colt got a pear at the gym, Lindsay decided to give the pear to",Yasmin,Kristina,Colt
+"Then, Bernadette and Ginger went to the mountain. Bernadette gave a cherry to",Ginger,"Then, Cydney and Ulises went to the mountain. Benito gave a cherry to",Troy,Bernadette,Cydney
+"When Richard and Kim got a mango at the river, Richard decided to give it to",Kim,"When John and Joseph got a mango at the river, Sergio decided to give it to",Asia,Richard,John
+Friends Carmen and Pauline found a strawberry at the bar. Pauline gave it to,Carmen,Friends Tariq and Trystan found a strawberry at the bar. Brayden gave it to,Jamir,Pauline,Trystan
+"After Kevin and Mark went to the shop, Kevin gave a blackberry to",Mark,"After Elsa and Ian went to the shop, Byron gave a blackberry to",Jamie,Kevin,Elsa
