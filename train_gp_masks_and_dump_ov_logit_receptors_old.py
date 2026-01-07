@@ -175,33 +175,14 @@ class MaskBank(nn.Module):
     def sig(p: torch.Tensor) -> torch.Tensor:
         return torch.sigmoid(p)
 
-    def l1_sum(self, mode: str = "mean_per_vector") -> torch.Tensor:
-        """L1 penalty over mask values (after sigmoid).
-
-        mode:
-          - "mean_per_vector" (default, previous behavior): sum over mask-vectors of mean(mask_vector)
-            => each mask-vector contributes equally, regardless of length.
-          - "sum_all": sum over all mask values across all singular directions
-            => each singular direction contributes equally (closer to ||diag(M)||_1).
-        """
-        if mode not in ("mean_per_vector", "sum_all"):
-            raise ValueError(f"Unknown l1 mode: {mode}")
-
+    def l1_sum(self) -> torch.Tensor:
         acc = 0.0
         for l in range(len(self.qk)):
             for h in range(len(self.qk[l])):
-                mqk = self.sig(self.qk[l][h])
-                mov = self.sig(self.ov[l][h])
-                if mode == "mean_per_vector":
-                    acc = acc + mqk.mean() + mov.mean()
-                else:
-                    acc = acc + mqk.sum() + mov.sum()
-            mi = self.sig(self.mlp_in[l])
-            mo = self.sig(self.mlp_out[l])
-            if mode == "mean_per_vector":
-                acc = acc + mi.mean() + mo.mean()
-            else:
-                acc = acc + mi.sum() + mo.sum()
+                acc = acc + self.sig(self.qk[l][h]).mean()
+                acc = acc + self.sig(self.ov[l][h]).mean()
+            acc = acc + self.sig(self.mlp_in[l]).mean()
+            acc = acc + self.sig(self.mlp_out[l]).mean()
         return acc
 
 
@@ -615,112 +596,48 @@ def compute_sparsities(
     tau: float,
     rank_total_ov: List[List[int]]
 ) -> Dict[str, float]:
-    """Compute sparsity metrics using **OV directions only**.
+    n_layers = len(masks.qk)
+    n_heads = len(masks.qk[0])
 
-    - relative_sparsity_ov: computed over *trainable* OV directions (after svd_eps truncation)
-      denominator = sum_r m_ov.numel() across all heads.
-    - full_sparsity_ov: computed over OV directions *before svd_eps truncation*
-      denominator = sum rank_total_ov[l][h] across all heads.
-    """
-    n_layers = len(masks.ov)
-    n_heads = len(masks.ov[0])
+    # relative sparsity over ALL trainable directions (after svd_eps)
+    n_trainable = 0
+    n_kept = 0
 
-    # relative sparsity over OV trainable directions (after svd_eps)
-    n_trainable_ov = 0
-    n_kept_ov_trainable = 0
-
-    # full sparsity over OV "before truncation" (numerical rank of OV_aug per head)
+    # full sparsity over OV directions "before truncation" (rank_total_ov)
     n_total_ov = 0
     n_kept_ov = 0
 
     for l in range(n_layers):
         for h in range(n_heads):
+            m_qk = torch.sigmoid(masks.qk[l][h]).detach()
             m_ov = torch.sigmoid(masks.ov[l][h]).detach()
-            kept = int((m_ov > tau).sum().item())
-            n_trainable_ov += m_ov.numel()
-            n_kept_ov_trainable += kept
+            n_trainable += m_qk.numel()
+            n_trainable += m_ov.numel()
+            n_kept += int((m_qk > tau).sum().item())
+            n_kept += int((m_ov > tau).sum().item())
 
             n_total_ov += int(rank_total_ov[l][h])
-            n_kept_ov += kept
+            n_kept_ov += int((m_ov > tau).sum().item())
 
-    rel_sparsity_ov = 1.0 - (n_kept_ov_trainable / max(1, n_trainable_ov))
+        m_in = torch.sigmoid(masks.mlp_in[l]).detach()
+        m_out = torch.sigmoid(masks.mlp_out[l]).detach()
+        n_trainable += m_in.numel() + m_out.numel()
+        n_kept += int((m_in > tau).sum().item()) + int((m_out > tau).sum().item())
+
+    rel_sparsity = 1.0 - (n_kept / max(1, n_trainable))
     full_sparsity_ov = 1.0 - (n_kept_ov / max(1, n_total_ov))
 
     return {
-        "n_trainable_ov": float(n_trainable_ov),
-        "n_kept_ov_trainable": float(n_kept_ov_trainable),
-        "relative_sparsity_ov": float(rel_sparsity_ov),
+        "n_trainable": float(n_trainable),
+        "n_kept": float(n_kept),
+        "relative_sparsity_all": float(rel_sparsity),
         "n_total_ov_rank": float(n_total_ov),
         "n_kept_ov": float(n_kept_ov),
         "full_sparsity_ov": float(full_sparsity_ov),
     }
+
+
 @torch.no_grad()
-def collect_mask_values(masks: MaskBank, which: str = "all") -> torch.Tensor:
-    """Flatten current mask values (after sigmoid) into a 1D CPU tensor."""
-    which = which.lower()
-    vals: List[torch.Tensor] = []
-
-    n_layers = len(masks.qk)
-    n_heads = len(masks.qk[0])
-
-    if which in ("all", "qk"):
-        for l in range(n_layers):
-            for h in range(n_heads):
-                vals.append(torch.sigmoid(masks.qk[l][h]).detach().flatten())
-
-    if which in ("all", "ov"):
-        for l in range(n_layers):
-            for h in range(n_heads):
-                vals.append(torch.sigmoid(masks.ov[l][h]).detach().flatten())
-
-    if which in ("all", "mlp"):
-        for l in range(n_layers):
-            vals.append(torch.sigmoid(masks.mlp_in[l]).detach().flatten())
-            vals.append(torch.sigmoid(masks.mlp_out[l]).detach().flatten())
-
-    if len(vals) == 0:
-        return torch.empty((0,), dtype=torch.float32)
-    return torch.cat(vals).float().cpu()
-
-
-def mask_bucket_counts(v: torch.Tensor,
-                       lows=(0.5, 0.1, 0.01),
-                       highs=(0.9, 0.99)) -> Dict[str, int]:
-    """Counts of mask values below/above thresholds."""
-    out: Dict[str, int] = {"n": int(v.numel())}
-    if v.numel() == 0:
-        for t in lows:
-            out[f"lt_{t}"] = 0
-        for t in highs:
-            out[f"gt_{t}"] = 0
-        return out
-    for t in lows:
-        out[f"lt_{t}"] = int((v < float(t)).sum().item())
-    for t in highs:
-        out[f"gt_{t}"] = int((v > float(t)).sum().item())
-    return out
-
-
-def mask_threshold_crossings(prev: Optional[torch.Tensor],
-                             curr: torch.Tensor,
-                             thresholds=(0.5, 0.1, 0.01, 0.9, 0.99)) -> Dict[str, int]:
-    """How many masks crossed each threshold between prev -> curr (CPU tensors)."""
-    out: Dict[str, int] = {}
-    if prev is None or prev.numel() == 0 or curr.numel() == 0:
-        for t in thresholds:
-            out[f"down_{t}"] = 0
-            out[f"up_{t}"] = 0
-        return out
-
-    if prev.shape != curr.shape:
-        # Should never happen if mask structure is fixed.
-        raise ValueError(f"prev/curr mask shape mismatch: {prev.shape} vs {curr.shape}")
-
-    for t in thresholds:
-        tt = float(t)
-        out[f"down_{t}"] = int(((prev >= tt) & (curr < tt)).sum().item())
-        out[f"up_{t}"] = int(((prev <= tt) & (curr > tt)).sum().item())
-    return out
 def save_masks(path: str, masks: MaskBank) -> None:
     out = {"qk": [], "ov": [], "mlp_in": [], "mlp_out": []}
     n_layers = len(masks.qk)
@@ -895,7 +812,7 @@ def should_stop(val_kl: float, metrics: Dict[str, float],
     if target_val_kl is not None:
         ok = ok and (val_kl <= target_val_kl)
     if target_rel_sparsity is not None:
-        ok = ok and (metrics["relative_sparsity_ov"] >= target_rel_sparsity)
+        ok = ok and (metrics["relative_sparsity_all"] >= target_rel_sparsity)
     if target_full_sparsity is not None:
         ok = ok and (metrics["full_sparsity_ov"] >= target_full_sparsity)
     return ok
@@ -917,7 +834,6 @@ def main():
     ap.add_argument("--lr", type=float, default=1e-2)
     ap.add_argument("--weight_decay", type=float, default=0.0)
     ap.add_argument("--l1_lambda", type=float, default=1e-3)
-    ap.add_argument("--l1_mode", type=str, default="mean_per_vector", choices=["mean_per_vector", "sum_all"])
 
     ap.add_argument("--svd_eps", type=float, default=1e-6)
     ap.add_argument("--tau", type=float, default=1e-2)
@@ -982,15 +898,11 @@ def main():
     best_val = float("inf")
     bad_epochs = 0
     last_summary: Dict[str, Any] = {}
-    print(f"[OBJ] loss = KL(p_orig || p_masked) + l1_lambda * L1(mask); l1_mode={args.l1_mode}")
-    prev_masks_all: Optional[torch.Tensor] = None
-    prev_masks_ov: Optional[torch.Tensor] = None
 
     for epoch in range(1, args.max_epochs + 1):
         masks.train()
         total_loss = 0.0
         total_kl = 0.0
-        total_l1 = 0.0
         total_batches = 0
 
         for batch in batch_iter(train_rows, args.batch_size, shuffle=True):
@@ -1036,7 +948,7 @@ def main():
             # KL(p || q) = sum p * (logp - logq)
             kl = (p * (logp - logq)).sum(dim=-1).mean()
 
-            l1 = masks.l1_sum(mode=args.l1_mode)
+            l1 = masks.l1_sum()
             loss = kl + args.l1_lambda * l1
 
             opt.zero_grad(set_to_none=True)
@@ -1045,7 +957,6 @@ def main():
 
             total_loss += float(loss.detach().cpu().item())
             total_kl += float(kl.detach().cpu().item())
-            total_l1 += float(l1.detach().cpu().item())
             total_batches += 1
 
         # Validation
@@ -1093,17 +1004,6 @@ def main():
         spars = compute_sparsities(masks, tau=args.tau, rank_total_ov=rank_total_ov)
         train_loss = total_loss / max(1, total_batches)
         train_kl = total_kl / max(1, total_batches)
-        train_l1 = total_l1 / max(1, total_batches)
-        train_l1_term = args.l1_lambda * train_l1
-        # Mask distribution stats (ALL masks vs OV-only masks)
-        masks_all = collect_mask_values(masks, which='all')
-        masks_ov = collect_mask_values(masks, which='ov')
-        buckets_all = mask_bucket_counts(masks_all)
-        buckets_ov = mask_bucket_counts(masks_ov)
-        cross_all = mask_threshold_crossings(prev_masks_all, masks_all)
-        cross_ov = mask_threshold_crossings(prev_masks_ov, masks_ov)
-        prev_masks_all = masks_all
-        prev_masks_ov = masks_ov
 
         last_summary = {
             "epoch": epoch,
@@ -1113,25 +1013,11 @@ def main():
             "tau": args.tau,
             "svd_eps": args.svd_eps,
             "l1_lambda": args.l1_lambda,
-            "l1_mode": args.l1_mode,
-            "train_l1": train_l1,
-            "train_l1_term": train_l1_term,
-            "mask_buckets_all": buckets_all,
-            "mask_buckets_ov": buckets_ov,
-            "mask_crossings_all": cross_all,
-            "mask_crossings_ov": cross_ov,
             **spars
         }
 
-        print(
-            f"[EPOCH {epoch}] train_loss={train_loss:.6g} (kl={train_kl:.6g} + {args.l1_lambda:g}*{train_l1:.6g}={train_l1_term:.6g}) "
-            f"val_kl={val_kl:.6g} | OV: active={int(spars['n_kept_ov_trainable'])}/{int(spars['n_trainable_ov'])} "
-            f"(rank_total={int(spars['n_total_ov_rank'])}) s_rel_ov={spars['relative_sparsity_ov']:.4f} s_full_ov={spars['full_sparsity_ov']:.4f}"
-        )
-        print(f"           MASK buckets ALL: {buckets_all}")
-        print(f"           MASK buckets OV : {buckets_ov}")
-        print(f"           MASK crossings ALL (prev→curr): {cross_all}")
-        print(f"           MASK crossings OV  (prev→curr): {cross_ov}")
+        print(f"[EPOCH {epoch}] train_kl={train_kl:.6g} val_kl={val_kl:.6g} "
+              f"rel_sparsity={spars['relative_sparsity_all']:.4f} full_sparsity_ov={spars['full_sparsity_ov']:.4f}")
 
         # Early stop check
         if should_stop(val_kl, spars, args.target_val_kl, args.target_rel_sparsity, args.target_full_sparsity):
