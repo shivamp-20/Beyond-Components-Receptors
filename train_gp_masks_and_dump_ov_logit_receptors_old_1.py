@@ -1095,13 +1095,6 @@ def main():
         train_kl = total_kl / max(1, total_batches)
         train_l1 = total_l1 / max(1, total_batches)
         train_l1_term = args.l1_lambda * train_l1
-        # L1 scale diagnostics: compare both modes on CURRENT masks (does not affect optimization)
-        with torch.no_grad():
-            l1_now_mean_per_vector = float(masks.l1_sum(mode="mean_per_vector").detach().cpu().item())
-            l1_now_sum_all = float(masks.l1_sum(mode="sum_all").detach().cpu().item())
-            l1_now_ratio_sum_over_mean = l1_now_sum_all / (l1_now_mean_per_vector + 1e-12)
-            l1_now_term_mean_per_vector = args.l1_lambda * l1_now_mean_per_vector
-            l1_now_term_sum_all = args.l1_lambda * l1_now_sum_all
         # Mask distribution stats (ALL masks vs OV-only masks)
         masks_all = collect_mask_values(masks, which='all')
         masks_ov = collect_mask_values(masks, which='ov')
@@ -1123,11 +1116,6 @@ def main():
             "l1_mode": args.l1_mode,
             "train_l1": train_l1,
             "train_l1_term": train_l1_term,
-            "l1_now_mean_per_vector": l1_now_mean_per_vector,
-            "l1_now_sum_all": l1_now_sum_all,
-            "l1_now_ratio_sum_over_mean": l1_now_ratio_sum_over_mean,
-            "l1_now_term_mean_per_vector": l1_now_term_mean_per_vector,
-            "l1_now_term_sum_all": l1_now_term_sum_all,
             "mask_buckets_all": buckets_all,
             "mask_buckets_ov": buckets_ov,
             "mask_crossings_all": cross_all,
@@ -1144,15 +1132,6 @@ def main():
         print(f"           MASK buckets OV : {buckets_ov}")
         print(f"           MASK crossings ALL (prev→curr): {cross_all}")
         print(f"           MASK crossings OV  (prev→curr): {cross_ov}")
-        print(
-            f"           L1 diagnostics (current masks): mean_per_vector={l1_now_mean_per_vector:.6g} "
-            f"(λ*={l1_now_term_mean_per_vector:.6g}), sum_all={l1_now_sum_all:.6g} "
-            f"(λ*={l1_now_term_sum_all:.6g}), ratio(sum/mean)={l1_now_ratio_sum_over_mean:.3g}"
-        )
-        print(
-            f"           (Switching guidance) If you want similar L1 scale when switching modes: "
-            f"λ_sum_all≈λ_mean/ratio and λ_mean≈λ_sum_all*ratio (ratio is printed above)."
-        )
 
         # Early stop check
         if should_stop(val_kl, spars, args.target_val_kl, args.target_rel_sparsity, args.target_full_sparsity):
