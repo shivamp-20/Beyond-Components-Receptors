@@ -342,26 +342,50 @@ def attention_pattern_original(
     return F.softmax(scores, dim=-1)
 
 
+# def attention_pattern_masked_qk(
+#     x_ln1: torch.Tensor,       # (B,S,D)
+#     qk_svd: SVDMat,             # U: (D+1,r), Vh: (r,D+1)
+#     m: torch.Tensor,            # (r,)
+#     causal: torch.Tensor        # (S,S)
+# ) -> torch.Tensor:
+#     B, S, D = x_ln1.shape
+#     ones = torch.ones((B, S, 1), device=x_ln1.device, dtype=x_ln1.dtype)
+#     x_aug = torch.cat([x_ln1, ones], dim=-1)  # (B,S,D+1)
+
+#     U = qk_svd.U               # (D+1,r)
+#     V = qk_svd.Vh.transpose(0, 1)  # (D+1,r)
+#     Svals = qk_svd.S           # (r,)
+
+#     # A = x_aug @ U  ; Bv = x_aug @ V
+#     A = x_aug @ U              # (B,S,r)
+#     Bv = x_aug @ V             # (B,S,r)
+#     A = A * (m * Svals)        # (B,S,r)
+
+#     scores = (A @ Bv.transpose(-1, -2)) / math.sqrt(D // (D // 64))  # scale by sqrt(d_head); robust fallback
+#     scores = scores.masked_fill(~causal, -1e9)
+#     return F.softmax(scores, dim=-1)
+
+
 def attention_pattern_masked_qk(
     x_ln1: torch.Tensor,       # (B,S,D)
     qk_svd: SVDMat,             # U: (D+1,r), Vh: (r,D+1)
     m: torch.Tensor,            # (r,)
-    causal: torch.Tensor        # (S,S)
+    causal: torch.Tensor,       # (S,S)
+    d_head: int
 ) -> torch.Tensor:
     B, S, D = x_ln1.shape
     ones = torch.ones((B, S, 1), device=x_ln1.device, dtype=x_ln1.dtype)
     x_aug = torch.cat([x_ln1, ones], dim=-1)  # (B,S,D+1)
 
-    U = qk_svd.U               # (D+1,r)
-    V = qk_svd.Vh.transpose(0, 1)  # (D+1,r)
-    Svals = qk_svd.S           # (r,)
+    U = qk_svd.U                           # (D+1,r)
+    V = qk_svd.Vh.transpose(0, 1)          # (D+1,r)
+    Svals = qk_svd.S                       # (r,)
 
-    # A = x_aug @ U  ; Bv = x_aug @ V
-    A = x_aug @ U              # (B,S,r)
-    Bv = x_aug @ V             # (B,S,r)
-    A = A * (m * Svals)        # (B,S,r)
+    A = x_aug @ U                          # (B,S,r)
+    Bv = x_aug @ V                         # (B,S,r)
 
-    scores = (A @ Bv.transpose(-1, -2)) / math.sqrt(D // (D // 64))  # scale by sqrt(d_head); robust fallback
+    A = A * (m * Svals)                    # (B,S,r)
+    scores = (A @ Bv.transpose(-1, -2)) / math.sqrt(d_head)  # (B,S,S)
     scores = scores.masked_fill(~causal, -1e9)
     return F.softmax(scores, dim=-1)
 
@@ -512,7 +536,8 @@ def masked_forward_logits_last(
         head_outs = []
         for h in range(n_heads):
             m_qk = MaskBank.sig(masks.qk[l][h])
-            pat = attention_pattern_masked_qk(x_ln1, qk[l][h], m_qk, causal)  # (B,S,S)
+            # pat = attention_pattern_masked_qk(x_ln1, qk[l][h], m_qk, causal)  # (B,S,S)
+            pat = attention_pattern_masked_qk(x_ln1, qk[l][h], m_qk, causal, model.cfg.d_head)
 
             # context_resid clean
             context_resid = pat @ x_ln1  # (B,S,D)
@@ -694,18 +719,73 @@ def batch_iter(rows: List[Dict[str, str]], batch_size: int, shuffle: bool = True
         yield batch
 
 
-def tokenize_batch(tokenizer: GPT2TokenizerFast, texts: List[str], device: str) -> Tuple[torch.Tensor, torch.Tensor]:
-    enc = tokenizer(
-        texts,
-        return_tensors="pt",
-        padding=True,
-        truncation=False,
-        add_special_tokens=False
-    )
-    tokens = enc["input_ids"].to(device)
-    attn = enc["attention_mask"].to(device)
-    last_idx = attn.sum(dim=1) - 1
-    return tokens, last_idx
+# def tokenize_batch(tokenizer: GPT2TokenizerFast, texts: List[str], device: str) -> Tuple[torch.Tensor, torch.Tensor]:
+#     enc = tokenizer(
+#         texts,
+#         return_tensors="pt",
+#         padding=True,
+#         truncation=False,
+#         add_special_tokens=False
+#     )
+#     tokens = enc["input_ids"].to(device)
+#     attn = enc["attention_mask"].to(device)
+#     last_idx = attn.sum(dim=1) - 1
+#     return tokens, last_idx
+
+
+def _encode_texts(tokenizer: GPT2TokenizerFast, texts: List[str]) -> List[List[int]]:
+    # No padding here; we pad manually so clean+corr use the SAME max_len.
+    return [tokenizer.encode(t, add_special_tokens=False) for t in texts]
+
+def _pad_to_length(
+    ids_list: List[List[int]],
+    pad_len: int,
+    pad_id: int,
+    device: str
+) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    B = len(ids_list)
+    tokens = torch.full((B, pad_len), pad_id, dtype=torch.long)
+    attn = torch.zeros((B, pad_len), dtype=torch.long)
+    last_idx = torch.empty((B,), dtype=torch.long)
+
+    for i, ids in enumerate(ids_list):
+        L = len(ids)
+        if L == 0:
+            raise ValueError("Got an empty tokenized sequence. Check your prompts.")
+        if L > pad_len:
+            raise ValueError(f"Sequence length {L} > pad_len {pad_len} (should never happen).")
+        tokens[i, :L] = torch.tensor(ids, dtype=torch.long)
+        attn[i, :L] = 1
+        last_idx[i] = L - 1
+
+    return tokens.to(device), attn.to(device), last_idx.to(device)
+
+def tokenize_pair_batch(
+    tokenizer: GPT2TokenizerFast,
+    clean_texts: List[str],
+    corr_texts: List[str],
+    device: str
+) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    """
+    Returns:
+      tokens_clean: (B, Smax)
+      last_idx_clean: (B,)
+      tokens_corr: (B, Smax)
+      last_idx_corr: (B,)
+    where Smax is the SAME for clean and corr in this batch.
+    """
+    ids_clean = _encode_texts(tokenizer, clean_texts)
+    ids_corr = _encode_texts(tokenizer, corr_texts)
+
+    max_len = max(max(len(x) for x in ids_clean), max(len(x) for x in ids_corr))
+    pad_id = tokenizer.pad_token_id
+    if pad_id is None:
+        raise ValueError("tokenizer.pad_token_id is None. Ensure tokenizer.pad_token is set.")
+
+    tokens_clean, _, last_clean = _pad_to_length(ids_clean, max_len, pad_id, device)
+    tokens_corr, _, last_corr = _pad_to_length(ids_corr, max_len, pad_id, device)
+
+    return tokens_clean, last_clean, tokens_corr, last_corr
 
 
 @torch.no_grad()
@@ -829,8 +909,13 @@ def main():
             clean_prompts = [r["prefix"] for r in batch]
             corr_prompts = [r["corr_prefix"] for r in batch]
 
-            tokens_clean, last_idx_clean = tokenize_batch(tokenizer, clean_prompts, device)
-            tokens_corr, _ = tokenize_batch(tokenizer, corr_prompts, device)
+            # tokens_clean, last_idx_clean = tokenize_batch(tokenizer, clean_prompts, device)
+            # tokens_corr, _ = tokenize_batch(tokenizer, corr_prompts, device)
+
+            tokens_clean, last_idx_clean, tokens_corr, _ = tokenize_pair_batch(
+                tokenizer, clean_prompts, corr_prompts, device
+            )
+
 
             # original clean logits -> p (detach)
             with torch.no_grad():
@@ -881,8 +966,12 @@ def main():
             for batch in batch_iter(val_rows, args.batch_size, shuffle=False):
                 clean_prompts = [r["prefix"] for r in batch]
                 corr_prompts = [r["corr_prefix"] for r in batch]
-                tokens_clean, last_idx_clean = tokenize_batch(tokenizer, clean_prompts, device)
-                tokens_corr, _ = tokenize_batch(tokenizer, corr_prompts, device)
+                # tokens_clean, last_idx_clean = tokenize_batch(tokenizer, clean_prompts, device)
+                # tokens_corr, _ = tokenize_batch(tokenizer, corr_prompts, device)
+                tokens_clean, last_idx_clean, tokens_corr, _ = tokenize_pair_batch(
+                    tokenizer, clean_prompts, corr_prompts, device
+                )
+
 
                 logits_clean_full = model(tokens_clean)
                 logits_clean = logits_clean_full[torch.arange(tokens_clean.size(0), device=device), last_idx_clean, :]
