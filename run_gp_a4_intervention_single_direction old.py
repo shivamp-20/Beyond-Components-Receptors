@@ -2,36 +2,27 @@
 """
 A4 / Algorithm 2 causal test for a *single* OV SVD direction on the GP task.
 
-This is a DEBUG+SANITY version of run_gp_a4_intervention_single_direction.py.
+This script is designed to run *after* you have already run:
+  train_gp_masks_and_dump_ov_logit_receptors.py
 
-Key fixes / additions:
-- Robust CSV delimiter sniff (supports '|' like the GP dataset).
-- Robust pronoun-token ID inference for *this dataset formatting*:
-    We infer the next-token ID for "he"/"she" by comparing tokenization of:
-      prefix
-    vs
-      prefix + pronoun
-  This avoids the common GPT-2 gotcha where the next token might be "he" (no leading space)
-  rather than " he" (leading-space token), depending on whether the trailing space is an
-  explicit token in the prefix encoding.
-- Prints lots of tokenization + prediction sanity diagnostics so you can paste logs back.
+It expects:
+  - {out_dir}/svd_cache.pt      (produced by build_svd_cache)
+  - (optional) {out_dir}/masks.pt  (saved masks; used only for sanity-checking)
+  - GP CSVs with columns like: prefix, pronoun, corr_prefix, corr_pronoun, ...
 
-It expects (same as the original A4 script):
-  - {out_dir}/svd_cache.pt
-  - (optional) {out_dir}/masks.pt
-  - GP CSVs with columns: prefix, pronoun, corr_prefix, corr_pronoun, ...
+It implements the intervention you described:
 
-Intervention implemented:
   a_i(x) = < [context_resid(x), 1] , u_i >        where context_resid = pattern @ x_ln1
   ΔR     = (a_target - a_i(x)) * (sigma_scale * σ_i) * v_i
   resid_cf = resid_final_at_t* + ΔR
   logits_cf = unembed( ln_final(resid_cf) )
 
-We report:
-- baseline vs counterfactual he-vs-she logit-diff means
-- flip rates under two definitions:
-    (A) top-1 flip (original behavior): baseline argmax is true pronoun AND cf argmax is opposite pronoun
-    (B) pairwise flip (recommended): baseline prefers true pronoun within {he,she} AND cf prefers opposite
+Then it reports baseline vs counterfactual logit-diffs and flip rates on the test split,
+and saves a JSON + plots.
+
+Notes / assumptions:
+- "he" and "she" must be single-token when encoded as " he" and " she" for GPT-2.
+- sv_idx is 0-based (k=0 is the first kept singular direction in svd_cache.pt).
 """
 
 from __future__ import annotations
@@ -41,8 +32,7 @@ import csv
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Tuple, Iterable, Optional, Counter as CounterT
-from collections import Counter
+from typing import Dict, List, Tuple, Iterable, Optional
 
 import numpy as np
 import torch
@@ -61,14 +51,12 @@ def ensure_dir(p: Path) -> None:
     p.mkdir(parents=True, exist_ok=True)
 
 def detect_delimiter(csv_path: Path) -> str:
-    # Mirror the training script: GP CSVs often use '|'
     with open(csv_path, "r", encoding="utf-8") as f:
         sample = f.read(4096)
     try:
-        dialect = csv.Sniffer().sniff(sample, delimiters=[",", "|", "\t", ";"])
-        return dialect.delimiter
+        return csv.Sniffer().sniff(sample).delimiter
     except Exception:
-        return "|"
+        return ","
 
 def normalize_prefix(s: str) -> str:
     # training script uses: rstrip + single trailing space
@@ -109,8 +97,10 @@ def attention_pattern_original(
     q = x_ln1 @ W_Q + b_Q           # [B, S, d_head]
     k = x_ln1 @ W_K + b_K           # [B, S, d_head]
     scores = torch.einsum("bqd,bkd->bqk", q, k) / (d_head ** 0.5)  # [B, S, S]
+    # mask out future positions
     scores = scores.masked_fill(~causal[None, :, :], float("-inf"))
     return F.softmax(scores, dim=-1)  # [B, S, S]
+
 
 def tokenize_prefixes(
     tok: GPT2TokenizerFast,
@@ -128,116 +118,6 @@ def tokenize_prefixes(
     lengths = (tokens != pad_id).sum(dim=1)
     last_idx = lengths - 1
     return tokens, last_idx
-
-
-# -------------------------
-# Tokenization diagnostics
-# -------------------------
-
-def infer_next_token_id_for_word(
-    tok: GPT2TokenizerFast,
-    prefixes: List[str],
-    word: str,
-    sample_n: int = 200,
-) -> Tuple[Optional[int], Dict[str, int]]:
-    """
-    Infer the next-token ID for `word` given prompts that end right before the word is emitted.
-
-    We do:
-      ids_prefix = encode(prefix)
-      ids_full   = encode(prefix + word)
-      delta = ids_full[len(ids_prefix):]
-    We count how often delta has length 1 and what the id is.
-
-    Returns:
-      (best_id or None), stats dict
-    """
-    word = str(word).strip()
-    prefixes = prefixes[:sample_n]
-    counts: CounterT[int] = Counter()
-    non_single = 0
-    empty = 0
-
-    for p in prefixes:
-        ids_p = tok.encode(p, add_special_tokens=False)
-        ids_f = tok.encode(p + word, add_special_tokens=False)
-        if len(ids_f) <= len(ids_p):
-            empty += 1
-            continue
-        delta = ids_f[len(ids_p):]
-        if len(delta) != 1:
-            non_single += 1
-            continue
-        counts[int(delta[0])] += 1
-
-    stats = {
-        "sampled": len(prefixes),
-        "single_token_cases": int(sum(counts.values())),
-        "non_single_token_cases": int(non_single),
-        "empty_or_weird_cases": int(empty),
-        "num_unique_single_ids": int(len(counts)),
-    }
-
-    if len(counts) == 0:
-        return None, stats
-
-    best_id, best_ct = counts.most_common(1)[0]
-    stats["best_id"] = int(best_id)
-    stats["best_id_count"] = int(best_ct)
-    return int(best_id), stats
-
-
-@torch.no_grad()
-def print_prefix_debug(
-    model: HookedTransformer,
-    tok: GPT2TokenizerFast,
-    prefixes: List[str],
-    he_id: int,
-    she_id: int,
-    device: torch.device,
-    n: int = 5,
-) -> None:
-    """
-    Print:
-      - raw prefix tail
-      - token IDs tail
-      - decoded tail tokens
-      - baseline top tokens at t*
-      - ranks of he/she tokens
-    """
-    n = min(n, len(prefixes))
-    if n <= 0:
-        return
-
-    tokens, last_idx = tokenize_prefixes(tok, prefixes[:n], device)
-    B, S = tokens.shape
-    logits = model(tokens)  # [B,S,V]
-    idx = torch.arange(B, device=device)
-    t = last_idx
-    lt = logits[idx, t, :]  # [B,V]
-
-    topv, topi = torch.topk(lt, k=10, dim=-1)
-
-    for i in range(n):
-        p = prefixes[i]
-        ids = tok.encode(p, add_special_tokens=False)
-        tail_ids = ids[-12:]
-        tail_dec = [tok.decode([x], clean_up_tokenization_spaces=False) for x in tail_ids]
-        hv = float(lt[i, he_id].item())
-        sv = float(lt[i, she_id].item())
-        # ranks (1 = best)
-        rank_he = int((lt[i] > lt[i, he_id]).sum().item() + 1)
-        rank_she = int((lt[i] > lt[i, she_id]).sum().item() + 1)
-
-        print("\n--- SAMPLE", i, "---")
-        print("prefix_tail:", repr(p[-80:]))
-        print("ends_with_space:", p.endswith(" "))
-        print("tok_tail_ids:", tail_ids)
-        print("tok_tail_dec:", tail_dec)
-        print(f"logit(he)={hv:+.4f} rank_he={rank_he} | logit(she)={sv:+.4f} rank_she={rank_she}")
-        tops = [(int(topi[i, j]), float(topv[i, j]), tok.decode([int(topi[i, j])], clean_up_tokenization_spaces=False))
-                for j in range(10)]
-        print("top10 @t*:", tops)
 
 
 # -------------------------
@@ -281,6 +161,7 @@ def forward_original_extract(
 
         x_ln1 = block.ln1(x)  # [B,S,D]
 
+        # Attention: sum over heads
         head_outs = []
         for h in range(cfg.n_heads):
             pat = attention_pattern_original(
@@ -293,6 +174,7 @@ def forward_original_extract(
 
             context_resid = pat @ x_ln1  # [B,S,D]  (matches training script definition)
 
+            # Extract a_i(x) at the requested (layer, head) and t* per example
             if l == layer and h == head:
                 idx = torch.arange(B, device=device)
                 c_t = context_resid[idx, last_idx, :]  # [B,D]
@@ -300,23 +182,26 @@ def forward_original_extract(
                 ctx_aug = torch.cat([c_t, ones], dim=-1)  # [B,D+1]
                 ai = (ctx_aug * u_vec[None, :]).sum(dim=-1)  # [B]
 
-            v = context_resid @ attn.W_V[h] + attn.b_V[h      ]  # [B,S,d_head]
-            out = v @ attn.W_O[h]                                # [B,S,D]
+            # Standard V/O path (per-head)
+            v = context_resid @ attn.W_V[h] + attn.b_V[h]      # [B,S,d_head]
+            out = v @ attn.W_O[h]                              # [B,S,D]
             head_outs.append(out)
 
         attn_out = torch.stack(head_outs, dim=0).sum(dim=0) + attn.b_O  # [B,S,D]
         x = x + attn_out
 
+        # MLP
         x_ln2 = block.ln2(x)
-        pre = x_ln2 @ mlp.W_in + mlp.b_in
+        pre = x_ln2 @ mlp.W_in + mlp.b_in                       # [B,S,d_mlp]
         act = gelu_new(pre)
-        mlp_out = act @ mlp.W_out + mlp.b_out
+        mlp_out = act @ mlp.W_out + mlp.b_out                   # [B,S,D]
         x = x + mlp_out
 
     assert ai is not None, "Internal error: did not compute ai (check layer/head indices)."
 
     idx = torch.arange(B, device=device)
     resid_t = x[idx, last_idx, :]  # [B,D] pre ln_final
+
     logits_t = (model.ln_final(resid_t) @ model.W_U) + model.b_U  # [B,V]
     return ai, resid_t, logits_t
 
@@ -332,19 +217,11 @@ class EvalStats:
     base_diff_sq_sum: float = 0.0
     cf_diff_sum: float = 0.0
     cf_diff_sq_sum: float = 0.0
-
-    flips_top1: int = 0
-    denom_top1: int = 0
-
-    flips_pair: int = 0
-    denom_pair: int = 0
-
-    ai_sum: float = 0.0
-    ai_sq_sum: float = 0.0
-    delta_l2_sum: float = 0.0
-    delta_l2_sq_sum: float = 0.0
+    flips: int = 0
+    denom: int = 0
 
     def update_diffs(self, base: torch.Tensor, cf: torch.Tensor):
+        # base, cf are [B] float tensors on CPU/GPU
         b = base.detach().float().cpu().numpy()
         c = cf.detach().float().cpu().numpy()
         self.n += int(b.shape[0])
@@ -353,20 +230,9 @@ class EvalStats:
         self.cf_diff_sum += float(c.sum())
         self.cf_diff_sq_sum += float((c ** 2).sum())
 
-    def update_flips(self, flips_top1: int, denom_top1: int, flips_pair: int, denom_pair: int):
-        self.flips_top1 += int(flips_top1)
-        self.denom_top1 += int(denom_top1)
-        self.flips_pair += int(flips_pair)
-        self.denom_pair += int(denom_pair)
-
-    def update_ai_delta(self, ai: torch.Tensor, delta: torch.Tensor):
-        # ai: [B], delta: [B,D]
-        a = ai.detach().float().cpu().numpy()
-        dl2 = delta.detach().float().norm(dim=-1).cpu().numpy()
-        self.ai_sum += float(a.sum())
-        self.ai_sq_sum += float((a ** 2).sum())
-        self.delta_l2_sum += float(dl2.sum())
-        self.delta_l2_sq_sum += float((dl2 ** 2).sum())
+    def update_flips(self, flips: int, denom: int):
+        self.flips += int(flips)
+        self.denom += int(denom)
 
     def summary(self) -> Dict[str, float]:
         def mean_std(sum_, sq_sum_, n_):
@@ -377,31 +243,16 @@ class EvalStats:
 
         base_mean, base_std = mean_std(self.base_diff_sum, self.base_diff_sq_sum, self.n)
         cf_mean, cf_std = mean_std(self.cf_diff_sum, self.cf_diff_sq_sum, self.n)
-        ai_mean, ai_std = mean_std(self.ai_sum, self.ai_sq_sum, self.n)
-        dl2_mean, dl2_std = mean_std(self.delta_l2_sum, self.delta_l2_sq_sum, self.n)
-
-        flip_rate_top1 = self.flips_top1 / max(1, self.denom_top1)
-        flip_rate_pair = self.flips_pair / max(1, self.denom_pair)
-
+        flip_rate = self.flips / max(1, self.denom)
         return {
             "n": self.n,
             "base_logit_diff_mean": base_mean,
             "base_logit_diff_std": base_std,
             "cf_logit_diff_mean": cf_mean,
             "cf_logit_diff_std": cf_std,
-
-            "flips_top1": self.flips_top1,
-            "flip_denom_top1": self.denom_top1,
-            "flip_rate_top1": flip_rate_top1,
-
-            "flips_pair": self.flips_pair,
-            "flip_denom_pair": self.denom_pair,
-            "flip_rate_pair": flip_rate_pair,
-
-            "ai_mean": ai_mean,
-            "ai_std": ai_std,
-            "delta_l2_mean": dl2_mean,
-            "delta_l2_std": dl2_std,
+            "flips": self.flips,
+            "flip_denom": self.denom,
+            "flip_rate": flip_rate,
         }
 
 
@@ -416,26 +267,18 @@ def estimate_mu(
     device: torch.device,
     batch_size: int,
     max_n: Optional[int] = None,
-) -> Tuple[float, float]:
+) -> float:
     if max_n is not None:
         prefixes = prefixes[:max_n]
 
     total = 0.0
-    total_sq = 0.0
     n = 0
     for batch in batch_iter(prefixes, batch_size):
         tokens, last_idx = tokenize_prefixes(tok, batch, device)
         ai, _, _ = forward_original_extract(model, tokens, last_idx, layer, head, u_vec)
-        a = ai.detach().float().cpu().numpy()
-        total += float(a.sum())
-        total_sq += float((a**2).sum())
+        total += float(ai.detach().sum().cpu())
         n += int(ai.numel())
-
-    if n == 0:
-        return float("nan"), float("nan")
-    mu = total / n
-    var = max(0.0, (total_sq / n) - mu*mu)
-    return float(mu), float(var ** 0.5)
+    return total / max(1, n)
 
 
 @torch.no_grad()
@@ -465,10 +308,6 @@ def eval_split(
     true_class = true_class.lower().strip()
     assert true_class in ("he", "she")
 
-    true_id = he_id if true_class == "he" else she_id
-    other_id = she_id if true_class == "he" else he_id
-    a_target = mu_she if true_class == "he" else mu_he
-
     for scale in sigma_scales:
         stats = EvalStats()
 
@@ -477,31 +316,32 @@ def eval_split(
             ai, resid_t, logits_base = forward_original_extract(model, tokens, last_idx, layer, head, u_vec)
 
             base_pred = torch.argmax(logits_base, dim=-1)
-            cf_target = a_target
 
-            # Define logit diffs as (true - other)
-            base_diff = logits_base[:, true_id] - logits_base[:, other_id]
+            if true_class == "he":
+                base_diff = logits_base[:, he_id] - logits_base[:, she_id]
+                a_target = mu_she
+                denom = int((base_pred == he_id).sum().item())
+            else:
+                base_diff = logits_base[:, she_id] - logits_base[:, he_id]
+                a_target = mu_he
+                denom = int((base_pred == she_id).sum().item())
 
             # ΔR = (a_target - ai) * (scale * sigma) * v
-            delta = ((cf_target - ai) * (scale * sigma)).unsqueeze(-1) * v_vec.unsqueeze(0)  # [B,D]
+            delta = ((a_target - ai) * (scale * sigma)).unsqueeze(-1) * v_vec.unsqueeze(0)  # [B,D]
             resid_cf = resid_t + delta
             logits_cf = (model.ln_final(resid_cf) @ model.W_U) + model.b_U
+
             cf_pred = torch.argmax(logits_cf, dim=-1)
-            cf_diff = logits_cf[:, true_id] - logits_cf[:, other_id]
 
-            # Flip metrics:
-            # (A) top-1: only count examples where baseline argmax is the true pronoun token
-            denom_top1 = int((base_pred == true_id).sum().item())
-            flips_top1 = int(((base_pred == true_id) & (cf_pred == other_id)).sum().item())
-
-            # (B) pairwise: count examples where baseline prefers true within {he,she}
-            denom_pair = int((base_diff > 0).sum().item())
-            flips_pair = int(((base_diff > 0) & (cf_diff < 0)).sum().item())
+            if true_class == "he":
+                cf_diff = logits_cf[:, he_id] - logits_cf[:, she_id]
+                flips = int(((base_pred == he_id) & (cf_pred == she_id)).sum().item())
+            else:
+                cf_diff = logits_cf[:, she_id] - logits_cf[:, he_id]
+                flips = int(((base_pred == she_id) & (cf_pred == he_id)).sum().item())
 
             stats.update_diffs(base_diff, cf_diff)
-            stats.update_flips(flips_top1=flips_top1, denom_top1=denom_top1,
-                               flips_pair=flips_pair, denom_pair=denom_pair)
-            stats.update_ai_delta(ai=ai, delta=delta)
+            stats.update_flips(flips=flips, denom=denom)
 
         results[str(scale)] = stats.summary()
 
@@ -512,14 +352,13 @@ def plot_curves(out_dir: Path, tag: str, sigma_scales: List[float], metrics: Dic
     xs = sigma_scales
     base_means = [metrics[str(s)]["base_logit_diff_mean"] for s in xs]
     cf_means   = [metrics[str(s)]["cf_logit_diff_mean"] for s in xs]
-    flip_top1  = [metrics[str(s)]["flip_rate_top1"] for s in xs]
-    flip_pair  = [metrics[str(s)]["flip_rate_pair"] for s in xs]
+    flip_rates = [metrics[str(s)]["flip_rate"] for s in xs]
 
     ensure_dir(out_dir)
 
     plt.figure()
-    plt.plot(xs, base_means, marker="o", label="baseline diff mean (true-other)")
-    plt.plot(xs, cf_means, marker="o", label="counterfactual diff mean (true-other)")
+    plt.plot(xs, base_means, marker="o", label="baseline logit-diff mean")
+    plt.plot(xs, cf_means, marker="o", label="counterfactual logit-diff mean")
     plt.xlabel("sigma_scale")
     plt.ylabel("logit diff")
     plt.title(tag)
@@ -529,18 +368,17 @@ def plot_curves(out_dir: Path, tag: str, sigma_scales: List[float], metrics: Dic
     plt.close()
 
     plt.figure()
-    plt.plot(xs, flip_top1, marker="o", label="flip_rate_top1 (argmax)")
-    plt.plot(xs, flip_pair, marker="o", label="flip_rate_pair (sign flip)")
+    plt.plot(xs, flip_rates, marker="o")
     plt.xlabel("sigma_scale")
     plt.ylabel("flip rate")
     plt.title(tag)
-    plt.legend()
     plt.tight_layout()
     plt.savefig(out_dir / f"{tag}_flip_rate.png", dpi=200)
     plt.close()
 
 
 def parse_sigma_scales(s: str) -> List[float]:
+    # accepts "0,0.5,1,2" or "0 0.5 1 2"
     s = s.strip()
     if not s:
         return [0.0, 0.5, 1.0, 2.0, 4.0, 8.0]
@@ -562,12 +400,11 @@ def main() -> None:
     ap.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     ap.add_argument("--batch_size", type=int, default=64)
 
-    ap.add_argument("--sigma_scales", type=str, default="0,0.5,1,2,4,8,10,15")
+    ap.add_argument("--sigma_scales", type=str, default="0,0.5,1,2,4,8")
     ap.add_argument("--tau", type=float, default=1e-2, help="Only for mask sanity-check print.")
     ap.add_argument("--max_mu", type=int, default=None, help="Optional cap on #train examples used to estimate μ.")
     ap.add_argument("--max_test", type=int, default=None, help="Optional cap on #test examples used in eval.")
-    ap.add_argument("--debug_n", type=int, default=5, help="How many example prefixes to print tokenization diagnostics for.")
-    ap.add_argument("--debug_token_infer_n", type=int, default=200, help="How many prefixes to sample when inferring pronoun next-token IDs.")
+    ap.add_argument("--save_json", action="store_true", default=True)
     args = ap.parse_args()
 
     out_dir = Path(args.out_dir)
@@ -575,13 +412,13 @@ def main() -> None:
 
     svd_path = out_dir / "svd_cache.pt"
     if not svd_path.exists():
-        raise FileNotFoundError(f"Missing {svd_path}. Run your training script first.")
+        raise FileNotFoundError(f"Missing {svd_path}. Run your training script first (stage B).")
 
     # Load data
     train_rows = load_gp_csv(data_dir / args.train_csv)
     test_rows  = load_gp_csv(data_dir / args.test_csv)
 
-    # Group by pronoun label (CSV has 'he'/'she' without leading space — that's fine)
+    # Group by pronoun label
     def by_label(rows, label: str) -> List[Dict[str,str]]:
         label = label.lower().strip()
         return [r for r in rows if str(r.get("pronoun","")).strip().lower() == label]
@@ -594,11 +431,6 @@ def main() -> None:
     if len(train_he) == 0 or len(train_she) == 0:
         raise ValueError("Could not find both 'he' and 'she' in train pronoun column.")
 
-    # Sanity: prefixes should end with exactly one space after normalize_prefix
-    bad_space = sum(1 for r in train_rows[:1000] if not str(r["prefix"]).endswith(" "))
-    print(f"[DATA] train={len(train_rows)} (he={len(train_he)} she={len(train_she)}) test={len(test_rows)} (he={len(test_he)} she={len(test_she)})")
-    print(f"[SANITY] prefix endswith space? bad_in_first_1000={bad_space}")
-
     # Load tokenizer + model
     device = torch.device(args.device)
     tok = GPT2TokenizerFast.from_pretrained("gpt2")
@@ -607,32 +439,22 @@ def main() -> None:
 
     model = HookedTransformer.from_pretrained("gpt2-small", device=device).eval()
 
-    # Robustly infer next-token IDs for pronouns given THIS prefix formatting.
-    prefixes_for_infer = [r["prefix"] for r in (train_he[:args.debug_token_infer_n] + train_she[:args.debug_token_infer_n])]
-    he_id, he_stats = infer_next_token_id_for_word(tok, prefixes_for_infer, "he", sample_n=len(prefixes_for_infer))
-    she_id, she_stats = infer_next_token_id_for_word(tok, prefixes_for_infer, "she", sample_n=len(prefixes_for_infer))
-
-    print(f"[TOK] encode(' he')={tok.encode(' he', add_special_tokens=False)} ; encode('he')={tok.encode('he', add_special_tokens=False)}")
-    print(f"[TOK] encode(' she')={tok.encode(' she', add_special_tokens=False)} ; encode('she')={tok.encode('she', add_special_tokens=False)}")
-
-    print(f"[TOK-INFER] he_next_token_id={he_id} stats={he_stats}")
-    print(f"[TOK-INFER] she_next_token_id={she_id} stats={she_stats}")
-
-    if he_id is None or she_id is None:
-        raise ValueError("Could not infer single-token IDs for he/she given prefixes. Check tokenization debug above.")
-
-    # Print a few sample tokenization/prediction diagnostics
-    print("[DEBUG] baseline top tokens @t* for a few HE prefixes:")
-    print_prefix_debug(model, tok, [r["prefix"] for r in train_he[:args.debug_n]], he_id, she_id, device, n=args.debug_n)
-    print("[DEBUG] baseline top tokens @t* for a few SHE prefixes:")
-    print_prefix_debug(model, tok, [r["prefix"] for r in train_she[:args.debug_n]], he_id, she_id, device, n=args.debug_n)
+    # Pronoun token sanity
+    he_ids  = tok.encode(" he", add_special_tokens=False)
+    she_ids = tok.encode(" she", add_special_tokens=False)
+    if len(he_ids) != 1 or len(she_ids) != 1:
+        raise ValueError(f"' he' or ' she' is not a single token: he={he_ids}, she={she_ids}")
+    he_id, she_id = int(he_ids[0]), int(she_ids[0])
 
     # Load SVD direction
     svd_cache = torch.load(svd_path, map_location="cpu")
-    svd_obj = svd_cache["ov"][args.layer][args.head]
-    U = svd_obj["U"]   # [D+1, r]
-    S = svd_obj["S"]   # [r]
-    Vh = svd_obj["Vh"] # [r, D]
+    try:
+        svd_obj = svd_cache["ov"][args.layer][args.head]
+        U = svd_obj["U"]   # [D+1, r]
+        S = svd_obj["S"]   # [r]
+        Vh = svd_obj["Vh"] # [r, D]
+    except Exception as e:
+        raise KeyError(f"Could not access ov[{args.layer}][{args.head}] in {svd_path}: {e}")
 
     r = int(S.numel())
     if not (0 <= args.sv_idx < r):
@@ -642,7 +464,7 @@ def main() -> None:
     sigma = float(S[args.sv_idx].item())
     v_vec = Vh[args.sv_idx, :].to(device)
 
-    print(f"\n[LOAD] out_dir={out_dir.resolve()}")
+    print(f"[LOAD] out_dir={out_dir.resolve()}")
     print(f"[LOAD] svd_cache.pt OK. (layer={args.layer}, head={args.head}) r={r}, sv_idx={args.sv_idx}, sigma={sigma:.6g}")
 
     # Optional: mask sanity-check
@@ -657,22 +479,26 @@ def main() -> None:
     else:
         print("[SANITY] masks.pt not found (OK). Skipping mask value print.")
 
-    # Estimate class means μ (+ std for debug)
+    # Estimate class means μ
     train_prefixes_he  = [r["prefix"] for r in train_he]
     train_prefixes_she = [r["prefix"] for r in train_she]
 
     print(f"[MU] estimating on train: he={len(train_prefixes_he)} she={len(train_prefixes_she)} (max_mu={args.max_mu})")
-    mu_he, std_he = estimate_mu(model, tok, train_prefixes_he,  args.layer, args.head, u_vec, device, args.batch_size, max_n=args.max_mu)
-    mu_she, std_she = estimate_mu(model, tok, train_prefixes_she, args.layer, args.head, u_vec, device, args.batch_size, max_n=args.max_mu)
-    print(f"[MU] mu_he={mu_he:.6g}±{std_he:.6g}  mu_she={mu_she:.6g}±{std_she:.6g}")
+    mu_he = estimate_mu(model, tok, train_prefixes_he,  args.layer, args.head, u_vec, device, args.batch_size, max_n=args.max_mu)
+    mu_she = estimate_mu(model, tok, train_prefixes_she, args.layer, args.head, u_vec, device, args.batch_size, max_n=args.max_mu)
+    print(f"[MU] mu_he={mu_he:.6g}  mu_she={mu_she:.6g}")
 
     sigma_scales = parse_sigma_scales(args.sigma_scales)
     print(f"[EVAL] sigma_scales={sigma_scales}")
-    print(f"[EVAL] test sizes: he={len(test_he)} she={len(test_she)} (max_test={args.max_test})")
 
     # Eval
+    test_prefixes_he  = [r["prefix"] for r in test_he]
+    test_prefixes_she = [r["prefix"] for r in test_she]
+
+    print(f"[EVAL] test sizes: he={len(test_prefixes_he)} she={len(test_prefixes_she)} (max_test={args.max_test})")
+
     metrics_he = eval_split(
-        model, tok, [r["prefix"] for r in test_he], "he",
+        model, tok, test_prefixes_he, "he",
         mu_he=mu_he, mu_she=mu_she,
         he_id=he_id, she_id=she_id,
         layer=args.layer, head=args.head,
@@ -682,7 +508,7 @@ def main() -> None:
     )
 
     metrics_she = eval_split(
-        model, tok, [r["prefix"] for r in test_she], "she",
+        model, tok, test_prefixes_she, "she",
         mu_he=mu_he, mu_she=mu_she,
         he_id=he_id, she_id=she_id,
         layer=args.layer, head=args.head,
@@ -700,44 +526,38 @@ def main() -> None:
                 f"scale={s:<6}  "
                 f"base_diff={m['base_logit_diff_mean']:+.4f}±{m['base_logit_diff_std']:.4f}  "
                 f"cf_diff={m['cf_logit_diff_mean']:+.4f}±{m['cf_logit_diff_std']:.4f}  "
-                f"flip_top1={100*m['flip_rate_top1']:.2f}% (den={m['flip_denom_top1']}, flips={m['flips_top1']})  "
-                f"flip_pair={100*m['flip_rate_pair']:.2f}% (den={m['flip_denom_pair']}, flips={m['flips_pair']})  "
-                f"| ai={m['ai_mean']:+.3f}±{m['ai_std']:.3f}  Δ||.||={m['delta_l2_mean']:.3f}±{m['delta_l2_std']:.3f}"
+                f"flip_rate={100*m['flip_rate']:.2f}%  (n={m['n']}, denom={m['flip_denom']})"
             )
 
-    print_table("TEST he subset (diff = he - she)", metrics_he)
-    print_table("TEST she subset (diff = she - he)", metrics_she)
+    print_table("TEST he→(target she mean)", metrics_he)
+    print_table("TEST she→(target he mean)", metrics_she)
 
     # Save JSON + plots
-    out_json = out_dir / f"a4_intervention_l{args.layer}_h{args.head}_k{args.sv_idx}_debug.json"
-    plots_dir = out_dir / "a4_plots_debug"
-    ensure_dir(plots_dir)
-
-    payload = {
+    results = {
         "layer": args.layer,
         "head": args.head,
         "sv_idx": args.sv_idx,
         "sigma": sigma,
-        "mu_he": mu_he,
-        "mu_she": mu_she,
-        "std_he": std_he,
-        "std_she": std_she,
-        "he_token_id": he_id,
-        "she_token_id": she_id,
-        "he_infer_stats": he_stats,
-        "she_infer_stats": she_stats,
+        "mu_he": float(mu_he),
+        "mu_she": float(mu_she),
         "sigma_scales": sigma_scales,
         "metrics_he": metrics_he,
         "metrics_she": metrics_she,
+        "note": "logit_diff is (he-she) on he-split and (she-he) on she-split; flips counted among baseline argmax==true pronoun token.",
     }
-    with open(out_json, "w", encoding="utf-8") as f:
-        json.dump(payload, f, indent=2)
 
-    plot_curves(plots_dir, "he_subset", sigma_scales, metrics_he)
-    plot_curves(plots_dir, "she_subset", sigma_scales, metrics_she)
+    if args.save_json:
+        out_json = out_dir / f"a4_intervention_l{args.layer}_h{args.head}_k{args.sv_idx}.json"
+        with open(out_json, "w", encoding="utf-8") as f:
+            json.dump(results, f, indent=2)
+        print(f"\n[SAVE] {out_json}")
 
-    print(f"\n[SAVE] {out_json}")
-    print(f"[SAVE] plots -> {plots_dir}")
+    plot_dir = out_dir / "a4_plots"
+    ensure_dir(plot_dir)
+    plot_curves(plot_dir, f"he_l{args.layer}_h{args.head}_k{args.sv_idx}", sigma_scales, metrics_he)
+    plot_curves(plot_dir, f"she_l{args.layer}_h{args.head}_k{args.sv_idx}", sigma_scales, metrics_she)
+    print(f"[SAVE] plots -> {plot_dir}")
+
     print("[DONE]")
 
 
