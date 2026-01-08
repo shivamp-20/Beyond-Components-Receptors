@@ -440,8 +440,8 @@ def main() -> None:
     model = HookedTransformer.from_pretrained("gpt2-small", device=device).eval()
 
     # Pronoun token sanity
-    he_ids  = tok.encode("he", add_special_tokens=False)
-    she_ids = tok.encode("she", add_special_tokens=False)
+    he_ids  = tok.encode(" he", add_special_tokens=False)
+    she_ids = tok.encode(" she", add_special_tokens=False)
     if len(he_ids) != 1 or len(she_ids) != 1:
         raise ValueError(f"' he' or ' she' is not a single token: he={he_ids}, she={she_ids}")
     he_id, she_id = int(he_ids[0]), int(she_ids[0])
