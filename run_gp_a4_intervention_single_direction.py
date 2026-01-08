@@ -41,7 +41,7 @@ import csv
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Tuple, Iterable, Optional, Counter as CounterT
+from typing import Any, Dict, List, Tuple, Iterable, Optional, Counter as CounterT
 from collections import Counter
 
 import numpy as np
@@ -134,80 +134,76 @@ def tokenize_prefixes(
 # Tokenization diagnostics
 # -------------------------
 
-def infer_next_token_id_for_word(
+def next_token_id_from_prefix(
+    tok: GPT2TokenizerFast,
+    prefix: str,
+    word: str,
+) -> int:
+    """Return the token-id the model would emit for `word` as the *next token* after `prefix`.
+
+    We compute it by encoding `prefix + word` and taking the last token id. This is robust to GPT-2
+    byte-level BPE quirks where appending characters can change the tokenization of the prefix tail
+    (e.g., a trailing space token can merge into the following word token like " he").
+    """
+    ids = tok.encode(prefix + word, add_special_tokens=False)
+    if len(ids) == 0:
+        raise ValueError("Got empty tokenization for prefix+word; unexpected.")
+    return int(ids[-1])
+
+
+def collect_next_token_id_stats(
     tok: GPT2TokenizerFast,
     prefixes: List[str],
     word: str,
-    sample_n: int = 200,
-) -> Tuple[Optional[int], Dict[str, int]]:
-    """
-    Infer the next-token ID for `word` given prompts that end right before the word is emitted.
-
-    We do:
-      ids_prefix = encode(prefix)
-      ids_full   = encode(prefix + word)
-      delta = ids_full[len(ids_prefix):]
-    We count how often delta has length 1 and what the id is.
-
-    Returns:
-      (best_id or None), stats dict
-    """
-    word = str(word).strip()
+    sample_n: int = 400,
+) -> Dict[str, Any]:
+    """Collect distribution of next-token IDs for `word` across a sample of prefixes."""
+    word = word.strip()
     prefixes = prefixes[:sample_n]
-    counts: CounterT[int] = Counter()
-    non_single = 0
-    empty = 0
-
+    counts: Counter[int] = Counter()
+    errors = 0
+    decoded: Dict[int, str] = {}
     for p in prefixes:
-        ids_p = tok.encode(p, add_special_tokens=False)
-        ids_f = tok.encode(p + word, add_special_tokens=False)
-        if len(ids_f) <= len(ids_p):
-            empty += 1
-            continue
-        delta = ids_f[len(ids_p):]
-        if len(delta) != 1:
-            non_single += 1
-            continue
-        counts[int(delta[0])] += 1
+        try:
+            tid = next_token_id_from_prefix(tok, p, word)
+            counts[tid] += 1
+            if tid not in decoded:
+                decoded[tid] = tok.decode([tid], clean_up_tokenization_spaces=False)
+        except Exception:
+            errors += 1
 
-    stats = {
+    most_common = counts.most_common(5)
+    return {
         "sampled": len(prefixes),
-        "single_token_cases": int(sum(counts.values())),
-        "non_single_token_cases": int(non_single),
-        "empty_or_weird_cases": int(empty),
-        "num_unique_single_ids": int(len(counts)),
+        "errors": int(errors),
+        "num_unique_ids": int(len(counts)),
+        "top_ids": [{"id": int(tid), "count": int(c), "decoded": decoded.get(tid, "")} for tid, c in most_common],
+        "all_counts": {int(k): int(v) for k, v in counts.items()},
     }
 
-    if len(counts) == 0:
-        return None, stats
-
-    best_id, best_ct = counts.most_common(1)[0]
-    stats["best_id"] = int(best_id)
-    stats["best_id_count"] = int(best_ct)
-    return int(best_id), stats
-
-
-@torch.no_grad()
 def print_prefix_debug(
     model: HookedTransformer,
     tok: GPT2TokenizerFast,
     prefixes: List[str],
-    he_id: int,
-    she_id: int,
     device: torch.device,
     n: int = 5,
 ) -> None:
     """
-    Print:
+    For a few prefixes, print:
       - raw prefix tail
       - token IDs tail
       - decoded tail tokens
+      - the per-prefix inferred next-token IDs for he/she (via encode(prefix+word)[-1])
       - baseline top tokens at t*
-      - ranks of he/she tokens
+      - ranks / logits for those per-prefix he/she token IDs
     """
     n = min(n, len(prefixes))
     if n <= 0:
         return
+
+    # Per-prefix token-ids for he/she as NEXT tokens
+    he_ids = [next_token_id_from_prefix(tok, p, "he") for p in prefixes[:n]]
+    she_ids = [next_token_id_from_prefix(tok, p, "she") for p in prefixes[:n]]
 
     tokens, last_idx = tokenize_prefixes(tok, prefixes[:n], device)
     B, S = tokens.shape
@@ -220,25 +216,31 @@ def print_prefix_debug(
 
     for i in range(n):
         p = prefixes[i]
-        ids = tok.encode(p, add_special_tokens=False)
-        tail_ids = ids[-12:]
+        tail = p[-120:]
+        print("\n---")
+        print("prefix tail:", repr(tail))
+        ids = tokens[i].tolist()
+        # show last 20 non-pad tokens
+        nonpad = [x for x in ids if x != tok.pad_token_id]
+        tail_ids = nonpad[-20:]
         tail_dec = [tok.decode([x], clean_up_tokenization_spaces=False) for x in tail_ids]
-        hv = float(lt[i, he_id].item())
-        sv = float(lt[i, she_id].item())
-        # ranks (1 = best)
-        rank_he = int((lt[i] > lt[i, he_id]).sum().item() + 1)
-        rank_she = int((lt[i] > lt[i, she_id]).sum().item() + 1)
+        print("token tail ids:", tail_ids)
+        print("token tail dec:", tail_dec)
 
-        print("\n--- SAMPLE", i, "---")
-        print("prefix_tail:", repr(p[-80:]))
-        print("ends_with_space:", p.endswith(" "))
-        print("tok_tail_ids:", tail_ids)
-        print("tok_tail_dec:", tail_dec)
-        print(f"logit(he)={hv:+.4f} rank_he={rank_he} | logit(she)={sv:+.4f} rank_she={rank_she}")
+        hid = he_ids[i]
+        sid = she_ids[i]
+        print(f"inferred next-token ids: he={hid} ({tok.decode([hid], clean_up_tokenization_spaces=False)!r}), "
+              f"she={sid} ({tok.decode([sid], clean_up_tokenization_spaces=False)!r})")
+
+        hv = float(lt[i, hid].item())
+        sv = float(lt[i, sid].item())
+        rank_he = int((lt[i] > lt[i, hid]).sum().item() + 1)
+        rank_she = int((lt[i] > lt[i, sid]).sum().item() + 1)
+        print(f"logit(he)={hv:.4f} rank={rank_he} | logit(she)={sv:.4f} rank={rank_she}")
+
         tops = [(int(topi[i, j]), float(topv[i, j]), tok.decode([int(topi[i, j])], clean_up_tokenization_spaces=False))
                 for j in range(10)]
         print("top10 @t*:", tops)
-
 
 # -------------------------
 # Core: forward + extract a_i, resid_final_t*, logits_t*
@@ -443,58 +445,76 @@ def eval_split(
     model: HookedTransformer,
     tok: GPT2TokenizerFast,
     prefixes: List[str],
-    true_class: str,         # "he" or "she" (label of this subset)
+    true_class: str,         # "he" or "she"
     mu_he: float,
     mu_she: float,
-    he_id: int,
-    she_id: int,
     layer: int,
     head: int,
     u_vec: torch.Tensor,
     sigma: float,
-    v_vec: torch.Tensor,     # [D] (row of Vh for sv_idx)
+    v_vec: torch.Tensor,     # [D]
     sigma_scales: List[float],
     device: torch.device,
-    batch_size: int,
-    max_n: Optional[int] = None,
+    batch_size: int = 64,
+    max_test: Optional[int] = None,
 ) -> Dict[str, Dict[str, float]]:
-    if max_n is not None:
-        prefixes = prefixes[:max_n]
+    # NOTE: We compute pronoun token IDs PER-EXAMPLE as:
+    #   he_id_ex  = encode(prefix + "he")[-1]
+    #   she_id_ex = encode(prefix + "she")[-1]
+    # This avoids whitespace/BPE quirks (" he" vs "he") that can make a single global ID wrong.
+
+    if max_test is not None:
+        prefixes = prefixes[:max_test]
 
     results: Dict[str, Dict[str, float]] = {}
-    true_class = true_class.lower().strip()
-    assert true_class in ("he", "she")
-
-    true_id = he_id if true_class == "he" else she_id
-    other_id = she_id if true_class == "he" else he_id
-    a_target = mu_she if true_class == "he" else mu_he
+    mu_tgt = mu_she if true_class == "he" else mu_he
 
     for scale in sigma_scales:
-        stats = EvalStats()
+        stats = RunningStats()
 
         for batch in batch_iter(prefixes, batch_size):
             tokens, last_idx = tokenize_prefixes(tok, batch, device)
-            ai, resid_t, logits_base = forward_original_extract(model, tokens, last_idx, layer, head, u_vec)
 
-            base_pred = torch.argmax(logits_base, dim=-1)
-            cf_target = a_target
+            # Per-example next-token IDs for the two pronouns
+            he_ids = torch.tensor([next_token_id_from_prefix(tok, p, "he") for p in batch], device=device, dtype=torch.long)
+            she_ids = torch.tensor([next_token_id_from_prefix(tok, p, "she") for p in batch], device=device, dtype=torch.long)
 
-            # Define logit diffs as (true - other)
-            base_diff = logits_base[:, true_id] - logits_base[:, other_id]
+            ai, resid_t, logits_t = forward_original_extract(model, tokens, last_idx, layer, head, u_vec)
 
-            # ΔR = (a_target - ai) * (scale * sigma) * v
-            delta = ((cf_target - ai) * (scale * sigma)).unsqueeze(-1) * v_vec.unsqueeze(0)  # [B,D]
-            resid_cf = resid_t + delta
-            logits_cf = (model.ln_final(resid_cf) @ model.W_U) + model.b_U
-            cf_pred = torch.argmax(logits_cf, dim=-1)
-            cf_diff = logits_cf[:, true_id] - logits_cf[:, other_id]
+            he_logits = logits_t.gather(1, he_ids.unsqueeze(1)).squeeze(1)
+            she_logits = logits_t.gather(1, she_ids.unsqueeze(1)).squeeze(1)
 
-            # Flip metrics:
-            # (A) top-1: only count examples where baseline argmax is the true pronoun token
-            denom_top1 = int((base_pred == true_id).sum().item())
-            flips_top1 = int(((base_pred == true_id) & (cf_pred == other_id)).sum().item())
+            if true_class == "he":
+                base_diff = he_logits - she_logits
+            else:
+                base_diff = she_logits - he_logits
 
-            # (B) pairwise: count examples where baseline prefers true within {he,she}
+            # Mean-swap: set a_cf to the opposite-class mean, then scale delta by (scale*sigma)
+            a_cf = torch.full_like(ai, float(mu_tgt))
+            delta = (a_cf - ai)[:, None] * (float(scale) * float(sigma)) * v_vec[None, :].to(device)
+
+            resid_cf = resid_t + delta.to(resid_t.dtype)
+            x_final = model.ln_final(resid_cf)
+            logits_cf = x_final @ model.W_U + model.b_U  # [B,V]
+
+            he_logits_cf = logits_cf.gather(1, he_ids.unsqueeze(1)).squeeze(1)
+            she_logits_cf = logits_cf.gather(1, she_ids.unsqueeze(1)).squeeze(1)
+
+            if true_class == "he":
+                cf_diff = he_logits_cf - she_logits_cf
+                true_ids = he_ids
+                other_ids = she_ids
+            else:
+                cf_diff = she_logits_cf - he_logits_cf
+                true_ids = she_ids
+                other_ids = he_ids
+
+            base_pred = logits_t.argmax(dim=-1)
+            cf_pred = logits_cf.argmax(dim=-1)
+
+            denom_top1 = int((base_pred == true_ids).sum().item())
+            flips_top1 = int(((base_pred == true_ids) & (cf_pred == other_ids)).sum().item())
+
             denom_pair = int((base_diff > 0).sum().item())
             flips_pair = int(((base_diff > 0) & (cf_diff < 0)).sum().item())
 
@@ -506,7 +526,6 @@ def eval_split(
         results[str(scale)] = stats.summary()
 
     return results
-
 
 def plot_curves(out_dir: Path, tag: str, sigma_scales: List[float], metrics: Dict[str, Dict[str, float]]) -> None:
     xs = sigma_scales
@@ -607,25 +626,22 @@ def main() -> None:
 
     model = HookedTransformer.from_pretrained("gpt2-small", device=device).eval()
 
-    # Robustly infer next-token IDs for pronouns given THIS prefix formatting.
-    prefixes_for_infer = [r["prefix"] for r in (train_he[:args.debug_token_infer_n] + train_she[:args.debug_token_infer_n])]
-    he_id, he_stats = infer_next_token_id_for_word(tok, prefixes_for_infer, "he", sample_n=len(prefixes_for_infer))
-    she_id, she_stats = infer_next_token_id_for_word(tok, prefixes_for_infer, "she", sample_n=len(prefixes_for_infer))
+    # Tokenization sanity for *next token* IDs of he/she under THIS prefix formatting.
+    # We compute per-prefix next-token IDs as encode(prefix + "he")[-1] (same for "she").
+    prefixes_for_debug = [r["prefix"] for r in (train_he[:args.debug_token_infer_n] + train_she[:args.debug_token_infer_n])]
+    he_stats = collect_next_token_id_stats(tok, prefixes_for_debug, "he", sample_n=len(prefixes_for_debug))
+    she_stats = collect_next_token_id_stats(tok, prefixes_for_debug, "she", sample_n=len(prefixes_for_debug))
 
     print(f"[TOK] encode(' he')={tok.encode(' he', add_special_tokens=False)} ; encode('he')={tok.encode('he', add_special_tokens=False)}")
     print(f"[TOK] encode(' she')={tok.encode(' she', add_special_tokens=False)} ; encode('she')={tok.encode('she', add_special_tokens=False)}")
-
-    print(f"[TOK-INFER] he_next_token_id={he_id} stats={he_stats}")
-    print(f"[TOK-INFER] she_next_token_id={she_id} stats={she_stats}")
-
-    if he_id is None or she_id is None:
-        raise ValueError("Could not infer single-token IDs for he/she given prefixes. Check tokenization debug above.")
+    print(f"[TOK-INFER] per-prefix he next-token id distribution: {he_stats}")
+    print(f"[TOK-INFER] per-prefix she next-token id distribution: {she_stats}")
 
     # Print a few sample tokenization/prediction diagnostics
     print("[DEBUG] baseline top tokens @t* for a few HE prefixes:")
-    print_prefix_debug(model, tok, [r["prefix"] for r in train_he[:args.debug_n]], he_id, she_id, device, n=args.debug_n)
+    print_prefix_debug(model, tok, [r["prefix"] for r in train_he[:args.debug_n]], device, n=args.debug_n)
     print("[DEBUG] baseline top tokens @t* for a few SHE prefixes:")
-    print_prefix_debug(model, tok, [r["prefix"] for r in train_she[:args.debug_n]], he_id, she_id, device, n=args.debug_n)
+    print_prefix_debug(model, tok, [r["prefix"] for r in train_she[:args.debug_n]], device, n=args.debug_n)
 
     # Load SVD direction
     svd_cache = torch.load(svd_path, map_location="cpu")
@@ -674,21 +690,21 @@ def main() -> None:
     metrics_he = eval_split(
         model, tok, [r["prefix"] for r in test_he], "he",
         mu_he=mu_he, mu_she=mu_she,
-        he_id=he_id, she_id=she_id,
+        
         layer=args.layer, head=args.head,
         u_vec=u_vec, sigma=sigma, v_vec=v_vec,
         sigma_scales=sigma_scales, device=device,
-        batch_size=args.batch_size, max_n=args.max_test,
+        batch_size=args.batch_size, max_test=args.max_test,
     )
 
     metrics_she = eval_split(
         model, tok, [r["prefix"] for r in test_she], "she",
         mu_he=mu_he, mu_she=mu_she,
-        he_id=he_id, she_id=she_id,
+        
         layer=args.layer, head=args.head,
         u_vec=u_vec, sigma=sigma, v_vec=v_vec,
         sigma_scales=sigma_scales, device=device,
-        batch_size=args.batch_size, max_n=args.max_test,
+        batch_size=args.batch_size, max_test=args.max_test,
     )
 
     # Pretty print
@@ -722,8 +738,8 @@ def main() -> None:
         "mu_she": mu_she,
         "std_he": std_he,
         "std_she": std_she,
-        "he_token_id": he_id,
-        "she_token_id": she_id,
+        "he_token_ids_candidates": {" he": tok.encode(" he", add_special_tokens=False)[0], "he": tok.encode("he", add_special_tokens=False)[0]},
+        "she_token_ids_candidates": {" she": tok.encode(" she", add_special_tokens=False)[0], "she": tok.encode("she", add_special_tokens=False)[0]},
         "he_infer_stats": he_stats,
         "she_infer_stats": she_stats,
         "sigma_scales": sigma_scales,
