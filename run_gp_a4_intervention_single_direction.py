@@ -470,7 +470,7 @@ def eval_split(
     mu_tgt = mu_she if true_class == "he" else mu_he
 
     for scale in sigma_scales:
-        stats = RunningStats()
+        stats = EvalStats()
 
         for batch in batch_iter(prefixes, batch_size):
             tokens, last_idx = tokenize_prefixes(tok, batch, device)
