@@ -48,8 +48,9 @@ def set_seed(seed: int) -> None:
 
 
 def normalize_prefix(s: str) -> str:
-    s = s.rstrip()
-    return s + " "
+    # s = s.rstrip()
+    # return s + " "
+    return s.rstrip()
 
 
 def detect_delimiter(path: str) -> str:
