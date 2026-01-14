@@ -1,43 +1,43 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# #!/usr/bin/env python
+# # -*- coding: utf-8 -*-
 
-\"\"
-FILE: gp_b_activation_patching_router.py
+# \"\"
+# FILE: gp_b_activation_patching_router.py
 
-EXPERIMENT B: Activation patching / denoising to find upstream router nodes that set the receptor scalar a(x).
+# EXPERIMENT B: Activation patching / denoising to find upstream router nodes that set the receptor scalar a(x).
 
-Goal:
-  Find a small upstream set S of nodes c=(L, H, SLOT) such that patching those node activations
-  from CLEAN into CORRUPT restores the receptor scalar a(x) at (L*,H*,SV*) toward its clean value.
+# Goal:
+#   Find a small upstream set S of nodes c=(L, H, SLOT) such that patching those node activations
+#   from CLEAN into CORRUPT restores the receptor scalar a(x) at (L*,H*,SV*) toward its clean value.
 
-This implements the 3-pass patching structure:
-  (1) clean run (cache V activations to transplant)
-  (2) corrupt run baseline (measure receptor scalar)
-  (3) corrupt-with-patch run (overwrite some V activations with clean cached values)
+# This implements the 3-pass patching structure:
+#   (1) clean run (cache V activations to transplant)
+#   (2) corrupt run baseline (measure receptor scalar)
+#   (3) corrupt-with-patch run (overwrite some V activations with clean cached values)
 
-IMPORTANT CONVENTIONS (match train_gp_masks_and_dump_ov_logit_receptors.py):
-  - prefix normalization is rstrip() (NO trailing space)
-  - tokenization uses gp._encode_texts + gp._pad_to_length
-  - attention pattern uses gp.attention_pattern_original
-  - patched activation is the per-head V-activation:
-        v = (context_resid @ W_V[h]) + b_V[h]
-    where context_resid = pat @ x_ln1
-  - receptor scalar a(x) uses ctx at chosen (L*,H*) and augments [ctx_t*, 1] then dot with u_vec
-    where u_vec is OV SVD U[:,K*] from outputs/gp/svd_cache.pt
+# IMPORTANT CONVENTIONS (match train_gp_masks_and_dump_ov_logit_receptors.py):
+#   - prefix normalization is rstrip() (NO trailing space)
+#   - tokenization uses gp._encode_texts + gp._pad_to_length
+#   - attention pattern uses gp.attention_pattern_original
+#   - patched activation is the per-head V-activation:
+#         v = (context_resid @ W_V[h]) + b_V[h]
+#     where context_resid = pat @ x_ln1
+#   - receptor scalar a(x) uses ctx at chosen (L*,H*) and augments [ctx_t*, 1] then dot with u_vec
+#     where u_vec is OV SVD U[:,K*] from outputs/gp/svd_cache.pt
 
-Outputs (in --out_dir):
-  b_router_single_node.json    (all candidates scored; sorted)
-  b_router_greedy.json         (greedy set + curve)
-  b_router_summary.json        (overall summary, including random baseline)
+# Outputs (in --out_dir):
+#   b_router_single_node.json    (all candidates scored; sorted)
+#   b_router_greedy.json         (greedy set + curve)
+#   b_router_summary.json        (overall summary, including random baseline)
 
-Run example (Kaggle):
-  python gp_b_activation_patching_router.py \
-    --data_dir data_main --train_csv train_1k_gp.csv --test_csv test_gp.csv \
-    --out_dir outputs/gp --layer_star 10 --head_star 9 --sv_idx 0 \
-    --N_pairs 256 --batch_size 64 --candidate_layers_max 9 \
-    --slots first,last,pred --topK 50 --Jmax 12 --random_trials 30 \
-    --device cuda --save_json 1
-\"\"
+# Run example (Kaggle):
+#   python gp_b_activation_patching_router.py \
+#     --data_dir data_main --train_csv train_1k_gp.csv --test_csv test_gp.csv \
+#     --out_dir outputs/gp --layer_star 10 --head_star 9 --sv_idx 0 \
+#     --N_pairs 256 --batch_size 64 --candidate_layers_max 9 \
+#     --slots first,last,pred --topK 50 --Jmax 12 --random_trials 30 \
+#     --device cuda --save_json 1
+# \"\"
 
 from __future__ import annotations
 
