@@ -331,6 +331,8 @@ def cache_clean_v_slots_for_layer(
             v_slots[:, slot_id, h, :] = vv.to(torch.float16)
 
     
+    return v_slots
+
 @torch.no_grad()
 def run_to_pre_layer_x(model: HookedTransformer, tokens: torch.Tensor, stop_layer: int) -> torch.Tensor:
     """
@@ -511,7 +513,6 @@ def compute_restore_stats(a_clean: torch.Tensor, a_corr: torch.Tensor, a_patch: 
     }
 
 
-return v_slots
 
 
 def restore_frac_mean_based(a_patch_mean: float, a_corr_mean: float, a_clean_mean: float, eps: float = 1e-12) -> float:
