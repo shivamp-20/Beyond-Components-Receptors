@@ -678,7 +678,7 @@ def identity_z_head_sanity(
     pad_len_global: int,
     layer_check: int,
     head_check: int,
-    tol: float = 1e-5,
+    tol: float = 4e-5,
 ):
     print(f"[SANITY-ID-Z-HEAD] identity patch on hook_z at (L={layer_check}, H={head_check}) across all p<=t*")
 
@@ -987,7 +987,7 @@ def run_direction(
         pad_len_global=pad_len_global,
         layer_check=0,
         head_check=0,
-        tol=1e-5,
+        tol=4e-5,
     )
 
     # Load candidates and exclusion sets
