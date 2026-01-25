@@ -1,353 +1,252 @@
 #!/usr/bin/env python3
-"""gp_exp3_summarize_sweep.py
-
-Experiment 3 (post-processing, no retraining / no forward passes):
-Summarize Exp2 sweep outputs and compute the headline metrics.
-
-Input: exp2_results.json files created by gp_exp2_rotate_subspace_v5_sweep.py
-(default location: <out_dir>/exp2_rotate/**/exp2_results.json)
-
-Outputs:
-- prints a ranked table of runs (rotated vs STAR) with:
-  * KL@flip_target (he->she and she->he)
-  * flip@KL_target (he->she and she->he)
-  * other%@KL_target
-  * w concentration: max|w| and top-3 weights (idx, w)
-
-This script is intentionally lightweight so you can run it after a long sweep and
-paste one consolidated summary into another window.
 """
+Experiment 3: Summarize Exp2 sweep runs.
 
+Scans for exp2_results.json produced by gp_exp2_rotate_subspace_v5_sweep.py and computes:
+- KL needed to reach flip_target% flips (he->she and she->he), for ROTATED and STAR
+- Flip rate at a fixed KL budget (kl_budget), for ROTATED and STAR
+- other% diagnostic at the chosen KL budget
+- w concentration: max |w_j| and top-3 |w_j|
+"""
 from __future__ import annotations
 
 import argparse
-import glob
+import csv
 import json
 import math
 import os
+from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 
-def _safe_float(x: Any) -> Optional[float]:
+def _safe_float(x: Any) -> float:
     try:
+        if x is None:
+            return float("nan")
         return float(x)
     except Exception:
-        return None
+        return float("nan")
 
 
-def _load_json(path: str) -> Dict[str, Any]:
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def _topk_weights(idx_list: List[int], w: List[float], k: int = 3) -> List[Tuple[int, float]]:
-    pairs = list(zip(idx_list, w))
-    pairs.sort(key=lambda t: abs(t[1]), reverse=True)
-    return pairs[:k]
-
-
-def _kl_at_flip_target(
-    sweep: List[Dict[str, Any]],
-    flip_key: str,
-    flip_target: float,
-) -> Optional[float]:
-    # Return the minimum KL among points that reach the flip target.
-    best: Optional[float] = None
-    for row in sweep:
-        flip = _safe_float(row.get(flip_key))
-        kl = _safe_float(row.get("kl_mean"))
-        if flip is None or kl is None:
-            continue
-        if flip >= flip_target:
-            if best is None or kl < best:
-                best = kl
-    return best
-
-
-def _interp_y_at_x(points: List[Tuple[float, float]], x: float) -> Optional[float]:
-    """Linear interpolation for y(x) given (x_i, y_i) points.
-
-    points: list of (x, y) pairs. x doesn't have to be sorted.
-    If x is outside range, we clamp to nearest endpoint.
+def _normalize_sweep(sweep_obj: Any) -> List[Dict[str, Any]]:
     """
-    if not points:
-        return None
-    pts = sorted(points, key=lambda t: t[0])
-    # If duplicates in x, keep the one with larger y? (doesn't matter much). We'll just keep all.
-    if x <= pts[0][0]:
-        return pts[0][1]
-    if x >= pts[-1][0]:
-        return pts[-1][1]
-    for (x1, y1), (x2, y2) in zip(pts[:-1], pts[1:]):
-        if x1 <= x <= x2:
-            if math.isclose(x1, x2):
-                return (y1 + y2) / 2.0
-            t = (x - x1) / (x2 - x1)
-            return y1 + t * (y2 - y1)
-    return None
+    Exp2 writes sweeps as dict: { "0.0": {...}, "1.0": {...}, ... }
+    Normalize to list of row dicts sorted by sigma_scale.
+    """
+    if sweep_obj is None:
+        return []
+
+    if isinstance(sweep_obj, dict):
+        # IMPORTANT: dict iteration gives KEYS; we want VALUES (row dicts)
+        rows = list(sweep_obj.values())
+        rows = [r for r in rows if isinstance(r, dict)]
+    elif isinstance(sweep_obj, list):
+        rows = [r for r in sweep_obj if isinstance(r, dict)]
+    else:
+        return []
+
+    rows.sort(key=lambda r: _safe_float(r.get("sigma_scale")))
+    return rows
 
 
-def _flip_at_kl_target(
-    sweep: List[Dict[str, Any]],
-    flip_key: str,
-    kl_target: float,
-) -> Optional[float]:
-    pts: List[Tuple[float, float]] = []
-    for row in sweep:
+def _kl_at_flip_target(rows: List[Dict[str, Any]], flip_key: str, flip_target: float) -> float:
+    best = float("inf")
+    for row in rows:
         flip = _safe_float(row.get(flip_key))
         kl = _safe_float(row.get("kl_mean"))
-        if flip is None or kl is None:
+        if math.isnan(flip) or math.isnan(kl):
             continue
-        pts.append((kl, flip))
-    return _interp_y_at_x(pts, kl_target)
+        if flip >= flip_target and kl < best:
+            best = kl
+    return best if best != float("inf") else float("nan")
 
 
-def _other_at_kl_target(sweep: List[Dict[str, Any]], kl_target: float) -> Optional[float]:
-    pts: List[Tuple[float, float]] = []
-    for row in sweep:
-        other = _safe_float(row.get("other_pct"))
+def _flip_at_kl_budget(rows: List[Dict[str, Any]], flip_key: str, kl_budget: float) -> Tuple[float, float, float]:
+    """
+    Returns (flip_at_budget, other_at_budget, kl_used).
+    Rule: among rows with kl_mean <= kl_budget pick MAX flip. Tie-break: smaller KL.
+    Fallback: if none under budget, pick minimum KL row.
+    """
+    if not rows:
+        return (float("nan"), float("nan"), float("nan"))
+
+    best_row = None
+    best_flip = -float("inf")
+    best_kl = float("inf")
+
+    for row in rows:
         kl = _safe_float(row.get("kl_mean"))
-        if other is None or kl is None:
+        flip = _safe_float(row.get(flip_key))
+        if math.isnan(kl) or math.isnan(flip):
             continue
-        pts.append((kl, other))
-    return _interp_y_at_x(pts, kl_target)
+        if kl <= kl_budget:
+            if (flip > best_flip) or (flip == best_flip and kl < best_kl):
+                best_flip = flip
+                best_kl = kl
+                best_row = row
+
+    if best_row is None:
+        for row in rows:
+            kl = _safe_float(row.get("kl_mean"))
+            flip = _safe_float(row.get(flip_key))
+            if math.isnan(kl) or math.isnan(flip):
+                continue
+            if kl < best_kl:
+                best_kl = kl
+                best_flip = flip
+                best_row = row
+
+    other = _safe_float(best_row.get("other_pct_all")) if isinstance(best_row, dict) else float("nan")
+    return (best_flip, other, best_kl)
 
 
-def _fmt(x: Optional[float], nd: int = 3) -> str:
-    if x is None:
-        return "NA"
-    return f"{x:.{nd}f}"
+def _w_concentration(w: Any) -> Tuple[float, str]:
+    if not isinstance(w, list) or len(w) == 0:
+        return (float("nan"), "")
+    vals = [abs(_safe_float(x)) for x in w]
+    max_abs = max(vals) if vals else float("nan")
+    idxs = sorted(range(len(vals)), key=lambda i: vals[i], reverse=True)[:3]
+    top3 = ",".join([f"t{i}:{vals[i]:.4g}" for i in idxs])
+    return (float(max_abs), top3)
+
+
+@dataclass
+class Row:
+    run_name: str
+    json_path: str
+    k: Optional[int]
+    w_mode: str
+    lda_reg: Optional[float]
+    max_abs_w: float
+    top3_abs_w: str
+
+    rot_kl95_he: float
+    star_kl95_he: float
+    d_kl95_he: float
+
+    rot_flip_he_at_budget: float
+    star_flip_he_at_budget: float
+
+    rot_other_at_budget: float
+    star_other_at_budget: float
+
+
+def _find_exp2_jsons(search_root: Path) -> List[Path]:
+    out: List[Path] = []
+    for root, _, files in os.walk(search_root):
+        if "exp2_results.json" in files:
+            out.append(Path(root) / "exp2_results.json")
+    return sorted(out)
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out_dir", type=str, required=True, help="Same out_dir you used for Exp2 (e.g., outputs/gp)")
-    ap.add_argument("--flip_target", type=float, default=95.0, help="Flip%% target for KL@flip (default 95)")
-    # Allow both names so older/newer notebooks keep working.
-    ap.add_argument(
-        "--kl_target",
-        "--kl_budget",
-        dest="kl_target",
-        type=float,
-        default=2.0,
-        help="KL budget for flip@KL (default 2.0). Alias: --kl_budget",
-    )
-    ap.add_argument(
-        "--search_root",
-        type=str,
-        default=None,
-        help="Root to search for exp2_results.json (default: <out_dir>/exp2_rotate)",
-    )
-    ap.add_argument(
-        "--max_rows",
-        "--topn",
-        dest="max_rows",
-        type=int,
-        default=50,
-        help="How many runs to print (default 50). Alias: --topn",
-    )
-    ap.add_argument(
-        "--save_csv",
-        type=str,
-        default=None,
-        help="If set, save the printed summary table to this CSV path.",
-    )
+    ap.add_argument("--out_dir", required=True, help="Base output dir (e.g., outputs/gp). Used as default search_root.")
+    ap.add_argument("--search_root", default=None, help="Root dir to scan (defaults to out_dir).")
+    ap.add_argument("--flip_target", type=float, default=95.0, help="Flip target percent (default 95).")
+    ap.add_argument("--kl_budget", type=float, default=2.0, help="KL budget for flip@KL (default 2.0).")
+    ap.add_argument("--topn", type=int, default=20, help="How many rows to print.")
+    ap.add_argument("--save_csv", default=None, help="If set, write CSV to this path.")
     args = ap.parse_args()
 
-    search_root = args.search_root or os.path.join(args.out_dir, "exp2_rotate")
-    pattern = os.path.join(search_root, "**", "exp2_results.json")
-    paths = sorted(glob.glob(pattern, recursive=True))
-    if not paths:
-        raise SystemExit(f"No exp2_results.json found under: {pattern}")
+    search_root = Path(args.search_root) if args.search_root else Path(args.out_dir)
+    json_paths = _find_exp2_jsons(search_root)
+    if not json_paths:
+        print(f"[WARN] No exp2_results.json found under: {search_root}")
+        return
 
-    rows: List[Dict[str, Any]] = []
+    rows_out: List[Row] = []
 
-    for p in paths:
+    for jp in json_paths:
+        payload = json.loads(jp.read_text(encoding="utf-8"))
+        cfg = payload.get("config", {})
+        run_name = str(cfg.get("run_name") or jp.parent.name)
+
+        k = cfg.get("k")
         try:
-            d = _load_json(p)
+            k = int(k) if k is not None else None
         except Exception:
-            continue
+            k = None
 
-        cfg = {
-            "path": p,
-            "layer": d.get("layer"),
-            "head": d.get("head"),
-            "k": d.get("k"),
-            "w_mode": d.get("w_mode"),
-            "lda_reg": d.get("lda_reg"),
-            "lda_shrink": d.get("lda_shrink"),
-            "run_name": d.get("run_name"),
-            "selection_mode": d.get("selection_mode"),
-        }
+        w_mode = str(cfg.get("w_mode") or "unknown")
+        lda_reg = cfg.get("lda_reg")
+        lda_reg_f = _safe_float(lda_reg) if lda_reg is not None else float("nan")
 
-        idx_list = d.get("idx_list") or []
-        w = d.get("w") or []
-        # Be robust: sometimes idx_list may be saved as strings.
-        try:
-            idx_list = [int(x) for x in idx_list]
-        except Exception:
-            idx_list = list(idx_list)
-        try:
-            w = [float(x) for x in w]
-        except Exception:
-            w = list(w)
+        max_abs_w, top3_abs_w = _w_concentration(payload.get("w"))
 
-        max_abs_w = max((abs(x) for x in w), default=float("nan"))
-        top3 = _topk_weights(idx_list, w, k=3) if idx_list and w else []
-
-        sweep_rot = d.get("sweep_rotated") or []
-        sweep_star = d.get("sweep_star") or []
+        sweep_rot = _normalize_sweep(payload.get("sweep_rotated"))
+        sweep_star = _normalize_sweep(payload.get("sweep_star"))
 
         rot_kl95_he = _kl_at_flip_target(sweep_rot, "flip_he_pct", args.flip_target)
-        rot_kl95_she = _kl_at_flip_target(sweep_rot, "flip_she_pct", args.flip_target)
         star_kl95_he = _kl_at_flip_target(sweep_star, "flip_he_pct", args.flip_target)
-        star_kl95_she = _kl_at_flip_target(sweep_star, "flip_she_pct", args.flip_target)
+        d_kl95_he = (rot_kl95_he - star_kl95_he) if (not math.isnan(rot_kl95_he) and not math.isnan(star_kl95_he)) else float("nan")
 
-        rot_flip_at_kl_he = _flip_at_kl_target(sweep_rot, "flip_he_pct", args.kl_target)
-        rot_flip_at_kl_she = _flip_at_kl_target(sweep_rot, "flip_she_pct", args.kl_target)
-        star_flip_at_kl_he = _flip_at_kl_target(sweep_star, "flip_he_pct", args.kl_target)
-        star_flip_at_kl_she = _flip_at_kl_target(sweep_star, "flip_she_pct", args.kl_target)
+        rot_flip_he, rot_other, _ = _flip_at_kl_budget(sweep_rot, "flip_he_pct", args.kl_budget)
+        star_flip_he, star_other, _ = _flip_at_kl_budget(sweep_star, "flip_he_pct", args.kl_budget)
 
-        rot_other_at_kl = _other_at_kl_target(sweep_rot, args.kl_target)
-        star_other_at_kl = _other_at_kl_target(sweep_star, args.kl_target)
+        rows_out.append(Row(
+            run_name=run_name,
+            json_path=str(jp),
+            k=k,
+            w_mode=w_mode,
+            lda_reg=None if math.isnan(lda_reg_f) else lda_reg_f,
+            max_abs_w=max_abs_w,
+            top3_abs_w=top3_abs_w,
+            rot_kl95_he=rot_kl95_he,
+            star_kl95_he=star_kl95_he,
+            d_kl95_he=d_kl95_he,
+            rot_flip_he_at_budget=rot_flip_he,
+            star_flip_he_at_budget=star_flip_he,
+            rot_other_at_budget=rot_other,
+            star_other_at_budget=star_other,
+        ))
 
-        # Aggregate for ranking: worst-case KL to reach flip_target (lower is better).
-        rot_kl95_max = None
-        if rot_kl95_he is not None and rot_kl95_she is not None:
-            rot_kl95_max = max(rot_kl95_he, rot_kl95_she)
-        star_kl95_max = None
-        if star_kl95_he is not None and star_kl95_she is not None:
-            star_kl95_max = max(star_kl95_he, star_kl95_she)
+    # Sort by best (lowest) ROT_KL@95% he flips
+    rows_out.sort(key=lambda r: float("inf") if math.isnan(r.rot_kl95_he) else r.rot_kl95_he)
 
-        rows.append(
-            {
-                **cfg,
-                "max_abs_w": max_abs_w,
-                "top3": top3,
-                "rot_kl95_he": rot_kl95_he,
-                "rot_kl95_she": rot_kl95_she,
-                "rot_kl95_max": rot_kl95_max,
-                "star_kl95_he": star_kl95_he,
-                "star_kl95_she": star_kl95_she,
-                "star_kl95_max": star_kl95_max,
-                "rot_flip_at_kl_he": rot_flip_at_kl_he,
-                "rot_flip_at_kl_she": rot_flip_at_kl_she,
-                "star_flip_at_kl_he": star_flip_at_kl_he,
-                "star_flip_at_kl_she": star_flip_at_kl_she,
-                "rot_other_at_kl": rot_other_at_kl,
-                "star_other_at_kl": star_other_at_kl,
-            }
+    print(f"\n[SUMMARY] runs={len(rows_out)} flip_target={args.flip_target}% kl_budget={args.kl_budget}")
+    print("run_name\tk\tw_mode\tlda_reg\tmax|w|\tROT_KL@95(he)\tSTAR_KL@95(he)\tΔKL\tROT_flip_he@KL\tSTAR_flip_he@KL\tROT_other@KL\tSTAR_other@KL\ttop3|w|")
+
+    def fmt(x: Any) -> str:
+        if x is None:
+            return ""
+        if isinstance(x, float):
+            if math.isnan(x):
+                return "nan"
+            return f"{x:.4g}"
+        return str(x)
+
+    for r in rows_out[: args.topn]:
+        print(
+            f"{r.run_name}\t{r.k}\t{r.w_mode}\t{fmt(r.lda_reg)}\t{fmt(r.max_abs_w)}\t"
+            f"{fmt(r.rot_kl95_he)}\t{fmt(r.star_kl95_he)}\t{fmt(r.d_kl95_he)}\t"
+            f"{fmt(r.rot_flip_he_at_budget)}\t{fmt(r.star_flip_he_at_budget)}\t"
+            f"{fmt(r.rot_other_at_budget)}\t{fmt(r.star_other_at_budget)}\t"
+            f"{r.top3_abs_w}"
         )
-
-    # Rank: prefer runs with a defined rot_kl95_max; then smaller rot_kl95_max.
-    def _rank_key(r: Dict[str, Any]) -> Tuple[int, float]:
-        kl = r.get("rot_kl95_max")
-        if kl is None:
-            return (1, float("inf"))
-        return (0, float(kl))
-
-    rows.sort(key=_rank_key)
-
-    print("\n===== EXP3 SUMMARY (from Exp2 JSONs) =====")
-    print(f"Found {len(rows)} runs under: {search_root}")
-    print(f"Flip target for KL@flip: {args.flip_target}%")
-    print(f"KL target for flip@KL:   {args.kl_target}")
-
-    kl_lab = str(args.kl_target)
-    header = (
-        "k  w_mode   lda_reg   run_name\t"
-        "ROT: KL@95(he,she,max)\tROT: flip@KL" + kl_lab + "(he,she)\tROT other@KL" + kl_lab + "\t"
-        "STAR: KL@95(he,she,max)\tSTAR: flip@KL" + kl_lab + "(he,she)\tSTAR other@KL" + kl_lab + "\t"
-        "max|w|  top3(idx:w)"
-    )
-    print("\n" + header)
-    print("-" * len(header))
-
-    for r in rows[: args.max_rows]:
-        lda_reg = r.get("lda_reg")
-        lda_reg_s = "NA" if lda_reg is None else str(lda_reg)
-        top3_s = ",".join([f"{idx}:{w:+.3f}" for idx, w in (r.get("top3") or [])])
-
-        line = (
-            f"{str(r.get('k')).rjust(2)} "
-            f"{str(r.get('w_mode')).ljust(8)} "
-            f"{lda_reg_s.ljust(8)} "
-            f"{str(r.get('run_name'))}\t"
-            f"({_fmt(r.get('rot_kl95_he'))},{_fmt(r.get('rot_kl95_she'))},{_fmt(r.get('rot_kl95_max'))})\t"
-            f"({_fmt(r.get('rot_flip_at_kl_he'),2)},{_fmt(r.get('rot_flip_at_kl_she'),2)})\t"
-            f"{_fmt(r.get('rot_other_at_kl'),2)}\t"
-            f"({_fmt(r.get('star_kl95_he'))},{_fmt(r.get('star_kl95_she'))},{_fmt(r.get('star_kl95_max'))})\t"
-            f"({_fmt(r.get('star_flip_at_kl_he'),2)},{_fmt(r.get('star_flip_at_kl_she'),2)})\t"
-            f"{_fmt(r.get('star_other_at_kl'),2)}\t"
-            f"{_fmt(r.get('max_abs_w'),3)}  {top3_s}"
-        )
-        print(line)
 
     if args.save_csv:
-        os.makedirs(os.path.dirname(args.save_csv) or ".", exist_ok=True)
-        import csv
-
-        # Save full sorted list (not truncated) so you can filter in Excel later.
-        with open(args.save_csv, "w", newline="", encoding="utf-8") as f:
-            wtr = csv.writer(f)
-            wtr.writerow(
-                [
-                    "k",
-                    "w_mode",
-                    "lda_reg",
-                    "lda_shrink",
-                    "run_name",
-                    "rot_kl95_he",
-                    "rot_kl95_she",
-                    "rot_kl95_max",
-                    f"rot_flip_at_kl_{args.kl_target}_he",
-                    f"rot_flip_at_kl_{args.kl_target}_she",
-                    f"rot_other_at_kl_{args.kl_target}",
-                    "star_kl95_he",
-                    "star_kl95_she",
-                    "star_kl95_max",
-                    f"star_flip_at_kl_{args.kl_target}_he",
-                    f"star_flip_at_kl_{args.kl_target}_she",
-                    f"star_other_at_kl_{args.kl_target}",
-                    "max_abs_w",
-                    "top3",
-                    "path",
-                ]
-            )
-            for r in rows:
-                top3_s = ",".join([f"{idx}:{w:+.6f}" for idx, w in (r.get("top3") or [])])
-                wtr.writerow(
-                    [
-                        r.get("k"),
-                        r.get("w_mode"),
-                        r.get("lda_reg"),
-                        r.get("lda_shrink"),
-                        r.get("run_name"),
-                        r.get("rot_kl95_he"),
-                        r.get("rot_kl95_she"),
-                        r.get("rot_kl95_max"),
-                        r.get("rot_flip_at_kl_he"),
-                        r.get("rot_flip_at_kl_she"),
-                        r.get("rot_other_at_kl"),
-                        r.get("star_kl95_he"),
-                        r.get("star_kl95_she"),
-                        r.get("star_kl95_max"),
-                        r.get("star_flip_at_kl_he"),
-                        r.get("star_flip_at_kl_she"),
-                        r.get("star_other_at_kl"),
-                        r.get("max_abs_w"),
-                        top3_s,
-                        r.get("path"),
-                    ]
-                )
-        print(f"\n[SAVE] wrote CSV summary to: {args.save_csv}")
-
-    print("\nNotes:")
-    print("- KL@95 uses the *minimum* KL among your sampled sigma_scales that reaches >=95% flips.")
-    print("  If your scales are coarse, this is a step-function estimate (good enough for ranking).")
-    print(
-        f"- flip@KL{args.kl_target} linearly interpolates flip% as a function of KL across your sampled points."
-    )
+        outp = Path(args.save_csv)
+        outp.parent.mkdir(parents=True, exist_ok=True)
+        with outp.open("w", newline="", encoding="utf-8") as f:
+            w = csv.writer(f)
+            w.writerow([
+                "run_name","json_path","k","w_mode","lda_reg",
+                "max_abs_w","top3_abs_w",
+                "rot_kl95_he","star_kl95_he","d_kl95_he",
+                "rot_flip_he_at_budget","star_flip_he_at_budget",
+                "rot_other_at_budget","star_other_at_budget",
+            ])
+            for r in rows_out:
+                w.writerow([
+                    r.run_name,r.json_path,r.k,r.w_mode,r.lda_reg,
+                    r.max_abs_w,r.top3_abs_w,
+                    r.rot_kl95_he,r.star_kl95_he,r.d_kl95_he,
+                    r.rot_flip_he_at_budget,r.star_flip_he_at_budget,
+                    r.rot_other_at_budget,r.star_other_at_budget,
+                ])
+        print(f"\n[SAVE_CSV] {outp}")
 
 
 if __name__ == "__main__":
