@@ -123,7 +123,15 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out_dir", type=str, required=True, help="Same out_dir you used for Exp2 (e.g., outputs/gp)")
     ap.add_argument("--flip_target", type=float, default=95.0, help="Flip%% target for KL@flip (default 95)")
-    ap.add_argument("--kl_target", type=float, default=2.0, help="KL target for flip@KL (default 2.0)")
+    # Allow both names so older/newer notebooks keep working.
+    ap.add_argument(
+        "--kl_target",
+        "--kl_budget",
+        dest="kl_target",
+        type=float,
+        default=2.0,
+        help="KL budget for flip@KL (default 2.0). Alias: --kl_budget",
+    )
     ap.add_argument(
         "--search_root",
         type=str,
@@ -132,9 +140,17 @@ def main() -> None:
     )
     ap.add_argument(
         "--max_rows",
+        "--topn",
+        dest="max_rows",
         type=int,
         default=50,
-        help="How many runs to print (default 50).",
+        help="How many runs to print (default 50). Alias: --topn",
+    )
+    ap.add_argument(
+        "--save_csv",
+        type=str,
+        default=None,
+        help="If set, save the printed summary table to this CSV path.",
     )
     args = ap.parse_args()
 
@@ -237,10 +253,11 @@ def main() -> None:
     print(f"Flip target for KL@flip: {args.flip_target}%")
     print(f"KL target for flip@KL:   {args.kl_target}")
 
+    kl_lab = str(args.kl_target)
     header = (
         "k  w_mode   lda_reg   run_name\t"
-        "ROT: KL@95(he,she,max)\tROT: flip@KL2(he,she)\tROT other@KL2\t"
-        "STAR: KL@95(he,she,max)\tSTAR: flip@KL2(he,she)\tSTAR other@KL2\t"
+        "ROT: KL@95(he,she,max)\tROT: flip@KL" + kl_lab + "(he,she)\tROT other@KL" + kl_lab + "\t"
+        "STAR: KL@95(he,she,max)\tSTAR: flip@KL" + kl_lab + "(he,she)\tSTAR other@KL" + kl_lab + "\t"
         "max|w|  top3(idx:w)"
     )
     print("\n" + header)
@@ -266,10 +283,71 @@ def main() -> None:
         )
         print(line)
 
+    if args.save_csv:
+        os.makedirs(os.path.dirname(args.save_csv) or ".", exist_ok=True)
+        import csv
+
+        # Save full sorted list (not truncated) so you can filter in Excel later.
+        with open(args.save_csv, "w", newline="", encoding="utf-8") as f:
+            wtr = csv.writer(f)
+            wtr.writerow(
+                [
+                    "k",
+                    "w_mode",
+                    "lda_reg",
+                    "lda_shrink",
+                    "run_name",
+                    "rot_kl95_he",
+                    "rot_kl95_she",
+                    "rot_kl95_max",
+                    f"rot_flip_at_kl_{args.kl_target}_he",
+                    f"rot_flip_at_kl_{args.kl_target}_she",
+                    f"rot_other_at_kl_{args.kl_target}",
+                    "star_kl95_he",
+                    "star_kl95_she",
+                    "star_kl95_max",
+                    f"star_flip_at_kl_{args.kl_target}_he",
+                    f"star_flip_at_kl_{args.kl_target}_she",
+                    f"star_other_at_kl_{args.kl_target}",
+                    "max_abs_w",
+                    "top3",
+                    "path",
+                ]
+            )
+            for r in rows:
+                top3_s = ",".join([f"{idx}:{w:+.6f}" for idx, w in (r.get("top3") or [])])
+                wtr.writerow(
+                    [
+                        r.get("k"),
+                        r.get("w_mode"),
+                        r.get("lda_reg"),
+                        r.get("lda_shrink"),
+                        r.get("run_name"),
+                        r.get("rot_kl95_he"),
+                        r.get("rot_kl95_she"),
+                        r.get("rot_kl95_max"),
+                        r.get("rot_flip_at_kl_he"),
+                        r.get("rot_flip_at_kl_she"),
+                        r.get("rot_other_at_kl"),
+                        r.get("star_kl95_he"),
+                        r.get("star_kl95_she"),
+                        r.get("star_kl95_max"),
+                        r.get("star_flip_at_kl_he"),
+                        r.get("star_flip_at_kl_she"),
+                        r.get("star_other_at_kl"),
+                        r.get("max_abs_w"),
+                        top3_s,
+                        r.get("path"),
+                    ]
+                )
+        print(f"\n[SAVE] wrote CSV summary to: {args.save_csv}")
+
     print("\nNotes:")
     print("- KL@95 uses the *minimum* KL among your sampled sigma_scales that reaches >=95% flips.")
     print("  If your scales are coarse, this is a step-function estimate (good enough for ranking).")
-    print("- flip@KL2 linearly interpolates flip% as a function of KL across your sampled points.")
+    print(
+        f"- flip@KL{args.kl_target} linearly interpolates flip% as a function of KL across your sampled points."
+    )
 
 
 if __name__ == "__main__":
