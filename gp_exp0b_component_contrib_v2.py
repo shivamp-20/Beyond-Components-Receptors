@@ -214,7 +214,7 @@ def main():
     receptor_specs = parse_receptors_arg(args.receptors)
     svd_path = os.path.join(args.out_dir, "svd_cache.pt")
     qk, ov, mlp_in, mlp_out, rank_total_ov = gp.load_svd_cache(svd_path, device=args.device)
-he_id = tokenizer.encode(" he", add_special_tokens=False)[0]
+    he_id = tokenizer.encode(" he", add_special_tokens=False)[0]
     she_id = tokenizer.encode(" she", add_special_tokens=False)[0]
 
     v_rows = []
@@ -224,7 +224,7 @@ he_id = tokenizer.encode(" he", add_special_tokens=False)[0]
 
     for i, s in enumerate(receptor_specs, start=1):
         Vh = ov[s.layer][s.head].Vh  # (rank, d_model)
-v_row = Vh[s.sv_idx].to(device)
+        v_row = Vh[s.sv_idx].to(device)
         v_rows.append(v_row)
         v_pols.append(s.polarity)
 
