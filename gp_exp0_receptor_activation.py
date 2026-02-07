@@ -223,8 +223,11 @@ def main():
 
         print(f"\n  R{i}: (layer={s.layer}, head={s.head}, sv_idx={s.sv_idx}) polarity={s.polarity:+d}")
         print(f"      pronoun scores: ' he'={he_score:+.4g}, ' she'={she_score:+.4g}")
-        print("      TOP   :", ", ".join([f\"{d['token_str']!r}:{float(d['score']):+.3g}\" for d in top[:10]]))
-        print("      BOTTOM:", ", ".join([f\"{d['token_str']!r}:{float(d['score']):+.3g}\" for d in bot[:10]]))
+        # print("      TOP   :", ", ".join([f\"{d['token_str']!r}:{float(d['score']):+.3g}\" for d in top[:10]]))
+        # print("      BOTTOM:", ", ".join([f\"{d['token_str']!r}:{float(d['score']):+.3g}\" for d in bot[:10]]))
+        print("      TOP   :", ", ".join([f"{d['token_str']!r}:{float(d['score']):+.3g}" for d in top[:10]]))
+        print("      BOTTOM:", ", ".join([f"{d['token_str']!r}:{float(d['score']):+.3g}" for d in bot[:10]]))
+
 
     # Stack receptor directions: R is (3, d_model)
     R = torch.stack(v_rows, dim=0)  # (3, D)
