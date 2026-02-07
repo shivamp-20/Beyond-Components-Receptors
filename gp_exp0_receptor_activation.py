@@ -97,14 +97,23 @@ def expand_rows_to_examples(rows: List[Dict[str, str]], use_both: bool) -> List[
     return ex
 
 
+# def pronoun_to_y(p: str) -> int:
+#     # y=+1 for male-correct, y=-1 for female-correct
+#     t = p.strip().lower()
+#     if "he" in t:   # robust to "he", "He", etc.
+#         return +1
+#     if "she" in t:
+#         return -1
+#     raise ValueError(f"Unknown pronoun label '{p}' (expected contains 'he' or 'she').")
+
 def pronoun_to_y(p: str) -> int:
-    # y=+1 for male-correct, y=-1 for female-correct
     t = p.strip().lower()
-    if "he" in t:   # robust to "he", "He", etc.
+    if t == "he":
         return +1
-    if "she" in t:
+    if t == "she":
         return -1
-    raise ValueError(f"Unknown pronoun label '{p}' (expected contains 'he' or 'she').")
+    raise ValueError(f"Unknown pronoun label: {p!r}")
+
 
 
 # -------------------------
@@ -187,6 +196,8 @@ def main():
 
     # Labels
     y = torch.tensor([pronoun_to_y(e["pronoun"]) for e in examples], device="cpu")  # (N,)
+    print("label counts:", {+1: int((y==1).sum()), -1: int((y==-1).sum())})
+    print("unique pronoun strings:", sorted(set([e["pronoun"] for e in examples]))[:20])
     labels01 = (y == 1).long()
 
     # Parse receptor specs
