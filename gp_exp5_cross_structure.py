@@ -49,6 +49,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
+from transformer_lens import HookedTransformer
 
 # ═══════════════════════════════════════════════════════════════
 # STRUCTURES — 5 syntactic patterns, 3 templates each
