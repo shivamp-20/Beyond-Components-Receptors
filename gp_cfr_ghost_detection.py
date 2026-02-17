@@ -512,9 +512,9 @@ def main() -> None:
             r["is_ghost"] = True
     else:
         for r in receptor_list:
-            cfr = max(0.0, r["acc_drop"] / max_drop)  # clamp negatives to 0
+            cfr = float(max(0.0, r["acc_drop"] / max_drop))  # clamp negatives to 0
             r["cfr"] = cfr
-            r["is_ghost"] = cfr < args.ghost_threshold
+            r["is_ghost"] = bool(cfr < args.ghost_threshold)
 
     # Sort by CFR descending
     receptor_list.sort(key=lambda r: r["cfr"], reverse=True)
@@ -774,32 +774,32 @@ def main() -> None:
     results_json = {
         "config": {
             "csv": args.csv,
-            "mask_threshold": args.mask_threshold,
-            "ghost_threshold": args.ghost_threshold,
+            "mask_threshold": float(args.mask_threshold),
+            "ghost_threshold": float(args.ghost_threshold),
             "use_both": bool(args.use_both),
-            "n_examples": N,
+            "n_examples": int(N),
         },
-        "baseline_acc": baseline_acc,
-        "n_receptors": n_receptors,
-        "n_real": n_real,
-        "n_ghost": n_ghost,
-        "ghost_fraction": ghost_frac,
+        "baseline_acc": float(baseline_acc),
+        "n_receptors": int(n_receptors),
+        "n_real": int(n_real),
+        "n_ghost": int(n_ghost),
+        "ghost_fraction": float(ghost_frac),
         "max_acc_drop": float(max_drop),
-        "r2_real_only": r2_real,
-        "r2_all": r2_all,
+        "r2_real_only": float(r2_real),
+        "r2_all": float(r2_all),
         "receptors": [
             {
                 "rank": i + 1,
-                "layer": r["layer"],
-                "head": r["head"],
-                "sv_idx": r["sv_idx"],
-                "mask_weight": r["mask_weight"],
-                "auc": r["auc"],
-                "acc_drop": r["acc_drop"],
-                "cfr": r["cfr"],
-                "polarity": r["polarity"],
-                "is_ghost": r["is_ghost"],
-                "max_cos_to_real": r["max_cos_to_real"],
+                "layer": int(r["layer"]),
+                "head": int(r["head"]),
+                "sv_idx": int(r["sv_idx"]),
+                "mask_weight": float(r["mask_weight"]),
+                "auc": float(r["auc"]),
+                "acc_drop": float(r["acc_drop"]),
+                "cfr": float(r["cfr"]),
+                "polarity": int(r["polarity"]),
+                "is_ghost": bool(r["is_ghost"]),
+                "max_cos_to_real": float(r["max_cos_to_real"]),
                 "known_name": known.get((r["layer"], r["head"], r["sv_idx"]), ("", 0))[0],
             }
             for i, r in enumerate(receptor_list)
