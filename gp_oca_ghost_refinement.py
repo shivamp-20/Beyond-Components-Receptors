@@ -447,20 +447,22 @@ def main() -> None:
     print("  (verified — differences vs CFR JSON are from fresh forward pass)")
 
     # ----------------------------------------------------------------
-    # Step 6: Iterative OCA
+    # Step 6: Iterative OCA (permanent anchor — once in, never re-tested)
     # ----------------------------------------------------------------
     threshold_frac = args.accdrop_threshold / 100.0  # convert percent to fraction
-    anchor_keys = set(seed_keys)  # start with seeds
+    permanent_anchor_keys = set(seed_keys)  # seeds are permanent from the start
     iteration_history: List[Dict[str, Any]] = []
+    # Accumulate OCA results for ALL non-seeds across iterations (last test wins)
+    all_oca_results: Dict[Tuple[int, int, int], Dict[str, Any]] = {}
 
     for iteration in range(1, args.max_iterations + 1):
         print(f"\n{'='*70}")
         print(f"=== OCA ITERATION {iteration} ===")
         print(f"{'='*70}")
 
-        # Build current anchor directions
+        # Build current anchor directions (from permanent set)
         anchor_recs = [r for r in raw_real
-                       if (r["layer"], r["head"], r["sv_idx"]) in anchor_keys]
+                       if (r["layer"], r["head"], r["sv_idx"]) in permanent_anchor_keys]
         anchor_dirs = [r["direction"] for r in anchor_recs]
 
         # Gram-Schmidt orthonormalize
@@ -471,10 +473,27 @@ def main() -> None:
         for r in anchor_recs:
             print(f"  {rec_label(r)}")
 
-        # Test every non-seed receptor
-        iter_results: List[Dict[str, Any]] = []
+        # Only test candidates NOT already in the permanent anchor
+        candidates = [r for r in raw_real
+                      if (r["layer"], r["head"], r["sv_idx"]) not in permanent_anchor_keys]
 
-        for r in non_seeds:
+        if len(candidates) == 0:
+            print("  No candidates left to test.")
+            iteration_history.append({
+                "iteration": iteration,
+                "anchor_size": len(permanent_anchor_keys),
+                "subspace_dim": subspace_dim,
+                "n_new_members": 0,
+                "results": [],
+            })
+            print(f"\n*** CONVERGED at iteration {iteration} (no candidates) ***")
+            break
+
+        print(f"  Testing {len(candidates)} candidates ...")
+        iter_results: List[Dict[str, Any]] = []
+        new_member_keys: List[Tuple[int, int, int]] = []
+
+        for r in candidates:
             rkey = (r["layer"], r["head"], r["sv_idx"])
             direction = r["direction"]  # (d_model,)
 
@@ -510,7 +529,11 @@ def main() -> None:
                 r_result["oca_cfr"] = float(max(0.0, accdrop_perp / cfr_results["max_acc_drop"])) \
                     if cfr_results["max_acc_drop"] > 0 else 0.0
 
+                if accdrop_perp >= threshold_frac:
+                    new_member_keys.append(rkey)
+
             iter_results.append(r_result)
+            all_oca_results[rkey] = r_result  # store / overwrite with latest
 
         # Print iteration table
         iter_results.sort(key=lambda x: x["accdrop_perp"], reverse=True)
@@ -526,34 +549,31 @@ def main() -> None:
             print(f"{label:<20} | {ir['raw_accdrop']*100:>+11.3f} | {ir['norm_perp']:>10.4f} | "
                   f"{ir['accdrop_perp']*100:>+13.3f} | {ir['oca_cfr']:>8.4f} | {ir['oca_status']:<18}")
 
-        # Determine new anchor set: seeds + passing non-seeds
-        new_anchor_keys = set(seed_keys)
-        for ir in iter_results:
-            if ir["accdrop_perp"] >= threshold_frac:
-                new_anchor_keys.add((ir["layer"], ir["head"], ir["sv_idx"]))
+        print(f"\nNew members this iteration: {len(new_member_keys)}")
+        for mk in new_member_keys:
+            print(f"  + L{mk[0]}H{mk[1]}sv{mk[2]}")
 
-        n_passed = len(new_anchor_keys) - len(seed_keys)
-        print(f"\nNon-seeds passing threshold ({args.accdrop_threshold}%): {n_passed}")
-        print(f"New anchor set size: {len(new_anchor_keys)} (seeds={len(seed_keys)} + {n_passed} passed)")
+        # Add new members permanently
+        permanent_anchor_keys.update(new_member_keys)
+        print(f"Anchor set size: {len(permanent_anchor_keys)} (seeds={len(seed_keys)} + {len(permanent_anchor_keys) - len(seed_keys)} added)")
 
         iteration_history.append({
             "iteration": iteration,
-            "anchor_size": len(new_anchor_keys),
+            "anchor_size": len(permanent_anchor_keys),
             "subspace_dim": subspace_dim,
-            "n_passed": n_passed,
+            "n_new_members": len(new_member_keys),
             "results": iter_results,
         })
 
-        # Check convergence
-        if new_anchor_keys == anchor_keys:
-            print(f"\n*** CONVERGED at iteration {iteration} ***")
-            anchor_keys = new_anchor_keys
+        # Check convergence: no new members → done
+        if len(new_member_keys) == 0:
+            print(f"\n*** CONVERGED at iteration {iteration} (no new members) ***")
             break
-
-        anchor_keys = new_anchor_keys
 
     else:
         print(f"\n[WARN] Did not converge in {args.max_iterations} iterations.")
+
+    anchor_keys = permanent_anchor_keys  # final set for downstream code
 
     # ----------------------------------------------------------------
     # Step 7: Final summary
@@ -562,12 +582,9 @@ def main() -> None:
                          if (r["layer"], r["head"], r["sv_idx"]) in anchor_keys]
     n_final = len(final_anchor_recs)
 
-    # Get the last iteration's results for non-seeds
+    # Build results map from accumulated OCA results (covers all non-seeds)
+    last_results_map = all_oca_results
     last_iter = iteration_history[-1]
-    last_results_map = {
-        (ir["layer"], ir["head"], ir["sv_idx"]): ir
-        for ir in last_iter["results"]
-    }
 
     print(f"\n{'='*70}")
     print(f"=== CONVERGED (iteration {last_iter['iteration']}) ===")
@@ -850,7 +867,7 @@ def main() -> None:
                 "iteration": int(h["iteration"]),
                 "anchor_size": int(h["anchor_size"]),
                 "subspace_dim": int(h["subspace_dim"]),
-                "n_passed": int(h["n_passed"]),
+                "n_new_members": int(h["n_new_members"]),
             }
             for h in iteration_history
         ],
