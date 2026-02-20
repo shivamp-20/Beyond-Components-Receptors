@@ -575,17 +575,35 @@ def main() -> None:
     # Threshold lines
     ax.axvline(x=gender_thr, color="gray", linestyle="--", linewidth=1.5, alpha=0.7)
     ax.axhline(y=dark_thr, color="gray", linestyle="--", linewidth=1.5, alpha=0.7)
-    # Quadrant labels
-    xmax = ax.get_xlim()[1]
-    ymax = ax.get_ylim()[1]
-    ax.text(gender_thr * 0.3, ymax * 0.9, "G fail", fontsize=12, fontweight="bold",
-            color="gray", ha="center", va="top")
-    ax.text(xmax * 0.7, dark_thr * 0.3, "D fail", fontsize=12, fontweight="bold",
-            color="gray", ha="center", va="center")
-    ax.text(gender_thr * 0.3, dark_thr * 0.3, "GD fail", fontsize=12, fontweight="bold",
-            color="gray", ha="center", va="center")
-    ax.text(xmax * 0.7, ymax * 0.9, "OK", fontsize=12, fontweight="bold",
-            color="gray", ha="center", va="top")
+
+    # Force axis limits with a bit of padding, starting at 0
+    x_data_max = max(prm2.max(), gender_thr * 2)
+    y_data_max = max(prm_dark.max(), dark_thr * 2)
+    ax.set_xlim(-x_data_max * 0.03, x_data_max * 1.05)
+    ax.set_ylim(-y_data_max * 0.03, y_data_max * 1.05)
+    xmin_ax, xmax_ax = ax.get_xlim()
+    ymin_ax, ymax_ax = ax.get_ylim()
+
+    # Quadrant label positions: midpoint of each quadrant region
+    x_left = (xmin_ax + gender_thr) / 2     # midpoint of left region
+    x_right = (gender_thr + xmax_ax) / 2    # midpoint of right region
+    y_bottom = (ymin_ax + dark_thr) / 2     # midpoint of bottom region
+    y_top = (dark_thr + ymax_ax) / 2        # midpoint of top region
+
+    # Error counts per quadrant
+    err_G = int((type_G & error_np).sum())
+    err_D = int((type_D & error_np).sum())
+    err_GD = int((type_GD & error_np).sum())
+    err_OK = int((type_OK & error_np).sum())
+
+    quad_style = dict(fontsize=12, fontweight="bold", ha="center", va="center",
+                      bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.7, edgecolor="gray"))
+
+    ax.text(x_left, y_top, f"G fail\n({err_G} err)", color="darkorange", **quad_style)
+    ax.text(x_right, y_bottom, f"D fail\n({err_D} err)", color="purple", **quad_style)
+    ax.text(x_left, y_bottom, f"GD fail\n({err_GD} err)", color="darkred", **quad_style)
+    ax.text(x_right, y_top, f"OK\n({err_OK} err)", color="green", **quad_style)
+
     ax.set_xlabel("|g₁ − g₃| (Gender Margin)", fontsize=12)
     ax.set_ylabel("|g_dark| (Dark Receptor Activation)", fontsize=12)
     ax.set_title("Error Landscape: Gender Margin vs Dark Receptor", fontsize=14)
