@@ -100,18 +100,6 @@ def batches(n, batch_size):
         yield i, min(i + batch_size, n)
 
 
-def manual_ln(x: torch.Tensor, weight: torch.Tensor, bias: torch.Tensor,
-              eps: float = 1e-5) -> torch.Tensor:
-    """
-    Manual LayerNorm matching TransformerLens ln_final.
-    x: (..., d_model)
-    weight, bias: (d_model,)
-    """
-    mean = x.mean(dim=-1, keepdim=True)
-    var = x.var(dim=-1, keepdim=True, unbiased=False)
-    x_norm = (x - mean) / (var + eps).sqrt()
-    return x_norm * weight + bias
-
 
 # =====================================================================
 # Main
@@ -157,8 +145,14 @@ def main() -> None:
     d_model = model.cfg.d_model    # 768
 
     # Verify model component shapes
-    print(f"  model.ln_final.w.shape = {model.ln_final.w.shape}  (expect (768,))")
-    print(f"  model.ln_final.b.shape = {model.ln_final.b.shape}  (expect (768,))")
+    # TransformerLens may fold ln_final weights into W_U (fold_ln=True by default).
+    # In that case, ln_final is LayerNormPre (no .w/.b) and W_U already includes them.
+    ln_has_weight = hasattr(model.ln_final, "w") and model.ln_final.w is not None
+    if ln_has_weight:
+        print(f"  model.ln_final.w.shape = {model.ln_final.w.shape}  (has learned params)")
+        print(f"  model.ln_final.b.shape = {model.ln_final.b.shape}")
+    else:
+        print(f"  model.ln_final type    = {type(model.ln_final).__name__} (no learned params — folded into W_U)")
     print(f"  model.W_U.shape        = {model.W_U.shape}  (expect (768, 50257))")
     print(f"  model.b_U.shape        = {model.b_U.shape}  (expect (50257,))")
 
@@ -429,10 +423,26 @@ def main() -> None:
     print(f"{'='*60}")
 
     # Get model components for manual logit computation (move to CPU for safety)
-    ln_final_weight = model.ln_final.w.detach().cpu().float()  # (768,)
-    ln_final_bias = model.ln_final.b.detach().cpu().float()    # (768,)
     W_U = model.W_U.detach().cpu().float()                     # (768, 50257)
     b_U = model.b_U.detach().cpu().float()                     # (50257,)
+
+    # We use model.ln_final as a callable module. This handles both:
+    #   - LayerNormPre (fold_ln=True): just center+scale, no learned params
+    #   - LayerNorm (fold_ln=False): center+scale + learned weight/bias
+    def apply_ln_final(x: torch.Tensor) -> torch.Tensor:
+        """Apply model.ln_final to CPU tensor x."""
+        with torch.no_grad():
+            params = list(model.ln_final.parameters())
+            if len(params) == 0:
+                # LayerNormPre — no params, works on any device
+                return model.ln_final(x.float())
+            else:
+                # Has learned params — move to CPU, apply, move back
+                orig_device = params[0].device
+                model.ln_final.cpu()
+                out = model.ln_final(x.float())
+                model.ln_final.to(orig_device)
+                return out
 
     # Final residual streams: post-block-11, BEFORE ln_final
     # In TransformerLens, blocks.11.hook_resid_post is after block 11, before ln_final
@@ -440,7 +450,7 @@ def main() -> None:
 
     # --- Sanity check: reconstruct IOI accuracy from manual computation ---
     print("\n[SANITY CHECK] Reconstructing IOI accuracy manually ...")
-    recon_logits = manual_ln(final_resid, ln_final_weight, ln_final_bias) @ W_U + b_U
+    recon_logits = apply_ln_final(final_resid) @ W_U + b_U
     # (N, 50257)
 
     recon_io_logits = torch.tensor(
@@ -483,7 +493,7 @@ def main() -> None:
         ablated_resid = final_resid - projections * v_k_cpu.unsqueeze(0)  # (N, 768)
 
         # Recompute logits through ln_final + W_U + b_U
-        abl_logits = manual_ln(ablated_resid, ln_final_weight, ln_final_bias) @ W_U + b_U
+        abl_logits = apply_ln_final(ablated_resid) @ W_U + b_U
 
         abl_io = torch.tensor(
             [abl_logits[i, io_token_ids[i]].item() for i in range(n_examples)]
