@@ -28,8 +28,16 @@ from scipy.sparse import csr_matrix
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 import matplotlib
-matplotlib.use("Agg")  # non-interactive backend; plt.show() will still work in Kaggle
+matplotlib.use("Agg")  # non-interactive backend; saves to file
 import matplotlib.pyplot as plt
+
+# Helper: np.quantile 'method' param was called 'interpolation' before numpy 1.22
+def _quantile_higher(arr, q):
+    """Compute quantile with method='higher', compatible across numpy versions."""
+    try:
+        return float(np.quantile(arr, q, method="higher"))
+    except TypeError:
+        return float(np.quantile(arr, q, interpolation="higher"))
 
 print("=" * 80)
 print("CIVET FEASIBILITY TEST 1: THE DISCRIMINATION TEST")
@@ -38,7 +46,7 @@ print(f"PyTorch version: {torch.__version__}")
 print(f"CUDA available: {torch.cuda.is_available()}")
 if torch.cuda.is_available():
     print(f"GPU: {torch.cuda.get_device_name(0)}")
-    print(f"VRAM: {torch.cuda.get_device_properties(0).total_mem / 1e9:.1f} GB")
+    print(f"VRAM: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB")
 print()
 
 # ============================================================
@@ -477,6 +485,29 @@ print("=" * 80)
 alpha = 0.05
 results = {}
 
+# Build one-hot token features ONCE (same for all features)
+unique_tokens_disc = np.unique(tokens_discover)
+token_to_col = {int(t): c for c, t in enumerate(unique_tokens_disc)}
+n_token_features = len(unique_tokens_disc)
+print(f"Unique tokens in discover set: {n_token_features}")
+
+def build_onehot(token_ids):
+    rows, cols, vals = [], [], []
+    for r, t in enumerate(token_ids):
+        t = int(t)
+        if t in token_to_col:
+            rows.append(r)
+            cols.append(token_to_col[t])
+            vals.append(1.0)
+    return csr_matrix((vals, (rows, cols)), shape=(len(token_ids), n_token_features))
+
+print("Building one-hot matrices (one-time cost)...")
+t0_oh = time.time()
+X_disc = build_onehot(tokens_discover)
+X_cal = build_onehot(tokens_cal)
+X_test = build_onehot(tokens_test)
+print(f"  Done in {time.time()-t0_oh:.1f}s. X_disc shape: {X_disc.shape}")
+
 # We'll store full R distributions for Feature 1 for the histogram plot
 feat1_R_distributions = {}
 
@@ -517,25 +548,6 @@ for i, feat_idx in enumerate(selected_features):
     # Sanity
     assert norm_acts_cal.min() >= 0.0 and norm_acts_cal.max() <= 1.0 + 1e-9
     assert norm_acts_test.min() >= 0.0 and norm_acts_test.max() <= 1.0 + 1e-9
-
-    # --- One-hot token features (sparse) ---
-    unique_tokens_disc = np.unique(tokens_discover)
-    token_to_col = {int(t): c for c, t in enumerate(unique_tokens_disc)}
-    n_token_features = len(unique_tokens_disc)
-
-    def build_onehot(token_ids):
-        rows, cols, vals = [], [], []
-        for r, t in enumerate(token_ids):
-            t = int(t)
-            if t in token_to_col:
-                rows.append(r)
-                cols.append(token_to_col[t])
-                vals.append(1.0)
-        return csr_matrix((vals, (rows, cols)), shape=(len(token_ids), n_token_features))
-
-    X_disc = build_onehot(tokens_discover)
-    X_cal = build_onehot(tokens_cal)
-    X_test = build_onehot(tokens_test)
 
     # ======================================================
     # INTERPRETATION 1: CORRECT
@@ -605,7 +617,7 @@ for i, feat_idx in enumerate(selected_features):
 
         n_cal_pts = len(R_cal_aa)
         q_level = min((1 - alpha) * (1 + 1 / n_cal_pts), 1.0)
-        q_hat_aa = float(np.quantile(R_cal_aa, q_level, method="higher"))
+        q_hat_aa = _quantile_higher(R_cal_aa, q_level)
 
         coverage_aa = float(np.mean(R_test_aa <= q_hat_aa))
 
@@ -616,7 +628,7 @@ for i, feat_idx in enumerate(selected_features):
         R_cal_cc = ((acts_cal > threshold) != (g_cal > 0.5)).astype(float)
         R_test_cc = ((acts_test > threshold) != (g_test > 0.5)).astype(float)
 
-        q_hat_cc = float(np.quantile(R_cal_cc, q_level, method="higher"))
+        q_hat_cc = _quantile_higher(R_cal_cc, q_level)
         coverage_cc = float(np.mean(R_test_cc <= q_hat_cc))
 
         median_R_test_cc = float(np.median(R_test_cc))
@@ -923,4 +935,16 @@ print("  2. test1_coverage_gap.png")
 print("  3. test1_score_distributions_f1.png")
 print("  4. test1_pvalues.png")
 print("  5. test1_results.json")
-print("\nDone! Total features tested:", n_feat)
+print()
+print("TO VIEW IMAGES INLINE, run this in the NEXT Kaggle cell:")
+print("  from IPython.display import Image, display")
+print("  for f in ['test1_coverage_by_type.png', 'test1_coverage_gap.png',")
+print("            'test1_score_distributions_f1.png', 'test1_pvalues.png']:")
+print("      print(f'\\n--- {f} ---')")
+print("      display(Image(filename=f))")
+print()
+print("TO VIEW JSON, run in the NEXT Kaggle cell:")
+print("  import json")
+print("  with open('test1_results.json') as f: print(json.dumps(json.load(f), indent=2))")
+print()
+print("Done! Total features tested:", n_feat)
