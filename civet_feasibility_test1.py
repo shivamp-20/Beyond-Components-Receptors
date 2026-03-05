@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-# CIVET_FEASIBILITY_TEST1 — VERSION 3 — 2025-03-05
+# CIVET_FEASIBILITY_TEST1 — VERSION 4 — 2025-03-05
 # If you see this line printed below, you have the correct file.
-print(">>> SCRIPT VERSION: civet_feasibility_test1.py VERSION 3 (2025-03-05)")
+print(">>> SCRIPT VERSION: civet_feasibility_test1.py VERSION 4 (2025-03-05)")
 
 """
 CIVET Feasibility Test 1: The Discrimination Test
@@ -193,9 +193,13 @@ if chosen_release is None:
     for rel, sid in known:
         try:
             print(f"  Trying: release={rel}  sae_id={sid} ...")
-            _sae, _, _ = SAE.from_pretrained(release=rel, sae_id=sid)
+            result = SAE.from_pretrained(release=rel, sae_id=sid)
+            # New API returns just SAE; old API returns tuple
+            if isinstance(result, tuple):
+                del result
+            else:
+                del result
             chosen_release, chosen_sae_id = rel, sid
-            del _sae
             torch.cuda.empty_cache()
             gc.collect()
             print(f"  SUCCESS!")
@@ -224,17 +228,68 @@ print(f"Loading model: {model_name}")
 model = HookedTransformer.from_pretrained(model_name)
 
 print(f"Loading SAE: release={chosen_release}, sae_id={chosen_sae_id}")
-sae_obj, cfg_dict, sparsity_data = SAE.from_pretrained(
-    release=chosen_release, sae_id=chosen_sae_id,
-)
+result = SAE.from_pretrained(release=chosen_release, sae_id=chosen_sae_id)
+if isinstance(result, tuple):
+    sae_obj = result[0]
+else:
+    sae_obj = result
 
 model = model.to(device)
 sae_obj = sae_obj.to(device)
 
+
+# --- Robustly extract SAE config (attribute names change across versions) ---
+def get_sae_attr(sae, *candidates, default=None):
+    """Try multiple attribute names on sae and sae.cfg."""
+    for attr in candidates:
+        # Try sae.cfg.attr
+        if hasattr(sae, "cfg") and hasattr(sae.cfg, attr):
+            return getattr(sae.cfg, attr)
+        # Try sae.attr directly
+        if hasattr(sae, attr):
+            return getattr(sae, attr)
+    return default
+
+
+# Hook name (where SAE hooks into the model)
+sae_hook_name = get_sae_attr(sae_obj, "hook_name", "hook_point", "hook_point_name")
+if sae_hook_name is None:
+    # Parse from sae_id: "blocks.8.hook_resid_pre" → "blocks.8.hook_resid_pre"
+    sae_hook_name = chosen_sae_id
+    print(f"  (hook_name not in config; using sae_id as hook name: {sae_hook_name})")
+
+# Hook layer
+sae_hook_layer = get_sae_attr(sae_obj, "hook_layer", "hook_point_layer")
+if sae_hook_layer is None:
+    # Parse from hook name: "blocks.8.hook_resid_pre" → 8
+    import re
+    m = re.search(r"blocks\.(\d+)\.", sae_hook_name)
+    sae_hook_layer = int(m.group(1)) if m else 8
+    print(f"  (hook_layer not in config; parsed from hook name: {sae_hook_layer})")
+
+# SAE width
+sae_width = get_sae_attr(sae_obj, "d_sae", "d_hidden", "n_features")
+if sae_width is None:
+    # Infer from weight matrix
+    if hasattr(sae_obj, "W_enc"):
+        sae_width = sae_obj.W_enc.shape[-1]
+    elif hasattr(sae_obj, "W_dec"):
+        sae_width = sae_obj.W_dec.shape[0]
+    else:
+        sae_width = "unknown"
+    print(f"  (d_sae not in config; inferred from weights: {sae_width})")
+
 print(f"\nModel: {model.cfg.model_name}")
-print(f"SAE hook: {sae_obj.cfg.hook_name}")
-print(f"SAE hook layer: {sae_obj.cfg.hook_layer}")
-print(f"SAE width (d_sae): {sae_obj.cfg.d_sae}")
+print(f"SAE hook name: {sae_hook_name}")
+print(f"SAE hook layer: {sae_hook_layer}")
+print(f"SAE width: {sae_width}")
+
+# Print all cfg attributes for debug record
+if hasattr(sae_obj, "cfg"):
+    print(f"SAE config type: {type(sae_obj.cfg).__name__}")
+    cfg_attrs = {k: str(getattr(sae_obj.cfg, k))[:80] for k in dir(sae_obj.cfg)
+                 if not k.startswith("_") and not callable(getattr(sae_obj.cfg, k, None))}
+    print(f"SAE config attrs: {cfg_attrs}")
 
 
 # ================================================================
@@ -262,8 +317,8 @@ tokens_batched = tokens[: n_seq * SEQ_LEN].reshape(n_seq, SEQ_LEN)
 print(f"Sequences: {n_seq} x {SEQ_LEN} = {n_seq * SEQ_LEN} positions")
 
 BATCH = 4
-hook_name = sae_obj.cfg.hook_name
-hook_layer = sae_obj.cfg.hook_layer
+hook_name = sae_hook_name
+hook_layer = sae_hook_layer
 
 all_feature_acts = []
 all_token_ids = []
