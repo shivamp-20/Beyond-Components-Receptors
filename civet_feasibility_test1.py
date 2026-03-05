@@ -1,17 +1,13 @@
 #!/usr/bin/env python3
+# CIVET_FEASIBILITY_TEST1 — VERSION 3 — 2025-03-05
+# If you see this line printed below, you have the correct file.
+print(">>> SCRIPT VERSION: civet_feasibility_test1.py VERSION 3 (2025-03-05)")
+
 """
 CIVET Feasibility Test 1: The Discrimination Test
 ===================================================
 Tests whether conformal prediction can discriminate between correct and wrong
 interpretations of SAE features. Run on Kaggle with a single T4 GPU.
-
-Outputs:
-  - Printed summary tables, sanity checks, pass/fail evaluation
-  - test1_coverage_by_type.png
-  - test1_coverage_gap.png
-  - test1_pvalues.png
-  - test1_score_distributions_f1.png
-  - test1_results.json
 """
 
 import sys
@@ -19,6 +15,7 @@ import time
 import json
 import gc
 import warnings
+import importlib
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -28,923 +25,779 @@ from scipy.sparse import csr_matrix
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 import matplotlib
-matplotlib.use("Agg")  # non-interactive backend; saves to file
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-# Helper: np.quantile 'method' param was called 'interpolation' before numpy 1.22
-def _quantile_higher(arr, q):
-    """Compute quantile with method='higher', compatible across numpy versions."""
+
+def quantile_higher(arr, q):
+    """np.quantile with method='higher', works across all numpy versions."""
     try:
         return float(np.quantile(arr, q, method="higher"))
     except TypeError:
         return float(np.quantile(arr, q, interpolation="higher"))
 
+
+# ================================================================
 print("=" * 80)
 print("CIVET FEASIBILITY TEST 1: THE DISCRIMINATION TEST")
 print("=" * 80)
-print(f"PyTorch version: {torch.__version__}")
+print(f"Python: {sys.version}")
+print(f"NumPy: {np.__version__}")
+print(f"PyTorch: {torch.__version__}")
 print(f"CUDA available: {torch.cuda.is_available()}")
 if torch.cuda.is_available():
     print(f"GPU: {torch.cuda.get_device_name(0)}")
     print(f"VRAM: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Device: {device}")
 print()
 
-# ============================================================
-# STEP 0: Discover available SAEs in SAELens
-# ============================================================
+# ================================================================
+# STEP 0 — Discover and select an SAE
+# ================================================================
 print("=" * 80)
-print("STEP 0: Discovering available SAE releases in SAELens")
+print("STEP 0: Discovering available SAEs in SAELens")
 print("=" * 80)
+
+import sae_lens
+print(f"sae_lens version: {sae_lens.__version__}")
 
 from sae_lens import SAE
-from sae_lens.pretrained_saes import get_pretrained_saes_directory
 
-sae_directory = get_pretrained_saes_directory()
+# --- Try every known way to get the pretrained SAE directory ---
+sae_directory = None
 
-# Print all available releases for the record
-print(f"\nTotal SAE releases/entries available: {len(sae_directory)}")
-print("\nAll release/SAE keys (showing first 50):")
-for i, key in enumerate(sorted(sae_directory.keys())):
-    if i < 50:
-        print(f"  {key}")
-    elif i == 50:
-        print(f"  ... and {len(sae_directory) - 50} more")
+# Method 1-2: known function paths via importlib (no bare import at module level)
+for method_path in [
+    "sae_lens.pretrained_saes.get_pretrained_saes_directory",
+    "sae_lens.get_pretrained_saes_directory",
+]:
+    parts = method_path.rsplit(".", 1)
+    mod_path, func_name = parts[0], parts[1]
+    try:
+        mod = importlib.import_module(mod_path)
+        func = getattr(mod, func_name)
+        sae_directory = func()
+        print(f"  Loaded via {method_path}()")
+        break
+    except (ImportError, AttributeError, ModuleNotFoundError) as e:
+        print(f"  {method_path} -> {type(e).__name__}: {e}")
 
-# The directory structure varies by SAELens version:
-#   - Newer: flat dict mapping "release::sae_id" -> PretrainedSAEInfo
-#   - Older: nested dict mapping release -> {saes_map: {sae_id: ...}}
-# We handle both.
+# Method 3: scan sae_lens top-level namespace
+if sae_directory is None:
+    print("  Scanning sae_lens namespace...")
+    for attr_name in sorted(dir(sae_lens)):
+        if any(kw in attr_name.lower() for kw in ["pretrained", "directory", "registry", "catalog"]):
+            obj = getattr(sae_lens, attr_name)
+            if callable(obj):
+                try:
+                    result = obj()
+                    if isinstance(result, dict) and len(result) > 0:
+                        sae_directory = result
+                        print(f"  Found via sae_lens.{attr_name}() -> {len(result)} entries")
+                        break
+                except Exception:
+                    pass
 
-# Strategy: look for keys containing "gpt2-small" and "resid"
-print("\n--- Searching for GPT-2 Small residual stream SAEs ---")
+# Method 4: scan known submodules
+if sae_directory is None:
+    for submod_name in ["toolkit.pretrained_saes", "toolkit", "config", "utils"]:
+        try:
+            submod = importlib.import_module(f"sae_lens.{submod_name}")
+            for attr_name in dir(submod):
+                if "directory" in attr_name.lower() or "pretrained" in attr_name.lower():
+                    obj = getattr(submod, attr_name)
+                    if callable(obj):
+                        try:
+                            result = obj()
+                            if isinstance(result, dict) and len(result) > 0:
+                                sae_directory = result
+                                print(f"  Found via sae_lens.{submod_name}.{attr_name}()")
+                                break
+                        except Exception:
+                            pass
+            if sae_directory is not None:
+                break
+        except (ImportError, ModuleNotFoundError):
+            pass
 
-# Collect candidate (release, sae_id) pairs
-candidates = []
+# --- Search directory for GPT-2 Small residual stream SAE ---
+chosen_release = None
+chosen_sae_id = None
 
-for key, val in sae_directory.items():
-    key_lower = key.lower()
-    
-    # Check if this is a flat-style key like "gpt2-small-res-jb::blocks.8.hook_resid_pre_16384"
-    if "::" in key:
-        release_part, sae_id_part = key.split("::", 1)
-        if "gpt2" in release_part.lower() and ("resid" in key_lower or "res" in key_lower):
-            candidates.append((release_part, sae_id_part, key))
-    else:
-        # Might be a release name with nested saes_map
-        if "gpt2" in key_lower:
-            # Try to get sae_ids from this release
+if sae_directory is not None:
+    print(f"\nSAE directory has {len(sae_directory)} entries.")
+    print("First 40 keys:")
+    for i, k in enumerate(sorted(sae_directory.keys())):
+        if i < 40:
+            print(f"  {k}")
+        elif i == 40:
+            print(f"  ... ({len(sae_directory) - 40} more)")
+            break
+
+    candidates = []
+    for key, val in sae_directory.items():
+        kl = key.lower()
+        if "gpt2" not in kl:
+            continue
+        if "::" in key:
+            rel, sid = key.split("::", 1)
+            if "resid" in sid.lower():
+                candidates.append((rel, sid))
+        else:
             sae_ids = []
             if hasattr(val, "saes_map"):
                 sae_ids = list(val.saes_map.keys())
             elif isinstance(val, dict) and "saes_map" in val:
                 sae_ids = list(val["saes_map"].keys())
             elif isinstance(val, dict):
-                # Maybe it's directly mapping sae_id -> info
                 sae_ids = list(val.keys())
-            
             for sid in sae_ids:
-                if "resid" in sid.lower() or "res" in sid.lower():
-                    candidates.append((key, sid, f"{key}::{sid}"))
+                if "resid" in sid.lower():
+                    candidates.append((key, sid))
 
-print(f"Found {len(candidates)} GPT-2 residual stream SAE candidates")
-for c in candidates[:20]:
-    print(f"  release={c[0]}  sae_id={c[1]}")
-if len(candidates) > 20:
-    print(f"  ... and {len(candidates) - 20} more")
+    print(f"\nGPT-2 residual stream candidates: {len(candidates)}")
+    for c in candidates[:15]:
+        print(f"  release={c[0]}  sae_id={c[1]}")
 
-# Pick the best candidate: layer 6-8, prefer 16K width
-chosen_release = None
-chosen_sae_id = None
-best_score = -1
+    best_score = -1
+    for rel, sid in candidates:
+        score = 0
+        for layer in [8, 7, 6]:
+            if f"blocks.{layer}." in sid:
+                score += 10 + (10 - abs(layer - 7))
+                break
+        if "16384" in sid:
+            score += 5
+        elif "32768" in sid:
+            score += 3
+        if "jb" in rel.lower():
+            score += 2
+        if score > best_score:
+            best_score = score
+            chosen_release = rel
+            chosen_sae_id = sid
+else:
+    print("\nCould not load SAE directory from any known API path.")
 
-for release, sae_id, full_key in candidates:
-    score = 0
-    sid_lower = sae_id.lower()
-    # Prefer layers 6-8
-    for layer in [8, 7, 6]:
-        if f"blocks.{layer}." in sae_id or f"layer_{layer}" in sid_lower:
-            score += 10 + (10 - abs(layer - 7))  # prefer layer 7-8
-            break
-    # Prefer 16K width
-    if "16384" in sae_id or "16k" in sid_lower:
-        score += 5
-    elif "32768" in sae_id or "32k" in sid_lower:
-        score += 3
-    # Prefer "res-jb" (Joseph Bloom's popular SAEs)
-    if "jb" in release.lower():
-        score += 2
-    
-    if score > best_score:
-        best_score = score
-        chosen_release = release
-        chosen_sae_id = sae_id
-
-# If no GPT-2 SAE found, try Pythia
+# --- Last resort: brute-force known good IDs ---
 if chosen_release is None:
-    print("\n--- No GPT-2 Small SAE found. Searching for Pythia-70M ---")
-    for key, val in sae_directory.items():
-        key_lower = key.lower()
-        if "pythia" in key_lower and "70m" in key_lower:
-            if "::" in key:
-                release_part, sae_id_part = key.split("::", 1)
-                if "resid" in sae_id_part.lower():
-                    chosen_release = release_part
-                    chosen_sae_id = sae_id_part
-                    break
-            else:
-                sae_ids = []
-                if hasattr(val, "saes_map"):
-                    sae_ids = list(val.saes_map.keys())
-                elif isinstance(val, dict):
-                    sae_ids = list(val.keys())
-                resid_ids = [s for s in sae_ids if "resid" in s.lower()]
-                if resid_ids:
-                    chosen_release = key
-                    chosen_sae_id = resid_ids[0]
-                    break
-
-print(f"\n>>> CHOSEN SAE RELEASE: {chosen_release}")
-print(f">>> CHOSEN SAE ID: {chosen_sae_id}")
-
-if chosen_release is None or chosen_sae_id is None:
-    # Last resort: print everything and let user pick
-    print("\nERROR: Could not auto-select an SAE. Printing full directory for manual selection:")
-    for rname, rinfo in sae_directory.items():
-        print(f"\n  Release: {rname}")
+    print("\nTrying known SAE IDs by brute force...")
+    known = [
+        ("gpt2-small-res-jb", "blocks.8.hook_resid_pre_16384"),
+        ("gpt2-small-res-jb", "blocks.7.hook_resid_pre_16384"),
+        ("gpt2-small-res-jb", "blocks.6.hook_resid_pre_16384"),
+        ("gpt2-small-res-jb", "blocks.8.hook_resid_pre"),
+        ("gpt2-small-resid-pre-v5-32k", "blocks.8.hook_resid_pre_32768"),
+    ]
+    for rel, sid in known:
         try:
-            if hasattr(rinfo, "saes_map"):
-                for sid in list(rinfo.saes_map.keys())[:10]:
-                    print(f"    {sid}")
-            elif isinstance(rinfo, dict):
-                for sid in list(rinfo.keys())[:10]:
-                    print(f"    {sid}")
-        except Exception:
-            print(f"    (could not enumerate)")
+            print(f"  Trying: release={rel}  sae_id={sid} ...")
+            _sae, _, _ = SAE.from_pretrained(release=rel, sae_id=sid)
+            chosen_release, chosen_sae_id = rel, sid
+            del _sae
+            torch.cuda.empty_cache()
+            gc.collect()
+            print(f"  SUCCESS!")
+            break
+        except Exception as e:
+            print(f"    Failed: {e}")
+
+print(f"\n>>> CHOSEN: release={chosen_release}  sae_id={chosen_sae_id}")
+if chosen_release is None:
+    print("\nFATAL: No usable SAE found.")
+    print("sae_lens attrs:", [x for x in dir(sae_lens) if not x.startswith("_")])
     sys.exit(1)
 
-# ============================================================
-# STEP 1: Load Model and SAE
-# ============================================================
+
+# ================================================================
+# STEP 1 — Load model and SAE
+# ================================================================
 print("\n" + "=" * 80)
 print("STEP 1: Loading model and SAE")
 print("=" * 80)
 
 from transformer_lens import HookedTransformer
 
-# Determine model name from release
 model_name = "gpt2-small" if "gpt2" in chosen_release.lower() else "pythia-70m-deduped"
 print(f"Loading model: {model_name}")
 model = HookedTransformer.from_pretrained(model_name)
 
 print(f"Loading SAE: release={chosen_release}, sae_id={chosen_sae_id}")
-sae, cfg_dict, sparsity_data = SAE.from_pretrained(
-    release=chosen_release,
-    sae_id=chosen_sae_id,
+sae_obj, cfg_dict, sparsity_data = SAE.from_pretrained(
+    release=chosen_release, sae_id=chosen_sae_id,
 )
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = model.to(device)
-sae = sae.to(device)
+sae_obj = sae_obj.to(device)
 
 print(f"\nModel: {model.cfg.model_name}")
-print(f"SAE hook: {sae.cfg.hook_name}")
-print(f"SAE hook layer: {sae.cfg.hook_layer}")
-print(f"SAE width (d_sae): {sae.cfg.d_sae}")
-print(f"Device: {device}")
+print(f"SAE hook: {sae_obj.cfg.hook_name}")
+print(f"SAE hook layer: {sae_obj.cfg.hook_layer}")
+print(f"SAE width (d_sae): {sae_obj.cfg.d_sae}")
 
-# ============================================================
-# STEP 2: Load dataset and extract activations
-# ============================================================
+
+# ================================================================
+# STEP 2 — Extract SAE feature activations
+# ================================================================
 print("\n" + "=" * 80)
-print("STEP 2: Loading dataset and extracting SAE activations")
+print("STEP 2: Loading dataset + extracting activations")
 print("=" * 80)
 
 from datasets import load_dataset
 
 dataset = load_dataset("NeelNanda/pile-10k", split="train")
-print(f"Dataset loaded: {len(dataset)} documents")
+print(f"Dataset: {len(dataset)} documents")
 
-# Concatenate and tokenize
 all_text = " ".join(dataset["text"][:200])
-tokens = model.to_tokens(all_text, prepend_bos=True)
-tokens = tokens[0]  # (seq_len,)
+tokens = model.to_tokens(all_text, prepend_bos=True)[0]
 
 N_TOKENS = min(50000, len(tokens))
 tokens = tokens[:N_TOKENS]
-print(f"Total tokens after truncation: {N_TOKENS}")
+print(f"Tokens: {N_TOKENS}")
 
-# Process in batches
 SEQ_LEN = 128
-n_sequences = N_TOKENS // SEQ_LEN
-tokens_batched = tokens[:n_sequences * SEQ_LEN].reshape(n_sequences, SEQ_LEN)
-actual_N = n_sequences * SEQ_LEN
-print(f"Sequences: {n_sequences} x {SEQ_LEN} = {actual_N} token positions")
+n_seq = N_TOKENS // SEQ_LEN
+tokens_batched = tokens[: n_seq * SEQ_LEN].reshape(n_seq, SEQ_LEN)
+print(f"Sequences: {n_seq} x {SEQ_LEN} = {n_seq * SEQ_LEN} positions")
 
-# Batch size in terms of sequences per forward pass
-BATCH_SEQ = 4  # number of sequences per batch (conservative for T4)
+BATCH = 4
+hook_name = sae_obj.cfg.hook_name
+hook_layer = sae_obj.cfg.hook_layer
 
 all_feature_acts = []
 all_token_ids = []
 
-sae.eval()
+sae_obj.eval()
 model.eval()
-
-hook_name = sae.cfg.hook_name
-hook_layer = sae.cfg.hook_layer
 
 t0 = time.time()
 with torch.no_grad():
-    for batch_start in range(0, n_sequences, BATCH_SEQ):
-        batch_end = min(batch_start + BATCH_SEQ, n_sequences)
-        batch_tokens = tokens_batched[batch_start:batch_end].to(device)
+    for bs in range(0, n_seq, BATCH):
+        be = min(bs + BATCH, n_seq)
+        bt = tokens_batched[bs:be].to(device)
 
-        # Run model up to the needed layer
         _, cache = model.run_with_cache(
-            batch_tokens,
-            stop_at_layer=hook_layer + 1,
-            names_filter=[hook_name],
+            bt, stop_at_layer=hook_layer + 1, names_filter=[hook_name],
         )
+        residual = cache[hook_name]
 
-        residual = cache[hook_name]  # (batch, seq_len, d_model)
-
-        # Get SAE feature activations (handle different SAELens API versions)
+        # Robust encode across SAELens versions
         try:
-            feature_acts = sae.encode(residual)
-            # Some versions return a tuple/named tuple
-            if isinstance(feature_acts, tuple):
-                feature_acts = feature_acts[0]
-            elif hasattr(feature_acts, "feature_acts"):
-                feature_acts = feature_acts.feature_acts
+            fa = sae_obj.encode(residual)
+            if isinstance(fa, tuple):
+                fa = fa[0]
+            elif hasattr(fa, "feature_acts"):
+                fa = fa.feature_acts
         except Exception:
-            # Fallback: use forward pass
-            sae_out = sae(residual)
-            if isinstance(sae_out, tuple):
-                feature_acts = sae_out[1] if len(sae_out) > 1 else sae_out[0]
-            elif hasattr(sae_out, "feature_acts"):
-                feature_acts = sae_out.feature_acts
+            out = sae_obj(residual)
+            if hasattr(out, "feature_acts"):
+                fa = out.feature_acts
+            elif isinstance(out, tuple):
+                fa = out[1] if len(out) > 1 else out[0]
             else:
-                feature_acts = sae_out
+                fa = out
 
-        # Flatten
-        feature_acts_flat = feature_acts.reshape(-1, feature_acts.shape[-1])
-        token_ids_flat = batch_tokens.reshape(-1)
+        fa_flat = fa.reshape(-1, fa.shape[-1])
+        tid_flat = bt.reshape(-1)
 
-        all_feature_acts.append(feature_acts_flat.cpu())
-        all_token_ids.append(token_ids_flat.cpu())
+        if bs == 0:
+            print(f"  First batch: feature_acts shape={fa.shape}, "
+                  f"min={fa_flat.min().item():.4f}, max={fa_flat.max().item():.4f}")
+            assert fa_flat.min().item() >= -1e-6, "Negative activations!"
 
-        # Print shape info on first batch for sanity
-        if batch_start == 0:
-            print(f"  First batch — feature_acts shape: {feature_acts.shape}")
-            print(f"  First batch — feature_acts_flat shape: {feature_acts_flat.shape}")
-            print(f"  Feature activations min={feature_acts_flat.min().item():.4f}, "
-                  f"max={feature_acts_flat.max().item():.4f}")
-            assert feature_acts_flat.min().item() >= -1e-6, "Negative activations in first batch!"
+        all_feature_acts.append(fa_flat.cpu())
+        all_token_ids.append(tid_flat.cpu())
 
-        del cache, residual, feature_acts, feature_acts_flat
+        del cache, residual, fa, fa_flat
         torch.cuda.empty_cache()
 
-        if (batch_start // BATCH_SEQ) % 20 == 0:
-            elapsed = time.time() - t0
-            done = batch_end
-            pct = done / n_sequences * 100
-            print(f"  Processed {done}/{n_sequences} sequences ({pct:.0f}%) [{elapsed:.1f}s]")
+        done_pct = be / n_seq * 100
+        if (bs // BATCH) % 25 == 0:
+            print(f"  {be}/{n_seq} sequences ({done_pct:.0f}%) [{time.time()-t0:.1f}s]")
 
-# Stack all batches
-all_feature_acts = torch.cat(all_feature_acts, dim=0).numpy()  # (N, d_sae)
-all_token_ids = torch.cat(all_token_ids, dim=0).numpy()        # (N,)
+all_feature_acts = torch.cat(all_feature_acts, dim=0).numpy()
+all_token_ids = torch.cat(all_token_ids, dim=0).numpy()
 
 N = all_feature_acts.shape[0]
 n_features = all_feature_acts.shape[1]
-elapsed = time.time() - t0
-print(f"\nDone in {elapsed:.1f}s")
-print(f"Feature activations shape: {all_feature_acts.shape}")
-print(f"Token IDs shape: {all_token_ids.shape}")
+print(f"\nDone in {time.time()-t0:.1f}s")
+print(f"Activations: {all_feature_acts.shape}  Tokens: {all_token_ids.shape}")
 
-# ============================================================
-# SANITY CHECK: Activations are non-trivial
-# ============================================================
-print("\n--- Sanity Check: Activation statistics ---")
-print(f"  Min activation: {all_feature_acts.min():.6f}")
-print(f"  Max activation: {all_feature_acts.max():.6f}")
-print(f"  Mean activation: {all_feature_acts.mean():.6f}")
-print(f"  Fraction of non-zero entries: {(all_feature_acts > 0).mean():.6f}")
-assert all_feature_acts.min() >= -1e-6, "ERROR: Negative activations detected!"
-print("  >> Activations are non-negative. OK.")
+print(f"\n--- Sanity: Activation stats ---")
+print(f"  min={all_feature_acts.min():.6f}  max={all_feature_acts.max():.6f}  "
+      f"mean={all_feature_acts.mean():.6f}  frac_nonzero={(all_feature_acts > 0).mean():.6f}")
+assert all_feature_acts.min() >= -1e-6, "Negative activations!"
+print("  Non-negative: OK")
 
-# Free GPU memory — we only need CPU from here on
-del model, sae
+del model, sae_obj
 torch.cuda.empty_cache()
 gc.collect()
-print("  >> GPU memory freed (model + SAE unloaded).")
+print("  GPU freed.")
 
-# ============================================================
-# STEP 3: Three-way data split
-# ============================================================
+
+# ================================================================
+# STEP 3 — Three-way split
+# ================================================================
 print("\n" + "=" * 80)
-print("STEP 3: Three-way data split")
+print("STEP 3: Three-way data split (40/30/30)")
 print("=" * 80)
 
 np.random.seed(42)
-indices = np.random.permutation(N)
-n_discover = int(0.4 * N)
+perm = np.random.permutation(N)
+n_disc = int(0.4 * N)
 n_cal = int(0.3 * N)
 
-idx_discover = indices[:n_discover]
-idx_cal = indices[n_discover:n_discover + n_cal]
-idx_test = indices[n_discover + n_cal:]
+idx_disc = perm[:n_disc]
+idx_cal = perm[n_disc : n_disc + n_cal]
+idx_test = perm[n_disc + n_cal :]
 
-print(f"  Discover set: {len(idx_discover)} tokens")
-print(f"  Calibration set: {len(idx_cal)} tokens")
-print(f"  Test set: {len(idx_test)} tokens")
+print(f"  Discover: {len(idx_disc)}  Cal: {len(idx_cal)}  Test: {len(idx_test)}")
+assert len(np.intersect1d(idx_disc, idx_cal)) == 0
+assert len(np.intersect1d(idx_disc, idx_test)) == 0
+assert len(np.intersect1d(idx_cal, idx_test)) == 0
+print("  Disjoint: OK")
 
-# Sanity: splits are disjoint
-assert len(np.intersect1d(idx_discover, idx_cal)) == 0, "Discover/Cal overlap!"
-assert len(np.intersect1d(idx_discover, idx_test)) == 0, "Discover/Test overlap!"
-assert len(np.intersect1d(idx_cal, idx_test)) == 0, "Cal/Test overlap!"
-print("  >> Splits are disjoint. OK.")
+tok_disc = all_token_ids[idx_disc]
+tok_cal = all_token_ids[idx_cal]
+tok_test = all_token_ids[idx_test]
 
-tokens_discover = all_token_ids[idx_discover]
-tokens_cal = all_token_ids[idx_cal]
-tokens_test = all_token_ids[idx_test]
 
-# ============================================================
-# STEP 4: Semi-automated feature selection (10 easy features)
-# ============================================================
+# ================================================================
+# STEP 4 — Feature selection (10 easy, high-purity features)
+# ================================================================
 print("\n" + "=" * 80)
 print("STEP 4: Semi-automated feature selection")
 print("=" * 80)
 
-acts_discover = all_feature_acts[idx_discover]  # (n_discover, n_features)
+acts_disc_all = all_feature_acts[idx_disc]
 
-# Step 4a: Find alive features (>1% activation frequency)
-activation_frequency = (acts_discover > 0).mean(axis=0)
-alive_mask = activation_frequency > 0.01
-alive_indices = np.where(alive_mask)[0]
-print(f"Alive features (>1% activation): {len(alive_indices)} / {n_features}")
+act_freq = (acts_disc_all > 0).mean(axis=0)
+alive_idx = np.where(act_freq > 0.01)[0]
+print(f"Alive features (>1%): {len(alive_idx)} / {n_features}")
 
-# Step 4b: Compute purity for each alive feature using vectorized bincount
-# We need: for each feature, the token with the highest total activation, and
-# purity = that token's share of total activation.
-# We already have the tokenizer from the model, but we freed the model.
-# Re-load tokenizer only (lightweight)
 from transformers import AutoTokenizer
-tokenizer_name = "gpt2" if "gpt2" in model_name else "EleutherAI/pythia-70m-deduped"
-tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
-vocab_size = tokenizer.vocab_size
-print(f"Vocab size: {vocab_size}")
+tok_name = "gpt2" if "gpt2" in model_name else "EleutherAI/pythia-70m-deduped"
+tokenizer = AutoTokenizer.from_pretrained(tok_name)
+V = tokenizer.vocab_size
+print(f"Vocab size: {V}")
 
-print("Computing purity scores for alive features...")
+print("Computing purity scores...")
 t0 = time.time()
+purity = np.zeros(len(alive_idx))
+dom_tok = np.zeros(len(alive_idx), dtype=np.int64)
 
-purity_scores = np.zeros(len(alive_indices))
-dominant_tokens = np.zeros(len(alive_indices), dtype=np.int64)
-
-for ai, feat_idx in enumerate(alive_indices):
-    feat_acts = acts_discover[:, feat_idx]
-    total_act = feat_acts.sum()
-    if total_act == 0:
-        purity_scores[ai] = 0.0
-        dominant_tokens[ai] = -1
+for ai, fi in enumerate(alive_idx):
+    fa = acts_disc_all[:, fi]
+    total = fa.sum()
+    if total == 0:
         continue
-
-    # Use bincount to sum activations per token type
-    token_act_sums = np.bincount(tokens_discover, weights=feat_acts, minlength=vocab_size)
-    top_token = np.argmax(token_act_sums)
-    purity_scores[ai] = token_act_sums[top_token] / total_act
-    dominant_tokens[ai] = top_token
-
+    sums = np.bincount(tok_disc, weights=fa, minlength=V)
+    top = int(np.argmax(sums))
+    purity[ai] = sums[top] / total
+    dom_tok[ai] = top
     if (ai + 1) % 500 == 0:
-        print(f"  Computed purity for {ai + 1}/{len(alive_indices)} features [{time.time()-t0:.1f}s]")
+        print(f"  {ai+1}/{len(alive_idx)} [{time.time()-t0:.1f}s]")
 
-print(f"Purity computation done in {time.time()-t0:.1f}s")
+print(f"Done in {time.time()-t0:.1f}s")
 
-# Step 4c: Select top features by purity with diverse dominant tokens
-sorted_order = np.argsort(-purity_scores)
+order = np.argsort(-purity)
+sel_feats = []
+used_toks = set()
 
-selected_features = []
-selected_dominant_tokens_set = set()
-
-for idx in sorted_order:
-    feat_idx = alive_indices[idx]
-    dom_tok = dominant_tokens[idx]
-    if dom_tok in selected_dominant_tokens_set:
+for oi in order:
+    fi = alive_idx[oi]
+    dt = dom_tok[oi]
+    if dt in used_toks:
         continue
-    if purity_scores[idx] < 0.3:
+    if purity[oi] < 0.3:
         break
-    selected_features.append(int(feat_idx))
-    selected_dominant_tokens_set.add(dom_tok)
-    if len(selected_features) >= 10:
+    sel_feats.append(int(fi))
+    used_toks.add(dt)
+    if len(sel_feats) >= 10:
         break
 
-# Relax diversity if needed
-if len(selected_features) < 10:
-    for idx in sorted_order:
-        feat_idx = alive_indices[idx]
-        if int(feat_idx) not in selected_features and purity_scores[idx] > 0.15:
-            selected_features.append(int(feat_idx))
-        if len(selected_features) >= 10:
+if len(sel_feats) < 10:
+    for oi in order:
+        fi = alive_idx[oi]
+        if int(fi) not in sel_feats and purity[oi] > 0.15:
+            sel_feats.append(int(fi))
+        if len(sel_feats) >= 10:
             break
 
-print(f"\nSelected {len(selected_features)} features for testing:")
+print(f"\nSelected {len(sel_feats)} features:")
 print("=" * 90)
+for i, fi in enumerate(sel_feats):
+    ai = int(np.where(alive_idx == fi)[0][0])
+    fa = acts_disc_all[:, fi]
+    means = np.bincount(tok_disc, weights=fa, minlength=V)
+    counts = np.bincount(tok_disc, minlength=V).astype(float)
+    counts[counts == 0] = 1.0
+    means = means / counts
+    top5 = np.argsort(-means)[:5]
+    top5_str = [(repr(tokenizer.decode([t])), f"{means[t]:.4f}") for t in top5]
 
-# Print feature selection table with top-5 tokens
-for i, feat_idx in enumerate(selected_features):
-    ai = np.where(alive_indices == feat_idx)[0][0]
-    dom_tok = dominant_tokens[ai]
-    purity = purity_scores[ai]
+    print(f"F{i+1}: sae_idx={fi}, purity={purity[ai]:.3f}, "
+          f"act_freq={act_freq[fi]:.4f}, dominant={repr(tokenizer.decode([int(dom_tok[ai])]))}")
+    print(f"    Top-5: {top5_str}")
 
-    # Top-5 tokens by mean activation
-    feat_acts = acts_discover[:, feat_idx]
-    token_act_means = np.bincount(tokens_discover, weights=feat_acts, minlength=vocab_size)
-    token_counts = np.bincount(tokens_discover, minlength=vocab_size).astype(float)
-    token_counts[token_counts == 0] = 1.0  # avoid div by zero
-    token_act_means = token_act_means / token_counts
-    
-    top5 = np.argsort(-token_act_means)[:5]
-    top5_strs = [repr(tokenizer.decode([t])) for t in top5]
-    top5_means = [f"{token_act_means[t]:.4f}" for t in top5]
+print("\n>>> HUMAN CHECK: Each feature should have a clear dominant token.")
 
-    print(f"Feature {i+1}: index={feat_idx}, purity={purity:.3f}")
-    print(f"  Dominant token: {repr(tokenizer.decode([int(dom_tok)]))}")
-    print(f"  Activation frequency: {activation_frequency[feat_idx]:.4f}")
-    print(f"  Top-5 tokens (by mean act): {list(zip(top5_strs, top5_means))}")
-    print()
 
-print(">>> HUMAN CHECK: Do these features look interpretable? Each should have")
-print("    a clear dominant token. If any look weird, note it but we proceed anyway.")
-print()
-
-# ============================================================
-# STEP 5: Fit interpretations and run conformal tests
-# ============================================================
-print("=" * 80)
-print("STEP 5: Fitting 3 interpretations per feature + conformal testing")
+# ================================================================
+# STEP 5 — Fit 3 interpretations + conformal test per feature
+# ================================================================
+print("\n" + "=" * 80)
+print("STEP 5: Interpretations + conformal testing")
 print("=" * 80)
 
 alpha = 0.05
 results = {}
 
-# Build one-hot token features ONCE (same for all features)
-unique_tokens_disc = np.unique(tokens_discover)
-token_to_col = {int(t): c for c, t in enumerate(unique_tokens_disc)}
-n_token_features = len(unique_tokens_disc)
-print(f"Unique tokens in discover set: {n_token_features}")
+uniq_tok = np.unique(tok_disc)
+tok2col = {int(t): c for c, t in enumerate(uniq_tok)}
+n_tok_feat = len(uniq_tok)
+print(f"One-hot dim: {n_tok_feat}")
 
-def build_onehot(token_ids):
+
+def build_oh(tids):
     rows, cols, vals = [], [], []
-    for r, t in enumerate(token_ids):
-        t = int(t)
-        if t in token_to_col:
+    for r, t in enumerate(tids):
+        c = tok2col.get(int(t))
+        if c is not None:
             rows.append(r)
-            cols.append(token_to_col[t])
+            cols.append(c)
             vals.append(1.0)
-    return csr_matrix((vals, (rows, cols)), shape=(len(token_ids), n_token_features))
+    return csr_matrix((vals, (rows, cols)), shape=(len(tids), n_tok_feat))
 
-print("Building one-hot matrices (one-time cost)...")
-t0_oh = time.time()
-X_disc = build_onehot(tokens_discover)
-X_cal = build_onehot(tokens_cal)
-X_test = build_onehot(tokens_test)
-print(f"  Done in {time.time()-t0_oh:.1f}s. X_disc shape: {X_disc.shape}")
 
-# We'll store full R distributions for Feature 1 for the histogram plot
-feat1_R_distributions = {}
+t0 = time.time()
+X_disc = build_oh(tok_disc)
+X_cal = build_oh(tok_cal)
+X_test = build_oh(tok_test)
+print(f"One-hot matrices built in {time.time()-t0:.1f}s. Shape: {X_disc.shape}")
 
-for i, feat_idx in enumerate(selected_features):
+feat1_R = {}
+
+for i, fi in enumerate(sel_feats):
     print(f"\n{'='*60}")
-    print(f"Processing Feature {i+1} (SAE index {feat_idx})")
+    print(f"Feature {i+1} (SAE index {fi})")
     print(f"{'='*60}")
 
-    # --- Extract activations ---
-    acts_disc = all_feature_acts[idx_discover, feat_idx]
-    acts_cal = all_feature_acts[idx_cal, feat_idx]
-    acts_test = all_feature_acts[idx_test, feat_idx]
+    ad = all_feature_acts[idx_disc, fi]
+    ac = all_feature_acts[idx_cal, fi]
+    at = all_feature_acts[idx_test, fi]
 
-    # --- Binarization threshold ---
-    sparsity_rate = (acts_disc > 0).mean()
-    if sparsity_rate > 0.05:
-        threshold = float(np.median(acts_disc))
-    else:
-        threshold = 0.0
+    sp = (ad > 0).mean()
+    thresh = float(np.median(ad)) if sp > 0.05 else 0.0
+    yd = (ad > thresh).astype(int)
+    print(f"  sparsity={sp:.4f}, thresh={thresh:.6f}, pos_rate={yd.mean():.4f}")
 
-    y_disc = (acts_disc > threshold).astype(int)
-    y_cal = (acts_cal > threshold).astype(int)
-    y_test = (acts_test > threshold).astype(int)
-    print(f"  Sparsity rate: {sparsity_rate:.4f}, Threshold: {threshold:.6f}")
-    print(f"  Positive rate (discover): {y_disc.mean():.4f}")
-
-    # --- Normalization ---
-    a_min = float(acts_disc.min())
-    a_max = float(acts_disc.max())
-    if a_max == a_min:
-        print(f"  WARNING: Feature {feat_idx} has constant activation. Skipping.")
+    amin, amax = float(ad.min()), float(ad.max())
+    if amax == amin:
+        print(f"  SKIP: constant activation")
         continue
 
-    norm_acts_disc = np.clip((acts_disc - a_min) / (a_max - a_min), 0, 1)
-    norm_acts_cal = np.clip((acts_cal - a_min) / (a_max - a_min), 0, 1)
-    norm_acts_test = np.clip((acts_test - a_min) / (a_max - a_min), 0, 1)
+    na_c = np.clip((ac - amin) / (amax - amin), 0, 1)
+    na_t = np.clip((at - amin) / (amax - amin), 0, 1)
 
-    # Sanity
-    assert norm_acts_cal.min() >= 0.0 and norm_acts_cal.max() <= 1.0 + 1e-9
-    assert norm_acts_test.min() >= 0.0 and norm_acts_test.max() <= 1.0 + 1e-9
+    # Interp 1: CORRECT
+    lr_c = LogisticRegression(penalty="l1", solver="saga", C=0.1, max_iter=5000, random_state=42)
+    lr_c.fit(X_disc, yd)
+    gc_cal = lr_c.predict_proba(X_cal)[:, 1]
+    gc_test = lr_c.predict_proba(X_test)[:, 1]
+    tr_acc = accuracy_score(yd, lr_c.predict(X_disc))
+    n_nz = int(np.sum(np.abs(lr_c.coef_[0]) > 1e-8))
+    print(f"  CORRECT: train_acc={tr_acc:.4f}, nonzero_coefs={n_nz}")
+    if tr_acc < 0.70:
+        print(f"  WARNING: low train accuracy")
 
-    # ======================================================
-    # INTERPRETATION 1: CORRECT
-    # ======================================================
-    lr_correct = LogisticRegression(
-        penalty="l1", solver="saga", C=0.1, max_iter=5000, random_state=42
-    )
-    lr_correct.fit(X_disc, y_disc)
+    # Interp 2: WRONG-BUT-PLAUSIBLE (cyclic)
+    other_fi = sel_feats[(i + 1) % len(sel_feats)]
+    ad_o = all_feature_acts[idx_disc, other_fi]
+    sp_o = (ad_o > 0).mean()
+    th_o = float(np.median(ad_o)) if sp_o > 0.05 else 0.0
+    yd_o = (ad_o > th_o).astype(int)
 
-    g_correct_cal = lr_correct.predict_proba(X_cal)[:, 1]
-    g_correct_test = lr_correct.predict_proba(X_test)[:, 1]
+    lr_w = LogisticRegression(penalty="l1", solver="saga", C=0.1, max_iter=5000, random_state=42)
+    lr_w.fit(X_disc, yd_o)
+    gw_cal = lr_w.predict_proba(X_cal)[:, 1]
+    gw_test = lr_w.predict_proba(X_test)[:, 1]
+    print(f"  WRONG-PLAUSIBLE: trained on feature {other_fi}")
 
-    train_acc = accuracy_score(y_disc, lr_correct.predict(X_disc))
-    n_nonzero = int(np.sum(np.abs(lr_correct.coef_[0]) > 1e-8))
-    print(f"  Correct interp: train_acc={train_acc:.4f}, nonzero_coefs={n_nonzero}")
+    # Interp 3: CLEARLY WRONG (random)
+    rng = np.random.RandomState(42 + fi)
+    w_r = rng.randn(n_tok_feat) / np.sqrt(n_tok_feat)
+    b_r = rng.randn()
 
-    # Sanity: train accuracy should be decent for easy features
-    if train_acc < 0.70:
-        print(f"  WARNING: Low train accuracy ({train_acc:.3f}). Feature may not be easy.")
+    def rand_g(X):
+        z = X.dot(w_r) + b_r
+        return 1.0 / (1.0 + np.exp(-np.clip(z, -20, 20)))
 
-    # ======================================================
-    # INTERPRETATION 2: WRONG-BUT-PLAUSIBLE (cyclic pairing)
-    # ======================================================
-    other_feat_idx = selected_features[(i + 1) % len(selected_features)]
-    acts_disc_other = all_feature_acts[idx_discover, other_feat_idx]
+    gr_cal = rand_g(X_cal)
+    gr_test = rand_g(X_test)
 
-    sparsity_other = (acts_disc_other > 0).mean()
-    thresh_other = float(np.median(acts_disc_other)) if sparsity_other > 0.05 else 0.0
-    y_disc_other = (acts_disc_other > thresh_other).astype(int)
+    # Conformal testing
+    feat_res = {"feature_index": int(fi), "feature_rank": i + 1}
+    names = ["correct", "wrong_plausible", "clearly_wrong"]
+    g_cals = [gc_cal, gw_cal, gr_cal]
+    g_tests = [gc_test, gw_test, gr_test]
 
-    lr_wrong = LogisticRegression(
-        penalty="l1", solver="saga", C=0.1, max_iter=5000, random_state=42
-    )
-    lr_wrong.fit(X_disc, y_disc_other)
+    for nm, g_c, g_t in zip(names, g_cals, g_tests):
+        Rc_aa = np.abs(na_c - g_c)
+        Rt_aa = np.abs(na_t - g_t)
+        nc = len(Rc_aa)
+        ql = min((1 - alpha) * (1 + 1 / nc), 1.0)
+        qh_aa = quantile_higher(Rc_aa, ql)
+        cov_aa = float(np.mean(Rt_aa <= qh_aa))
+        med_Rt = float(np.median(Rt_aa))
+        pv_aa = float((np.sum(Rc_aa >= med_Rt) + 1) / (nc + 1))
 
-    g_wrong_cal = lr_wrong.predict_proba(X_cal)[:, 1]
-    g_wrong_test = lr_wrong.predict_proba(X_test)[:, 1]
-    print(f"  Wrong-plausible interp: trained on feature {other_feat_idx}")
+        Rc_cc = ((ac > thresh) != (g_c > 0.5)).astype(float)
+        Rt_cc = ((at > thresh) != (g_t > 0.5)).astype(float)
+        qh_cc = quantile_higher(Rc_cc, ql)
+        cov_cc = float(np.mean(Rt_cc <= qh_cc))
+        med_Rt_cc = float(np.median(Rt_cc))
+        pv_cc = float((np.sum(Rc_cc >= med_Rt_cc) + 1) / (nc + 1))
 
-    # ======================================================
-    # INTERPRETATION 3: CLEARLY WRONG (random weights)
-    # ======================================================
-    rng = np.random.RandomState(42 + feat_idx)
-    w_random = rng.randn(n_token_features) / np.sqrt(n_token_features)
-    b_random = rng.randn()
+        feat_res[f"{nm}_aa_q_hat"] = qh_aa
+        feat_res[f"{nm}_aa_coverage"] = cov_aa
+        feat_res[f"{nm}_aa_p_value"] = pv_aa
+        feat_res[f"{nm}_aa_mean_cal"] = float(Rc_aa.mean())
+        feat_res[f"{nm}_aa_mean_test"] = float(Rt_aa.mean())
+        feat_res[f"{nm}_cc_q_hat"] = qh_cc
+        feat_res[f"{nm}_cc_coverage"] = cov_cc
+        feat_res[f"{nm}_cc_p_value"] = pv_cc
+        feat_res[f"{nm}_cc_mean_cal"] = float(Rc_cc.mean())
+        feat_res[f"{nm}_cc_mean_test"] = float(Rt_cc.mean())
 
-    def random_interp(X_sparse):
-        logits = X_sparse.dot(w_random) + b_random
-        return 1.0 / (1.0 + np.exp(-np.clip(logits, -20, 20)))
+        print(f"\n  [{nm}] AA: cov={cov_aa:.4f} q={qh_aa:.4f} p={pv_aa:.4f} "
+              f"Rcal={Rc_aa.mean():.4f} Rtest={Rt_aa.mean():.4f}")
+        print(f"  [{nm}] CC: cov={cov_cc:.4f} q={qh_cc:.4f} p={pv_cc:.4f} "
+              f"Rcal={Rc_cc.mean():.4f} Rtest={Rt_cc.mean():.4f}")
 
-    g_random_cal = random_interp(X_cal)
-    g_random_test = random_interp(X_test)
-
-    # ======================================================
-    # CONFORMAL TESTING
-    # ======================================================
-    interp_names = ["correct", "wrong_plausible", "clearly_wrong"]
-    g_cals = [g_correct_cal, g_wrong_cal, g_random_cal]
-    g_tests = [g_correct_test, g_wrong_test, g_random_test]
-
-    feature_results = {"feature_index": int(feat_idx), "feature_rank": i + 1}
-
-    for name, g_cal, g_test in zip(interp_names, g_cals, g_tests):
-        # --- AA Score ---
-        R_cal_aa = np.abs(norm_acts_cal - g_cal)
-        R_test_aa = np.abs(norm_acts_test - g_test)
-
-        n_cal_pts = len(R_cal_aa)
-        q_level = min((1 - alpha) * (1 + 1 / n_cal_pts), 1.0)
-        q_hat_aa = _quantile_higher(R_cal_aa, q_level)
-
-        coverage_aa = float(np.mean(R_test_aa <= q_hat_aa))
-
-        median_R_test_aa = float(np.median(R_test_aa))
-        p_value_aa = float((np.sum(R_cal_aa >= median_R_test_aa) + 1) / (n_cal_pts + 1))
-
-        # --- CC Score ---
-        R_cal_cc = ((acts_cal > threshold) != (g_cal > 0.5)).astype(float)
-        R_test_cc = ((acts_test > threshold) != (g_test > 0.5)).astype(float)
-
-        q_hat_cc = _quantile_higher(R_cal_cc, q_level)
-        coverage_cc = float(np.mean(R_test_cc <= q_hat_cc))
-
-        median_R_test_cc = float(np.median(R_test_cc))
-        p_value_cc = float((np.sum(R_cal_cc >= median_R_test_cc) + 1) / (n_cal_pts + 1))
-
-        # Store
-        feature_results[f"{name}_aa_q_hat"] = q_hat_aa
-        feature_results[f"{name}_aa_coverage"] = coverage_aa
-        feature_results[f"{name}_aa_p_value"] = p_value_aa
-        feature_results[f"{name}_aa_mean_cal"] = float(R_cal_aa.mean())
-        feature_results[f"{name}_aa_mean_test"] = float(R_test_aa.mean())
-        feature_results[f"{name}_cc_q_hat"] = q_hat_cc
-        feature_results[f"{name}_cc_coverage"] = coverage_cc
-        feature_results[f"{name}_cc_p_value"] = p_value_cc
-        feature_results[f"{name}_cc_mean_cal"] = float(R_cal_cc.mean())
-        feature_results[f"{name}_cc_mean_test"] = float(R_test_cc.mean())
-
-        print(
-            f"\n  [{name}] AA: coverage={coverage_aa:.4f}, q_hat={q_hat_aa:.4f}, "
-            f"p={p_value_aa:.4f}, mean_R_cal={R_cal_aa.mean():.4f}, mean_R_test={R_test_aa.mean():.4f}"
-        )
-        print(
-            f"  [{name}] CC: coverage={coverage_cc:.4f}, q_hat={q_hat_cc:.4f}, "
-            f"p={p_value_cc:.4f}, mean_R_cal={R_cal_cc.mean():.4f}, mean_R_test={R_test_cc.mean():.4f}"
-        )
-
-        # Save full R distributions for Feature 1 for histogram plot
         if i == 0:
-            feat1_R_distributions[f"{name}_cal_aa"] = R_cal_aa.copy()
-            feat1_R_distributions[f"{name}_test_aa"] = R_test_aa.copy()
+            feat1_R[f"{nm}_cal"] = Rc_aa.copy()
+            feat1_R[f"{nm}_test"] = Rt_aa.copy()
 
-    # Sanity check: q_hat should be reasonable
-    q_correct = feature_results["correct_aa_q_hat"]
-    if q_correct <= 0 or q_correct >= 1:
-        print(f"  WARNING: q_hat for correct interp is {q_correct:.4f} (expected 0.2-0.7)")
-    else:
-        print(f"\n  Sanity: q_hat_correct={q_correct:.4f} (expected ~0.2-0.7). OK.")
+    qc = feat_res["correct_aa_q_hat"]
+    print(f"\n  Sanity: q_hat_correct={qc:.4f} {'OK' if 0 < qc < 1 else 'WARNING'}")
 
-    results[f"feature_{i+1}"] = feature_results
+    results[f"feature_{i+1}"] = feat_res
 
-# ============================================================
-# STEP 6: Summary table and Pass/Fail evaluation
-# ============================================================
+
+# ================================================================
+# STEP 6 — Summary table + Pass/Fail
+# ================================================================
 print("\n\n" + "=" * 100)
 print("SUMMARY TABLE: FEASIBILITY TEST 1 RESULTS")
 print("=" * 100)
-print(
-    f"\n{'Feature':<10} {'Type':<20} {'AA Coverage':<14} {'AA p-value':<12} "
-    f"{'CC Coverage':<14} {'CC p-value':<12} {'AA mean_R':<12}"
-)
+hdr = f"{'Feat':<6} {'Type':<20} {'AA Cov':<10} {'AA p':<10} {'CC Cov':<10} {'CC p':<10} {'AA mR':<10}"
+print(hdr)
 print("-" * 100)
 
-correct_coverages_aa = []
-wrong_coverages_aa = []
-random_coverages_aa = []
-correct_pvalues_aa = []
-wrong_pvalues_aa = []
-random_pvalues_aa = []
-coverage_gaps = []
+c_cov, w_cov, r_cov = [], [], []
+c_pv, w_pv, r_pv = [], [], []
+gaps = []
 
-for i in range(len(selected_features)):
-    key = f"feature_{i+1}"
-    if key not in results:
+for i in range(len(sel_feats)):
+    k = f"feature_{i+1}"
+    if k not in results:
         continue
-    r = results[key]
-
-    for interp_type in ["correct", "wrong_plausible", "clearly_wrong"]:
-        cov_aa = r[f"{interp_type}_aa_coverage"]
-        p_aa = r[f"{interp_type}_aa_p_value"]
-        cov_cc = r[f"{interp_type}_cc_coverage"]
-        p_cc = r[f"{interp_type}_cc_p_value"]
-        mean_r = r[f"{interp_type}_aa_mean_test"]
-
-        print(
-            f"F{i+1:<9} {interp_type:<20} {cov_aa:<14.4f} {p_aa:<12.4f} "
-            f"{cov_cc:<14.4f} {p_cc:<12.4f} {mean_r:<12.4f}"
-        )
-
-    correct_coverages_aa.append(r["correct_aa_coverage"])
-    wrong_coverages_aa.append(r["wrong_plausible_aa_coverage"])
-    random_coverages_aa.append(r["clearly_wrong_aa_coverage"])
-    correct_pvalues_aa.append(r["correct_aa_p_value"])
-    wrong_pvalues_aa.append(r["wrong_plausible_aa_p_value"])
-    random_pvalues_aa.append(r["clearly_wrong_aa_p_value"])
-    coverage_gaps.append(r["correct_aa_coverage"] - r["wrong_plausible_aa_coverage"])
+    r = results[k]
+    for tp in ["correct", "wrong_plausible", "clearly_wrong"]:
+        print(f"F{i+1:<5} {tp:<20} {r[f'{tp}_aa_coverage']:<10.4f} {r[f'{tp}_aa_p_value']:<10.4f} "
+              f"{r[f'{tp}_cc_coverage']:<10.4f} {r[f'{tp}_cc_p_value']:<10.4f} "
+              f"{r[f'{tp}_aa_mean_test']:<10.4f}")
+    c_cov.append(r["correct_aa_coverage"])
+    w_cov.append(r["wrong_plausible_aa_coverage"])
+    r_cov.append(r["clearly_wrong_aa_coverage"])
+    c_pv.append(r["correct_aa_p_value"])
+    w_pv.append(r["wrong_plausible_aa_p_value"])
+    r_pv.append(r["clearly_wrong_aa_p_value"])
+    gaps.append(r["correct_aa_coverage"] - r["wrong_plausible_aa_coverage"])
     print()
 
-n_feat = len(correct_coverages_aa)
-correct_coverages_aa = np.array(correct_coverages_aa)
-wrong_coverages_aa = np.array(wrong_coverages_aa)
-random_coverages_aa = np.array(random_coverages_aa)
-correct_pvalues_aa = np.array(correct_pvalues_aa)
-wrong_pvalues_aa = np.array(wrong_pvalues_aa)
-random_pvalues_aa = np.array(random_pvalues_aa)
-coverage_gaps = np.array(coverage_gaps)
+nf = len(c_cov)
+c_cov = np.array(c_cov); w_cov = np.array(w_cov); r_cov = np.array(r_cov)
+c_pv = np.array(c_pv); w_pv = np.array(w_pv); r_pv = np.array(r_pv)
+gaps = np.array(gaps)
 
-# --- PASS / FAIL ---
 print("\n" + "=" * 80)
 print("PASS / FAIL EVALUATION")
 print("=" * 80)
 
-# Criterion 1
-c1_pass = int(np.sum(correct_coverages_aa >= 0.93))
-c1_fail_hard = int(np.sum(correct_coverages_aa < 0.85))
-print(f"\n[Criterion 1: Correct interp coverage >= 0.93]")
-print(f"  Features passing: {c1_pass}/{n_feat}")
-print(f"  Features with coverage < 0.85: {c1_fail_hard}/{n_feat}")
-print(f"  Coverages: {correct_coverages_aa.round(4).tolist()}")
-if c1_fail_hard > 3:
-    print(f"  >>> KILL: {c1_fail_hard} features have coverage < 0.85 (threshold: >3 kills)")
-else:
-    print(f"  >>> OK")
+c1_hard_fail = int(np.sum(c_cov < 0.85))
+print(f"\n[C1: Correct coverage >= 0.93]")
+print(f"  Passing: {int(np.sum(c_cov >= 0.93))}/{nf}")
+print(f"  Hard fail (<0.85): {c1_hard_fail}/{nf}")
+print(f"  Values: {c_cov.round(4).tolist()}")
+print(f"  {'>>> KILL' if c1_hard_fail > 3 else '>>> OK'}")
 
-# Criterion 2
-c2_rejected = int(np.sum((random_coverages_aa <= 0.50) | (random_pvalues_aa < 0.05)))
-c2_fail = int(np.sum(random_coverages_aa > 0.85))
-print(f"\n[Criterion 2: Clearly wrong rejected]")
-print(f"  Features rejected (cov<=0.50 or p<0.05): {c2_rejected}/{n_feat}")
-print(f"  Features with coverage > 0.85: {c2_fail}/{n_feat}")
-print(f"  Coverages: {random_coverages_aa.round(4).tolist()}")
-print(f"  P-values: {random_pvalues_aa.round(4).tolist()}")
+c2_rejected = int(np.sum((r_cov <= 0.50) | (r_pv < 0.05)))
+c2_fail = int(np.sum(r_cov > 0.85))
+print(f"\n[C2: Clearly wrong rejected]")
+print(f"  Rejected: {c2_rejected}/{nf}")
+print(f"  High cov (>0.85): {c2_fail}/{nf}")
+print(f"  Coverages: {r_cov.round(4).tolist()}")
+print(f"  P-values: {r_pv.round(4).tolist()}")
 if c2_fail > 3:
-    print(f"  >>> KILL: {c2_fail} features have random coverage > 0.85")
+    print(f"  >>> KILL")
 elif c2_rejected < 8:
-    print(f"  >>> WARNING: Only {c2_rejected}/{n_feat} random interps rejected (want >=8)")
+    print(f"  >>> WARNING: only {c2_rejected}/{nf} rejected")
 else:
     print(f"  >>> OK")
 
-# Criterion 3
-c3_distinguishable = int(np.sum(coverage_gaps > 0.05))
-print(f"\n[Criterion 3: Wrong-plausible distinguishable from correct]")
-print(f"  Features where correct coverage > wrong+0.05: {c3_distinguishable}/{n_feat}")
-print(f"  Coverage gaps (correct - wrong): {coverage_gaps.round(4).tolist()}")
-if c3_distinguishable < 3:
-    print(f"  >>> KILL/REDESIGN: Cannot distinguish wrong-plausible from correct")
-else:
-    print(f"  >>> OK (distinguishable for {c3_distinguishable}/{n_feat} features)")
+c3_dist = int(np.sum(gaps > 0.05))
+print(f"\n[C3: Wrong-plausible distinguishable]")
+print(f"  Distinguishable: {c3_dist}/{nf}")
+print(f"  Gaps: {gaps.round(4).tolist()}")
+print(f"  {'>>> KILL/REDESIGN' if c3_dist < 3 else f'>>> OK ({c3_dist}/{nf})'}")
 
-# Overall verdict
-print(f"\n{'='*80}")
-kill_flags = []
-if c1_fail_hard > 3:
-    kill_flags.append("Criterion 1 FAILED: correct interps rejected too often")
+kills = []
+if c1_hard_fail > 3:
+    kills.append("C1: correct interps rejected too often")
 if c2_fail > 3:
-    kill_flags.append("Criterion 2 FAILED: random interps not rejected")
-if c3_distinguishable < 3:
-    kill_flags.append("Criterion 3 FAILED: cannot distinguish wrong-plausible from correct")
+    kills.append("C2: random interps not rejected")
+if c3_dist < 3:
+    kills.append("C3: cannot distinguish wrong-plausible from correct")
 
-if len(kill_flags) == 0:
-    print("OVERALL VERDICT: PASS — Proceed to Feasibility Test 2")
+print(f"\n{'='*80}")
+if not kills:
+    print("OVERALL VERDICT: PASS -- Proceed to Feasibility Test 2")
 else:
-    print(f"OVERALL VERDICT: FAIL ({len(kill_flags)} criteria failed)")
-    for flag in kill_flags:
-        print(f"  - {flag}")
+    print(f"OVERALL VERDICT: FAIL ({len(kills)} criteria)")
+    for kf in kills:
+        print(f"  - {kf}")
 print("=" * 80)
 
-# ============================================================
-# STEP 7: Plots
-# ============================================================
+
+# ================================================================
+# STEP 7 — Plots
+# ================================================================
 print("\n" + "=" * 80)
 print("STEP 7: Generating plots")
 print("=" * 80)
 
-# PLOT 1: Bar chart of AA coverage by interpretation type
 fig, ax = plt.subplots(figsize=(14, 6))
-x = np.arange(n_feat)
-width = 0.25
-
-ax.bar(x - width, correct_coverages_aa, width, label="Correct", color="#2ecc71")
-ax.bar(x, wrong_coverages_aa, width, label="Wrong-plausible", color="#e67e22")
-ax.bar(x + width, random_coverages_aa, width, label="Clearly wrong", color="#e74c3c")
-
-ax.axhline(y=0.95, color="black", linestyle="--", linewidth=1, label="Target coverage (0.95)")
-ax.axhline(y=0.85, color="gray", linestyle=":", linewidth=1, label="Kill threshold (0.85)")
-ax.set_xlabel("Feature")
-ax.set_ylabel("Empirical Coverage (AA score)")
+x = np.arange(nf); w = 0.25
+ax.bar(x - w, c_cov, w, label="Correct", color="#2ecc71")
+ax.bar(x, w_cov, w, label="Wrong-plausible", color="#e67e22")
+ax.bar(x + w, r_cov, w, label="Clearly wrong", color="#e74c3c")
+ax.axhline(0.95, color="k", ls="--", lw=1, label="Target (0.95)")
+ax.axhline(0.85, color="gray", ls=":", lw=1, label="Kill (0.85)")
+ax.set_xlabel("Feature"); ax.set_ylabel("AA Coverage")
 ax.set_title("Feasibility Test 1: Conformal Coverage by Interpretation Type")
-ax.set_xticks(x)
-ax.set_xticklabels([f"F{i+1}" for i in range(n_feat)])
-ax.legend(loc="lower left")
-ax.set_ylim(0, 1.05)
+ax.set_xticks(x); ax.set_xticklabels([f"F{i+1}" for i in range(nf)])
+ax.legend(loc="lower left"); ax.set_ylim(0, 1.05)
 plt.tight_layout()
 plt.savefig("test1_coverage_by_type.png", dpi=150, bbox_inches="tight")
-plt.show()
+plt.close()
 print("Saved: test1_coverage_by_type.png")
 
-# PLOT 2: Coverage gap per feature
 fig, ax = plt.subplots(figsize=(12, 5))
-colors = ["#2ecc71" if g > 0.05 else "#e74c3c" for g in coverage_gaps]
-ax.bar(range(n_feat), coverage_gaps, color=colors)
-ax.axhline(y=0.05, color="black", linestyle="--", linewidth=1, label="Min discriminative gap (0.05)")
-ax.axhline(y=0.0, color="gray", linestyle="-", linewidth=0.5)
-ax.set_xlabel("Feature")
-ax.set_ylabel("Coverage Gap (Correct - Wrong-plausible)")
+bar_cols = ["#2ecc71" if g > 0.05 else "#e74c3c" for g in gaps]
+ax.bar(range(nf), gaps, color=bar_cols)
+ax.axhline(0.05, color="k", ls="--", lw=1, label="Min gap (0.05)")
+ax.axhline(0.0, color="gray", ls="-", lw=0.5)
+ax.set_xlabel("Feature"); ax.set_ylabel("Gap (Correct - Wrong)")
 ax.set_title("Feasibility Test 1: Discriminative Power per Feature")
-ax.set_xticks(range(n_feat))
-ax.set_xticklabels([f"F{i+1}" for i in range(n_feat)])
+ax.set_xticks(range(nf)); ax.set_xticklabels([f"F{i+1}" for i in range(nf)])
 ax.legend()
 plt.tight_layout()
 plt.savefig("test1_coverage_gap.png", dpi=150, bbox_inches="tight")
-plt.show()
+plt.close()
 print("Saved: test1_coverage_gap.png")
 
-# PLOT 3: Score distributions for Feature 1
-if feat1_R_distributions:
+if feat1_R:
     fig, axes = plt.subplots(1, 3, figsize=(16, 4))
     r1 = results.get("feature_1", {})
-
-    for idx_p, (name, label, color) in enumerate([
+    for j, (nm, lab, col) in enumerate([
         ("correct", "Correct", "#2ecc71"),
         ("wrong_plausible", "Wrong-plausible", "#e67e22"),
         ("clearly_wrong", "Clearly wrong", "#e74c3c"),
     ]):
-        ax = axes[idx_p]
-        cal_key = f"{name}_cal_aa"
-        test_key = f"{name}_test_aa"
-        if cal_key in feat1_R_distributions and test_key in feat1_R_distributions:
-            ax.hist(
-                feat1_R_distributions[cal_key], bins=50, alpha=0.5, density=True,
-                label="Cal", color="steelblue",
-            )
-            ax.hist(
-                feat1_R_distributions[test_key], bins=50, alpha=0.5, density=True,
-                label="Test", color=color,
-            )
-        cov = r1.get(f"{name}_aa_coverage", float("nan"))
-        pv = r1.get(f"{name}_aa_p_value", float("nan"))
-        ax.set_title(f"{label}\ncov={cov:.3f}, p={pv:.4f}")
-        ax.set_xlabel("Nonconformity score R_AA")
-        ax.set_ylabel("Density")
-        ax.legend(fontsize=8)
-
-    plt.suptitle("Feature 1: Nonconformity Score Distributions (AA)", fontsize=13)
+        ax = axes[j]
+        ck, tk = f"{nm}_cal", f"{nm}_test"
+        if ck in feat1_R:
+            ax.hist(feat1_R[ck], bins=50, alpha=0.5, density=True, label="Cal", color="steelblue")
+            ax.hist(feat1_R[tk], bins=50, alpha=0.5, density=True, label="Test", color=col)
+        cv = r1.get(f"{nm}_aa_coverage", float("nan"))
+        pv = r1.get(f"{nm}_aa_p_value", float("nan"))
+        ax.set_title(f"{lab}\ncov={cv:.3f}, p={pv:.4f}")
+        ax.set_xlabel("R_AA"); ax.set_ylabel("Density"); ax.legend(fontsize=8)
+    plt.suptitle("Feature 1: Nonconformity Score Distributions", fontsize=13)
     plt.tight_layout()
     plt.savefig("test1_score_distributions_f1.png", dpi=150, bbox_inches="tight")
-    plt.show()
+    plt.close()
     print("Saved: test1_score_distributions_f1.png")
 
-# PLOT 4: P-values comparison
 fig, ax = plt.subplots(figsize=(12, 5))
-x = np.arange(n_feat)
-width = 0.25
-ax.bar(x - width, correct_pvalues_aa, width, label="Correct", color="#2ecc71")
-ax.bar(x, wrong_pvalues_aa, width, label="Wrong-plausible", color="#e67e22")
-ax.bar(x + width, random_pvalues_aa, width, label="Clearly wrong", color="#e74c3c")
-ax.axhline(y=0.05, color="black", linestyle="--", linewidth=1, label="α = 0.05")
-ax.set_xlabel("Feature")
-ax.set_ylabel("Conformal p-value")
+ax.bar(x - w, c_pv, w, label="Correct", color="#2ecc71")
+ax.bar(x, w_pv, w, label="Wrong-plausible", color="#e67e22")
+ax.bar(x + w, r_pv, w, label="Clearly wrong", color="#e74c3c")
+ax.axhline(0.05, color="k", ls="--", lw=1, label="alpha=0.05")
+ax.set_xlabel("Feature"); ax.set_ylabel("p-value")
 ax.set_title("Feasibility Test 1: Conformal P-values by Interpretation Type")
-ax.set_xticks(x)
-ax.set_xticklabels([f"F{i+1}" for i in range(n_feat)])
+ax.set_xticks(x); ax.set_xticklabels([f"F{i+1}" for i in range(nf)])
 ax.legend()
 plt.tight_layout()
 plt.savefig("test1_pvalues.png", dpi=150, bbox_inches="tight")
-plt.show()
+plt.close()
 print("Saved: test1_pvalues.png")
 
-# ============================================================
-# STEP 8: Save JSON results
-# ============================================================
+
+# ================================================================
+# STEP 8 — Save JSON
+# ================================================================
 print("\n" + "=" * 80)
-print("STEP 8: Saving JSON results")
+print("STEP 8: Saving results")
 print("=" * 80)
 
-results_clean = {}
+res_out = {}
 for k, v in results.items():
-    results_clean[k] = {kk: vv for kk, vv in v.items() if not isinstance(vv, (list, np.ndarray))}
+    res_out[k] = {kk: vv for kk, vv in v.items() if not isinstance(vv, (list, np.ndarray))}
 
-results_clean["summary"] = {
-    "n_features_tested": n_feat,
-    "n_tokens_total": int(N),
-    "n_discover": int(len(idx_discover)),
+res_out["summary"] = {
+    "n_features": nf,
+    "n_tokens": int(N),
+    "n_discover": int(len(idx_disc)),
     "n_cal": int(len(idx_cal)),
     "n_test": int(len(idx_test)),
     "alpha": alpha,
-    "correct_coverages_aa": correct_coverages_aa.tolist(),
-    "wrong_coverages_aa": wrong_coverages_aa.tolist(),
-    "random_coverages_aa": random_coverages_aa.tolist(),
-    "correct_pvalues_aa": correct_pvalues_aa.tolist(),
-    "wrong_pvalues_aa": wrong_pvalues_aa.tolist(),
-    "random_pvalues_aa": random_pvalues_aa.tolist(),
-    "coverage_gaps": coverage_gaps.tolist(),
+    "correct_coverages_aa": c_cov.tolist(),
+    "wrong_coverages_aa": w_cov.tolist(),
+    "random_coverages_aa": r_cov.tolist(),
+    "correct_pvalues_aa": c_pv.tolist(),
+    "wrong_pvalues_aa": w_pv.tolist(),
+    "random_pvalues_aa": r_pv.tolist(),
+    "coverage_gaps": gaps.tolist(),
     "model": model_name,
     "sae_release": chosen_release,
     "sae_id": chosen_sae_id,
-    "overall_verdict": "PASS" if len(kill_flags) == 0 else "FAIL",
-    "kill_flags": kill_flags,
+    "verdict": "PASS" if not kills else "FAIL",
+    "kill_flags": kills,
 }
 
 with open("test1_results.json", "w") as f:
-    json.dump(results_clean, f, indent=2)
+    json.dump(res_out, f, indent=2)
 print("Saved: test1_results.json")
 
-# Print compact version for easy copy-paste
 print("\n\nCOMPACT RESULTS (copy this):")
-print(json.dumps(results_clean["summary"], indent=2))
+print(json.dumps(res_out["summary"], indent=2))
 
-# Print file listing
 print("\n\n" + "=" * 80)
-print("OUTPUT FILES (download these from Kaggle):")
-print("=" * 80)
-print("  1. test1_coverage_by_type.png")
-print("  2. test1_coverage_gap.png")
-print("  3. test1_score_distributions_f1.png")
-print("  4. test1_pvalues.png")
-print("  5. test1_results.json")
+print("OUTPUT FILES:")
+print("  test1_coverage_by_type.png")
+print("  test1_coverage_gap.png")
+print("  test1_score_distributions_f1.png")
+print("  test1_pvalues.png")
+print("  test1_results.json")
 print()
-print("TO VIEW IMAGES INLINE, run this in the NEXT Kaggle cell:")
+print("TO DISPLAY IMAGES, run in the NEXT Kaggle cell:")
 print("  from IPython.display import Image, display")
-print("  for f in ['test1_coverage_by_type.png', 'test1_coverage_gap.png',")
-print("            'test1_score_distributions_f1.png', 'test1_pvalues.png']:")
-print("      print(f'\\n--- {f} ---')")
-print("      display(Image(filename=f))")
+print("  for f in ['test1_coverage_by_type.png','test1_coverage_gap.png',")
+print("            'test1_score_distributions_f1.png','test1_pvalues.png']:")
+print("      print(f); display(Image(filename=f))")
 print()
-print("TO VIEW JSON, run in the NEXT Kaggle cell:")
-print("  import json")
-print("  with open('test1_results.json') as f: print(json.dumps(json.load(f), indent=2))")
-print()
-print("Done! Total features tested:", n_feat)
+print(f"Done! {nf} features tested.")
