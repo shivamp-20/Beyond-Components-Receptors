@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-# CIVET_FEASIBILITY_TEST1 — VERSION 4 — 2025-03-05
+# CIVET_FEASIBILITY_TEST1 — VERSION 5 — 2025-03-05
 # If you see this line printed below, you have the correct file.
-print(">>> SCRIPT VERSION: civet_feasibility_test1.py VERSION 4 (2025-03-05)")
+print(">>> SCRIPT VERSION: civet_feasibility_test1.py VERSION 5 (2025-03-05)")
 
 """
 CIVET Feasibility Test 1: The Discrimination Test
@@ -304,12 +304,24 @@ from datasets import load_dataset
 dataset = load_dataset("NeelNanda/pile-10k", split="train")
 print(f"Dataset: {len(dataset)} documents")
 
-all_text = " ".join(dataset["text"][:200])
-tokens = model.to_tokens(all_text, prepend_bos=True)[0]
+# Tokenize documents INDIVIDUALLY to avoid GPT-2's 1024-token context limit.
+# model.to_tokens() truncates to max_seq_len, so we use the raw tokenizer instead.
+raw_tokenizer = model.tokenizer
+all_token_list = []
+TARGET_TOKENS = 55000  # aim for a bit more than 50K to have margin
+
+for doc_idx, doc in enumerate(dataset):
+    encoded = raw_tokenizer.encode(doc["text"])
+    all_token_list.extend(encoded)
+    if len(all_token_list) >= TARGET_TOKENS:
+        break
+
+print(f"Tokenized {doc_idx + 1} documents -> {len(all_token_list)} tokens")
+tokens = torch.tensor(all_token_list, dtype=torch.long)
 
 N_TOKENS = min(50000, len(tokens))
 tokens = tokens[:N_TOKENS]
-print(f"Tokens: {N_TOKENS}")
+print(f"Using {N_TOKENS} tokens")
 
 SEQ_LEN = 128
 n_seq = N_TOKENS // SEQ_LEN
